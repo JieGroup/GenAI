@@ -7,7 +7,7 @@ build:
     python: "3.8"  # Specify the Python version
 
 sphinx:
-  configuration: docs/conf.py
+  configuration: docs/source/conf.py
 
 python:
   install:
