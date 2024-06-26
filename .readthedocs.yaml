@@ -1,4 +1,4 @@
-# .readthedocs.yml
+# .readthedocs.yaml
 version: 2
 
 sphinx:
