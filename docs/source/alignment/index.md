@@ -1,7 +1,4 @@
-.. _safety:
-
-9. Safty in Generative AI
-=========================
+# 4. Human Value Alignment
 
 Welcome to the Introduction to Generative AI course!
 
