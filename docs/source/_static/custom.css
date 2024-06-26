@@ -1,0 +1,33 @@
+/* custom.css */
+
+/* Customize the sidebar background color */
+.wy-side-nav-search {
+    background: #f8f9fa;
+}
+
+/* Customize the main content area */
+.wy-nav-content {
+    padding: 20px;
+}
+
+/* Customize the header */
+.wy-nav-top {
+    background: #343a40;
+    color: white;
+}
+
+/* Customize the footer */
+.rst-footer-buttons {
+    background: #343a40;
+    color: white;
+    padding: 10px;
+}
+
+/* Customize links */
+a {
+    color: #007bff;
+}
+
+a:hover {
+    color: #0056b3;
+}
