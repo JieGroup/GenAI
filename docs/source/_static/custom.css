@@ -1,5 +1,9 @@
 /* custom.css */
 
+body {
+    font-size: 18px;  /* Adjust the base font size as needed */
+}
+
 /* Customize the sidebar background color */
 .wy-side-nav-search {
     background: #f8f9fa;
@@ -30,4 +34,27 @@ a {
 
 a:hover {
     color: #0056b3;
+}
+
+.md-clipboard.md-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.7em;  /* Adjusted font size */
+    color: #333;
+    transition: color 0.3s;
+}
+
+.md-clipboard.md-icon:hover {
+    color: #007acc;
+}
+
+.md-clipboard.md-icon::before {
+    content: '\f0c5'; /* Font Awesome clipboard icon */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 1em;  /* Adjusted font size for icon */
 }
