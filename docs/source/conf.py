@@ -35,6 +35,9 @@ html_static_path = ['_static']
 html_css_files = [
     'custom.css',
 ]
+html_js_files = [
+    'custom.js',
+]
 
 html_theme_options = {
     'canonical_url': '',

@@ -7,6 +7,7 @@
 :caption: Contents:
 
 introduction/index
+quickreview/index
 llm/index
 training/index
 alignment/index
