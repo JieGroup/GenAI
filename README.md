@@ -1,18 +1,32 @@
-# GenAI
-GenAI Course
+# GenAI: Open-Source Course on Generative Artificial Intelligence
+Democratizing AI Expertise and Technology for All
 
-## Contributing
+![GenAI Logo](./img/logo.png)
 
-We welcome contributions from everyone and are grateful for every pull request that brings us closer to our goal of making [GenAI] more efficient and accessible. If you're interested in helping, please take a moment to review our [contributing guidelines](./CONTRIBUTING.md).
+## Welcome to GenAI!
+Artificial Intelligence (AI) has transformed from a niche specialty into a cornerstone of modern technology, influencing countless aspects of our daily lives and work. This repository houses the GenAI course, an initiative dedicated to democratizing AI expertise and technology. We aim to provide both  engineering skills for practical applications and theoretical knowledge for innovations, making AI accessible to everyone from PhD candidates to industry professionals seeking to enhance their skill sets.
 
-Contributing to this project is not only about sending pull requests. There are many ways to contribute:
-- Report bugs and make suggestions by opening [issues](https://github.com/your_username/your_repository/issues).
-- Improve or expand our documentation.
-- Write tutorials or blog posts that help fellow users and developers understand and utilize [GenAI].
+### Purpose and Audience
+- **Purpose**: To build a robust foundation in Generative AI, fostering both critical thinking and creativity.
+- **Audience**: Designed for learners at all levels, from curious beginners to seasoned researchers.
 
-Your contributions will be thoroughly reviewed for clarity, consistency, and correctness. Thank you for investing your time and expertise to make this project better!
+### Course Material
+This project includes self-contained, tested code for implementing the techniques discussed in each chapter. These should be used in conjunction with the course lecture notes available at our [documentation site](https://genai-course.readthedocs.io/en/latest/index.html).
+For setting up the necessary software, please follow the [quick setup](https://genai-course.readthedocs.io/en/latest/introduction/index.html#one-time-quick-setup-of-python-environment) guide for Python.
+
+## Important Links
+Documentation: Access the full course materials and documentation [here](https://genai-course.readthedocs.io/en/latest/index.html).
+
+## How to Contribute
+We thrive on community contributions! Whether it's enhancing documentation, proposing new features, or fixing bugs, your input is valuable. Check out our [Contributing Guidelines](./CONTRIBUTING.md) for more information on how you can make a difference.
 
 ## Code of Conduct
+To ensure a welcoming and productive environment, all participants are expected to uphold our [Code of Conduct](./CODE_OF_CONDUCT.md).
 
-By participating in this project, you agree to abide by its [Code of Conduct](./CODE_OF_CONDUCT.md). We are committed to making participation in this project a respectful and harassment-free experience for everyone.
+## License
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
+
+## Acknowledgments
+This course was conceived and developed by [Prof. Jie Ding](https://jding.org). Additional contributions to the course materials were made by Xun Xian, Ganghua Wang, Qi Le, Jin Du, An Luo, and Xinran Wang, who also assist in maintaining this open-source project at the University of Minnesota.
+
 
