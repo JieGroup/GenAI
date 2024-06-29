@@ -1,8 +1,8 @@
-# GenAI: Open-Source Course on Generative Artificial Intelligence <img src="./img/logo.png" height="50">
+# <img src="./img/logo.png" height="50"> GenAI: Open-Source Course on Generative Artificial Intelligence 
 Democratizing AI Expertise and Technology for All
 
 ## Welcome to GenAI!
-Artificial Intelligence (AI) has transformed from a niche specialty into a cornerstone of modern technology, influencing countless aspects of our daily lives and work. This repository houses the GenAI course, an initiative dedicated to democratizing AI expertise and technology. We aim to provide both  engineering skills for practical applications and theoretical knowledge for innovations, making AI accessible to everyone from lab researchers to industry professionals seeking to enhance their skill sets.
+Artificial Intelligence (AI) has transformed from a niche specialty into a cornerstone of modern technology, influencing countless aspects of our daily lives and work. This repository houses the GenAI course, an initiative dedicated to democratizing AI expertise and technology. We aim to provide both  practical skills and theoretical knowledge for innovations, making AI accessible to everyone from lab researchers to industry professionals seeking to enhance their skill sets.
 
 ### Purpose and Audience
 - **Purpose**: To build a robust foundation in Generative AI, fostering both critical thinking and creativity.
