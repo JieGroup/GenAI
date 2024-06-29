@@ -1,10 +1,8 @@
-# GenAI: Open-Source Course on Generative Artificial Intelligence
+# GenAI: Open-Source Course on Generative Artificial Intelligence <img src="./img/logo.png" height="50">
 Democratizing AI Expertise and Technology for All
 
-![GenAI Logo](./img/logo.png)
-
 ## Welcome to GenAI!
-Artificial Intelligence (AI) has transformed from a niche specialty into a cornerstone of modern technology, influencing countless aspects of our daily lives and work. This repository houses the GenAI course, an initiative dedicated to democratizing AI expertise and technology. We aim to provide both  engineering skills for practical applications and theoretical knowledge for innovations, making AI accessible to everyone from PhD candidates to industry professionals seeking to enhance their skill sets.
+Artificial Intelligence (AI) has transformed from a niche specialty into a cornerstone of modern technology, influencing countless aspects of our daily lives and work. This repository houses the GenAI course, an initiative dedicated to democratizing AI expertise and technology. We aim to provide both  engineering skills for practical applications and theoretical knowledge for innovations, making AI accessible to everyone from lab researchers to industry professionals seeking to enhance their skill sets.
 
 ### Purpose and Audience
 - **Purpose**: To build a robust foundation in Generative AI, fostering both critical thinking and creativity.
@@ -27,6 +25,6 @@ To ensure a welcoming and productive environment, all participants are expected 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
 
 ## Acknowledgments
-This course was conceived and developed by [Prof. Jie Ding](https://jding.org). Additional contributions to the course materials were made by Xun Xian, Ganghua Wang, Qi Le, Jin Du, An Luo, and Xinran Wang, who also assist in maintaining this open-source project at the University of Minnesota.
+This course was conceived and developed by [Prof. Jie Ding](https://jding.org). Additional contributions to the course materials were made by [Xun Xian](https://jeremyxianx.github.io/), [Ganghua Wang](https://gwang.umn.edu/), Qi Le, Jin Du, An Luo, and Xinran Wang, who also assist in maintaining this open-source project at the University of Minnesota.
 
 
