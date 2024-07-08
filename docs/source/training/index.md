@@ -37,6 +37,17 @@ The architecture of the neural network determines the model's capabilities. The 
 
 Frameworks like PyTorch and TensorFlow provide the necessary components for neural network development.
 
+Some popular architectures include the following 
+
+| Architecture | Description | Suitable for |
+|--------------|-------------|--------------|
+| **Bi-directional Encoder Representation from Transformers (BERT)** | Encoder-only architecture, best suited for tasks that can understand language. | Classification and sentiment analysis |
+| **Generative Pre-trained Transformer (GPT)** | Decoder-only architecture suited for generative tasks and fine-tuned with labeled data on discriminative tasks. Given the unidirectional architecture, context only flows forward. The GPT framework helps achieve strong natural language understanding using a single-task-agnostic model through generative pre-training and discriminative fine-tuning. | Textual entailment, sentence similarity, question answering. |
+| **Text-To-Text Transformer (Sequence-to-Sequence models)** | Encoder-decoder architecture. It leverages the transfer learning approach to convert every text-based language problem into a text-to-text format, that is taking text as input and producing the next text as output. With a bidirectional architecture, context flows in both directions. | Translation, Question & Answering, Summarization. |
+| **Mixture of Experts (MoE)** | Model architecture decisions that can be applied to any of the‌ architectures. Designed to scale up model capacity substantially while adding minimal computation overhead, converting dense models into sparse models. The MoE layer consists of many expert models and a sparse gating function. The gates route each input to the top-K (K>=2 or K=1) best experts during inference. | Generalize well across tasks for computational efficiency during inference, with low latency |
+
+
+
 ### Creating The Transformer’s Components
 
 #### 1. Embedding Layer
