@@ -22,6 +22,7 @@ Below is a short description of Data Parallelism using ZeRO with diagram from th
 
 
 The video below shows how ZeRO (with all three stages) performs a training step including forward pass, backward pass, and parameter update: 
+
 <video controls width="480" height="270">
   <source src="https://www.microsoft.com/en-us/research/uploads/prod/2020/02/Turing-Animation.mp4?_=1" type="video/mp4">
   Your browser does not support the video tag.
