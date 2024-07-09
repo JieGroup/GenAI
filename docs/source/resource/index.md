@@ -25,7 +25,6 @@ The video below shows how ZeRO (with all three stages) performs a training step 
 
 <video controls width="480" height="270">
   <source src="https://www.microsoft.com/en-us/research/uploads/prod/2020/02/Turing-Animation.mp4?_=1" type="video/mp4">
-  Your browser does not support the video tag.
 </video>
 
 ### Using Accelerate with DeepSpeed ZeRO
