@@ -21,7 +21,11 @@ The ZeRO optimizer has three stages, each progressively offloading more data to 
 Below is a short description of Data Parallelism using ZeRO with diagram from this [blog post](https://www.microsoft.com/en-us/research/blog/zero-deepspeed-new-system-optimizations-enable-training-models-with-over-100-billion-parameters/): ![ZeRO Data Parallelism](https://www.microsoft.com/en-us/research/uploads/prod/2020/02/DeepSpeed-Image-1.png) *Figure 1: Memory savings and communication volume for the three stages of ZeRO compared with standard data parallel baseline. In the memory consumption formula, Ψ refers to the number of parameters in a model and K is the optimizer specific constant term. As a specific example, we show the memory consumption for a 7.5B parameter model using [Adam](https://arxiv.org/pdf/1412.6980.pdf) optimizer where K=12 on 64 GPUs. We also show the communication volume of ZeRO relative to the baseline.*
 
 
-The video below shows how ZeRO (with all three stages) performs a training step including forward pass, backward pass, and parameter update: <video controls> <source src="https://www.microsoft.com/en-us/research/uploads/prod/2020/02/Turing-Animation.mp4?_=1" type="video/mp4"> Your browser does not support the video tag. </video>
+The video below shows how ZeRO (with all three stages) performs a training step including forward pass, backward pass, and parameter update: 
+<video controls width="480" height="270">
+  <source src="https://www.microsoft.com/en-us/research/uploads/prod/2020/02/Turing-Animation.mp4?_=1" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ### Using Accelerate with DeepSpeed ZeRO
 
