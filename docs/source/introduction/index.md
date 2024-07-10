@@ -96,7 +96,7 @@ All course materials have been developed for the Python 3.8 environment. Detaile
 Thanks to the generous support from MSI at UMN, we will have educational account for all participants of the class. Students can access GPU cluster and slurm fair queueing system to access computation resources needed to practice the learned stuff and accompllish course-related research projects. 
  
 Thanks to the generous support from Minnesota Supercomputing Institute (MSI), all UMN course participants will receive an educational account providing access to a GPU cluster equipped with a Slurm fair queuing system. This setup allows you to utilize necessary computational resources to practice the techniques learned and to conduct research projects related to the course.
- 
+
 ### (One-time) Quick Setup of Python Environment
 
 This guide provides step-by-step instructions on how to create a Python virtual environment named `GenAI` using Python 3.8, and then how to install packages using a `requirements.txt` file.
@@ -181,3 +181,47 @@ If you have a `requirements.txt` file that lists all the packages you want to in
    ```bash
    pip install -r requirements.txt
    ```
+
+
+### Essential Skills for Mastering GenAI
+
+Here are detailed resources to help you develop critical skills for conducting advanced R&D. While Python and PyTorch are required, familiarity with other technologies listed will greatly enhance your learning experience and capability to handle advanced topics.
+
+#### Learn Python
+
+Python is a fundamental skill for anyone working in data science and AI. Here are some great resources to get started or to sharpen your Python skills:
+
+-   [Python Official Tutorial](https://docs.python.org/3/tutorial/index.html) - Ideal for beginners.
+-   [Real Python](https://realpython.com) - Offers in-depth tutorials and explanations on various Python topics.
+-   [Automate the Boring Stuff with Python](https://automatetheboringstuff.com) - A practical and fun approach to learning Python.
+
+#### Learn Pytorch
+
+PyTorch is one of the leading libraries for machine learning and neural network research. Here's where you can learn more about it:
+
+-   [PyTorch Official Tutorials](https://pytorch.org/tutorials/) - Comprehensive tutorials from the official PyTorch website.
+-   Deep Learning with PyTorch: A 60 Minute Blitz - A quick introduction to the core concepts of PyTorch.
+-   [PyTorch Fundamentals by Yann LeCun](https://www.youtube.com/watch?v=1cHT7GehzqY) - A video tutorial by one of the pioneers in deep learning.
+
+#### Learn CUDA
+
+CUDA is a parallel computing platform and application programming interface model created by Nvidia. It allows software developers to use a CUDA-enabled graphics processing unit (GPU) for general purpose processing. Here are some tutorials to get started:
+
+-   [CUDA Tutorials on PyTorch](https://pytorch.org/tutorials/advanced/cpp_extension.html) - Learn how to extend PyTorch with custom C++ and CUDA extensions.
+-   [GPU Puzzles](https://github.com/srush/GPU-Puzzles) - Practice your GPU programming skills with these puzzles.
+
+#### Learn Slurm
+
+Slurm is a highly configurable open-source workload manager. Here are some resources to learn more about managing computing workloads:
+
+-   Official Slurm Documentation - Comprehensive resource for getting started and mastering Slurm.
+-   [Introduction to Slurm](https://www.youtube.com/watch?v=f2oZv_H7Qbc) - A YouTube tutorial providing a visual introduction to Slurm.
+
+#### Learn Kubernetes
+
+Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications. Here are some resources to get started with Kubernetes:
+
+-   Kubernetes Official Tutorials - These tutorials help you understand Kubernetes basics.
+-   Learn Kubernetes Basics - An interactive tutorial that lets you manage a simple cluster and its containerized applications.
+-   [Kubernetes Course - Full Beginners Tutorial](https://www.youtube.com/watch?v=X48VuDVv0do) - A comprehensive video tutorial for beginners.
+
