@@ -7,8 +7,9 @@ Large Language Models (LLMs) such as GPT-3/4, Falcon, and Llama are rapidly adva
 
 1. [Lower Precision](#lower-precision)
 2. [Flash Attention](#flash-attention)
-3. [Architectural Innovations](#architectural-innovations)
-4. [Conclusion](#conclusion)
+3. [Page Attention]()
+4. [KV Cache]()
+
 
 ## Lower Precision
 
@@ -347,6 +348,101 @@ Using a key-value (KV) cache in large language models (LLMs) can significantly e
 
 
 
+
+## Knowledge Distillation
+
+Knowledge distillation is a technique where a smaller, simpler model (student) learns to replicate the behavior of a larger, more complex model (teacher). This process reduces the computational resources required for inference while maintaining similar performance levels.
+
+### Process
+1. **Train the Teacher Model**: Train a large, complex model on the target task.
+2. **Generate Predictions**: Use the trained teacher model to generate predictions (soft labels) on the training data.
+3. **Train the Student Model**: Train a smaller model using the soft labels from the teacher model, aiming to match the teacher's behavior.
+
+### Advantages
+- **Reduced Model Size**: The student model is smaller and less complex, making it more efficient.
+- **Faster Inference**: The student model can process data faster, which is beneficial for real-time applications.
+- **Resource Efficiency**: Lower computational and memory requirements.
+
+### Usage in LLMs
+Knowledge distillation is widely used in LLMs to create smaller, efficient models that retain most of the performance of their larger counterparts. This is particularly useful for deploying LLMs on edge devices or in environments with limited computational resources.
+
+### Example
+```python
+import torch
+from transformers import BertModel, BertTokenizer, BertForSequenceClassification
+from transformers import DistilBertModel, DistilBertTokenizer, DistilBertForSequenceClassification
+
+# Load pre-trained teacher and student models
+teacher_model = BertForSequenceClassification.from_pretrained("bert-base-uncased")
+student_model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
+
+# Example training loop for knowledge distillation
+teacher_model.eval()
+for batch in train_dataloader:
+    inputs, labels = batch
+    with torch.no_grad():
+        teacher_outputs = teacher_model(**inputs)
+    student_outputs = student_model(**inputs)
+    
+    # Distillation loss: compare student and teacher outputs
+    distillation_loss = loss_fn(student_outputs.logits, teacher_outputs.logits)
+    
+    # Backpropagate and optimize the student model
+    distillation_loss.backward()
+    optimizer.step()
+    optimizer.zero_grad()
+```
+
+## Model Pruning
+
+Model pruning involves removing redundant or less significant weights and neurons from the model to reduce its size and improve efficiency. There are two main types of pruning: unstructured and structured.
+
+### Unstructured Pruning
+
+-   **Removes Individual Weights**: Pruning individual weights that have minimal impact on model performance.
+-   **Fine-Grained**: Provides fine control but can be harder to optimize for hardware acceleration.
+
+### Structured Pruning
+
+-   **Removes Entire Neurons or Filters**: Pruning whole neurons, channels, or filters in the network.
+-   **Easier Hardware Optimization**: Structured pruning is more compatible with hardware optimization techniques and often leads to better performance gains.
+
+### Advantages
+
+-   **Reduced Model Size**: Significantly decreases the number of parameters, leading to smaller model sizes.
+-   **Improved Inference Speed**: Less computation required, resulting in faster inference times.
+-   **Maintained Performance**: Careful pruning can maintain or even improve model performance.
+
+### Usage in LLMs
+
+Pruning is used in LLMs to create leaner versions that are more efficient in terms of both memory and computation, without compromising much on accuracy. It is particularly useful in scenarios where computational resources are limited.
+
+```python
+import tensorflow as tf
+from tensorflow_model_optimization.sparsity import keras as sparsity
+
+# Define a sample model
+original_model = tf.keras.Sequential([
+    tf.keras.layers.Dense(128, activation='relu', input_shape=(784,)),
+    tf.keras.layers.Dense(10, activation='softmax')
+])
+
+# Define pruning parameters
+pruning_params = {
+    'pruning_schedule': sparsity.PolynomialDecay(
+        initial_sparsity=0.0, final_sparsity=0.5,
+        begin_step=2000, end_step=10000
+    )
+}
+
+# Apply pruning
+pruned_model = sparsity.prune_low_magnitude(original_model, **pruning_params)
+
+# Compile and train the pruned model
+pruned_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+pruned_model.fit(train_data, train_labels, epochs=10, callbacks=[sparsity.UpdatePruningStep()])
+```
+
 ### References
 
 -   [Attention Is All You Need](https://arxiv.org/abs/1706.03762)
@@ -356,3 +452,4 @@ Using a key-value (KV) cache in large language models (LLMs) can significantly e
 -   [GPTQ Paper](https://arxiv.org/abs/2210.17323)
 -   [Rotary Position Embedding (RoPE)](https://arxiv.org/abs/2104.09864)
 -   [ALiBi (Attention Linear Biases)](https://arxiv.org/abs/2108.12409)
+
