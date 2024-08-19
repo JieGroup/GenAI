@@ -20,6 +20,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'myst_parser',  # if using Markdown
+    'sphinx.ext.mathjax',  # for MathJax support
 ]
 
 templates_path = ['_templates']
