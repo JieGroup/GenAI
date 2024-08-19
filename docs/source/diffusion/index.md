@@ -438,7 +438,7 @@ involved adds stochasticity to the generative process, allowing us to avoid dete
 See below for an example of three sampling trajectories generated with Langevin dynamics, all starting
 from the same initialization point, for a Mixture of Gaussians.
 
-![SMLD](image_markdown/smld.png)*Figure 6: Visualization of three random sampling trajectories generated with Langevin dynamics, all starting from the same initialization point, for a Mixture of Gaussians. The left figure plots these sampling trajectories on a three-dimensional contour, while the right figure plots the sampling trajectories against the groundtruth score function. From the same initialization point, we are able to generate samples from different modes due to the stochastic noise term in the Langevin dynamics sampling procedure; without it, sampling from a fixed point would always deterministically follow the score to the same mode every trial.*
+![SMLD](image_markdown/smld.png)*Figure 4: Visualization of three random sampling trajectories generated with Langevin dynamics, all starting from the same initialization point, for a Mixture of Gaussians. The left figure plots these sampling trajectories on a three-dimensional contour, while the right figure plots the sampling trajectories against the groundtruth score function. From the same initialization point, we are able to generate samples from different modes due to the stochastic noise term in the Langevin dynamics sampling procedure; without it, sampling from a fixed point would always deterministically follow the score to the same mode every trial.*
 
 ### 3.2 Score Matching Techniques <a name="sm-techniques"></a>
 
