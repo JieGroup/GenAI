@@ -1,3 +1,7 @@
+# Source Acknowledgment
+# This material includes code modified from Andrej Karpathy's repository available at https://github.com/karpathy/llama2.c.
+# The code is used under the MIT License, available at https://github.com/karpathy/llama2.c/tree/master?tab=MIT-1-ov-file#.
+
 import math
 import struct
 import inspect
