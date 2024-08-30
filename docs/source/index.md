@@ -14,9 +14,8 @@ alignment/index
 diffusion/index
 resource/index
 deployment/index
-ethics/index
+rag/index
 safety/index
-cases/index
 ```
 
 ## Indices and tables
