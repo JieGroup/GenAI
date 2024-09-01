@@ -1,11 +1,16 @@
 
 # Introduction
 
+## Acknowledgments
+This course was conceived and developed by Professor [Jie Ding](https://jding.org) of the School of Statistics at the University of Minnesota. The School of Statistics and the Minnesota Supercomputing Institute (MSI) are acknowledged for their administrative support and provision of computation and educational resources. Special thanks go to Xun Xian, Ganghua Wang, Jin Du, An Luo, Xinran Wang, Qi Le, and Ali Anwar, who provided significant contributions to the course materials and assisted in maintaining this open-source project at the University of Minnesota.
+
+
 ## The Surge of AI: Motivation for This Course
 
 Artificial Intelligence (AI) has evolved from a specialized field into a pivotal force shaping modern technology. Through our engagement with students across various disciplines, it is clear that many are intrigued by AI. They range from those engaged in PhD research to others seeking exceptional career opportunities or simply exploring their options. Despite their interest, a common challenge persists: a lack of holistic views about what to learn and how to effectively use AI tools. AI has experienced rapid advancements over the past two decades, with new methodologies and concepts emerging frequently. The terms "AI" and "Generative AI" themselves are broad, encompassing a wide range of disciplines including computer science, statistics, optimization, control, information theory, often leading to disparate interpretations and terminologies across different academic backgrounds. Fortunately, the main concepts and techniques of AI does not evolve as rapidly as it appears. Many thoughts are deeply rooted in established fields, such as how to organize data, set up the optimization problem, and interpretation of results. 
 
 This Stat 8931 course is designed with the goal of lowing the barrier for new researchers and inspiring them to pursue state-of-the-art research in the relevant fields. We aim to achieve the goal through on-site implementations, explorations, discussions, and offline communications (as suggested in the syllabus). While many excellent open-source tutorials or courses exist, focusing primarily on practical implementation, our course will be research-oriented and encourage students to critically think the future directions they might take. 
+
 
 
 ### Philosophy of Course Arrangement

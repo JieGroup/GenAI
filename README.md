@@ -25,6 +25,7 @@ To ensure a welcoming and productive environment, all participants are expected 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details.
 
 ## Acknowledgments
-This course was conceived and developed by [Prof. Jie Ding](https://jding.org). Additional contributions to the course materials were made by [Xun Xian](https://jeremyxianx.github.io/), [Ganghua Wang](https://gwang.umn.edu/), Qi Le, Jin Du, An Luo, and Xinran Wang, who also assist in maintaining this open-source project at the University of Minnesota.
+This course was conceived and developed by Professor [Jie Ding](https://jding.org) of the School of Statistics at the University of Minnesota. The School of Statistics and the Minnesota Supercomputing Institute (MSI) are acknowledged for their administrative support and provision of computation and educational resources. Special thanks go to Xun Xian, Ganghua Wang, Jin Du, An Luo, Xinran Wang, Qi Le, and Ali Anwar, who provided significant contributions to the course materials and assisted in maintaining this open-source project at the University of Minnesota.
+
 
 
