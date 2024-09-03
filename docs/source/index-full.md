@@ -9,6 +9,13 @@
 introduction/index
 quickreview/index
 llm/index
+training/index
+alignment/index
+diffusion/index
+resource/index
+deployment/index
+rag/index
+safety/index
 ```
 
 ## Indices and tables
