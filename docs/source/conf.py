@@ -48,6 +48,7 @@ html_css_files = [
     'custom.css',
 ]
 html_js_files = [
+    'https://code.jquery.com/jquery-3.6.0.min.js',  # Load jQuery
     'https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.13.5/mermaid.min.js',  # Add Mermaid JS
     'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
     'custom.js',
