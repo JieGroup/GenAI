@@ -1,6 +1,14 @@
 document.addEventListener('DOMContentLoaded', (event) => {
     console.log('Custom JS loaded');
     document.querySelectorAll('div.highlight').forEach((highlightDiv) => {
+
+
+        // Exclude Mermaid diagrams from the copy-to-clipboard functionality
+        if (highlightDiv.classList.contains('highlight-mermaid')) {
+            console.log('Skipping Mermaid diagram:', highlightDiv);
+            return;
+        }
+
         const pre = highlightDiv.querySelector('pre');
         if (pre) {
             console.log('Found code block:', pre);
@@ -35,4 +43,27 @@ document.addEventListener('DOMContentLoaded', (event) => {
             });
         }
     });
+
+
+    // Initialize Mermaid after the page loads
+    if (typeof mermaid !== 'undefined') {
+        mermaid.initialize({ startOnLoad: true });
+    } else {
+        console.error('Mermaid is not loaded');
+    }
+
+    // Initialize MathJax after the page loads
+    if (typeof MathJax !== 'undefined') {
+        MathJax.Hub.Config({
+            tex2jax: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],  // Handle inline math with $...$
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],  // Handle block math with $$...$$
+                processEscapes: true  // Escape special characters
+            }
+        });
+        console.log('MathJax initialized');
+    } else {
+        console.error('MathJax is not loaded');
+    }
+
 });
