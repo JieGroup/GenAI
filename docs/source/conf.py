@@ -27,6 +27,12 @@ extensions = [
 templates_path = ['_templates']
 exclude_patterns = []
 
+mathjax_config = {
+    "tex": {
+        "inlineMath": [['$', '$'], ['\\(', '\\)']],  # Supports both $...$ and \( ... \)
+        "displayMath": [['$$', '$$'], ['\\[', '\\]']],
+    }
+}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -38,6 +44,8 @@ html_css_files = [
     'custom.css',
 ]
 html_js_files = [
+    'https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.13.5/mermaid.min.js',  # Add Mermaid JS
+    'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
     'custom.js',
 ]
 
