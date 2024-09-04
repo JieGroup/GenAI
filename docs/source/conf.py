@@ -31,12 +31,23 @@ extensions = [
 templates_path = ['_templates']
 exclude_patterns = []
 
-mathjax_config = {
-    "tex": {
-        "inlineMath": [['$', '$'], ['\\(', '\\)']],  # Supports both $...$ and \( ... \)
-        "displayMath": [['$$', '$$'], ['\\[', '\\]']],
-    }
-}
+myst_enable_extensions = [
+    "amsmath",
+    "attrs_inline",
+    "attrs_block",
+    "colon_fence",
+    "deflist",
+    "dollarmath",
+    "fieldlist",
+    "html_admonition",
+    "html_image",
+    "linkify",
+    "replacements",
+    "smartquotes",
+    "strikethrough",
+    "substitution",
+    "tasklist",
+]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

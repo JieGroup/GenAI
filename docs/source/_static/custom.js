@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', (event) => {
     console.log('Custom JS loaded');
-
-    // Copy to clipboard logic for code blocks (highlight-default)
-    document.querySelectorAll('div.highlight-default').forEach((highlightDiv) => {
-        console.log('Processing div.highlight-default (code block):', highlightDiv);
-
+    
+    // Copy to clipboard logic for all code blocks
+    document.querySelectorAll('div.highlight').forEach((highlightDiv) => {
         const pre = highlightDiv.querySelector('pre');
         if (pre) {
             console.log('Found code block:', pre);
@@ -44,40 +42,4 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
     });
 
-    // Initialize Mermaid diagrams after the page loads (highlight-mermaid), only for logging purposes
-    document.querySelectorAll('div.highlight-mermaid').forEach((mermaidDiv) => {
-        console.log('Processing Mermaid diagram:', mermaidDiv);
-    });
-
-    if (typeof mermaid !== 'undefined') {
-        console.log('Mermaid found. Initializing Mermaid...');
-        mermaid.initialize({ startOnLoad: true });
-        console.log('Mermaid initialized');
-    } else {
-        console.error('Mermaid is not loaded');
-    }
-
-    // Initialize MathJax after the page loads (using MathJax v3 API)
-    if (typeof MathJax !== 'undefined') {
-        console.log('MathJax found. Configuring MathJax v3...');
-        
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],  // Handle inline math with $...$
-                displayMath: [['$$', '$$'], ['\\[', '\\]']],  // Handle block math with $$...$$
-                processEscapes: true  // Escape special characters
-            },
-            svg: {
-                fontCache: 'global'
-            }
-        };
-
-        MathJax.typesetPromise().then(() => {
-            console.log('MathJax typeset complete');
-        }).catch((err) => {
-            console.error('MathJax typeset failed: ', err);
-        });
-    } else {
-        console.error('MathJax is not loaded');
-    }
 });

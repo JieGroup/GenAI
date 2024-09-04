@@ -3,29 +3,32 @@
 
 ## Optimization Algorithms
 
--   Stochastic Gradient Descent (SGD) updates parameters using a subset (batch) of the data to compute the gradient, which helps in overcoming the computational challenges of handling large datasets:
-$$ w_{t+1} = w_t - \eta \cdot g_t $$
-where
-	-   $w_t$​ is the parameter vector at step $t$
-	-   $\eta$ is the learning rate
-	-   $g_t = \nabla L(w_t)$ is the gradient of the loss function $L$ with respect to $w_t$​ averaged over a batch.
+- Stochastic Gradient Descent (SGD) updates parameters using a subset (batch) of the data to compute the gradient, which helps in overcoming the computational challenges of handling large datasets:
+$ w_{t+1} = w_t - \eta \cdot g_t $, where
+    - $w_t$​ is the parameter vector at step $t$
+    - $\eta$ is the learning rate
+    - $g_t = \nabla L(w_t)$ is the gradient of the loss function $L$ with respect to $w_t$​ averaged over a batch.
 
--   ADAM (Adaptive Moment Estimation) computes adaptive learning rates for each parameter:
+- ADAM (Adaptive Moment Estimation) computes adaptive learning rates for each parameter:
+
 $$
-\begin{aligned}
 m_t &= \beta_1 m_{t-1} + (1 - \beta_1) \cdot g_t \\
 v_t &= \beta_2 v_{t-1} + (1 - \beta_2) \cdot g_t^2 \\
 \hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \\
 \hat{v}_t &= \frac{v_t}{1 - \beta_2^t} \\
-w_{t+1} &= w_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \cdot \hat{m}_t \\
-\end{aligned}
+w_{t+1} &= w_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \cdot \hat{m}_t 
 $$
-where:
-	- $m_t$ and $v_t$ are the moving averages of the gradients and squared gradients.
-	- $\beta_1$ and $\beta_2$ are the decay rates for these moving averages.
-	- $\eta$ is the learning rate.
-	- $\epsilon$ is a small scalar used to prevent division by zero.
-	- $g_t$ represents the gradient at time step $t$.
+
+- where
+  - $m_t$ and $v_t$ are the moving averages of the gradients and squared gradients.
+  - $\beta_1$ and $\beta_2$ are the decay rates for these moving averages.
+  - $\eta$ is the learning rate.
+  - $\epsilon$ is a small scalar used to prevent division by zero.
+  - $g_t$ represents the gradient at time step $t$.
+
+:::{Exercise}
+Let's give readers a helpful hint!
+:::
 
 > ADAM could converge faster than SGD because it adjusts the learning rate dynamically for each parameter based on estimates of first and second moments of the gradients. ADAM is often easier to tune due to its adaptive nature. SGD often leads to better generalization on unseen data. So some researchers leverage the fast convergence of Adam in the early phase and switch to SGD in later stages of training.
 
@@ -1001,7 +1004,7 @@ Deep learning computations can be extremely resource-intensive. Accelerating the
 
 - **CPU** vs **GPUs**:  CPUs are generally used for tasks that require less parallel computation, such as data preprocessing or running the training loop itself. GPUs, on the other hand, are optimized for highly parallelizable tasks like matrix multiplications in training neural networks.  A typical workflow:
 
-```mermaid
+```{mermaid}
 sequenceDiagram
     participant CPU as CPU
     participant GPU as GPU

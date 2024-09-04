@@ -160,7 +160,7 @@ Below, I'll outline various decoding strategies used in NLP for generating text,
 
 Always picks the next word with the highest probability. This method can lead to repetitive and predictable text. Flowchart illustration:
 
-```mermaid
+```{mermaid}
 graph LR
     A[Start Decoding] --> B{Select Next Token}
     B --> C[Choose Highest Probability Token]
@@ -335,7 +335,7 @@ A larger vocabulary enhances the model's ability to capture more context and det
 
 The diagram provides an overview of the typical steps involved in training a language model.
 
-```mermaid
+```{mermaid}
 graph TD
     A[Data Preparation] --> B[Architecture Configuration]
     B --> C[Model Training]
@@ -354,7 +354,7 @@ graph TD
 
 We will look into it through a toy model, which can be downloaded from [here]().  Its architecture is:
 
-```mermaid
+```{mermaid}
 graph LR
     A[Input Embeddings] --> B[Decoder Block 1]
     B --> C[Decoder Block 2]
