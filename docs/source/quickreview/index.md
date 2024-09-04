@@ -11,15 +11,15 @@ $ w_{t+1} = w_t - \eta \cdot g_t $, where
 
 - ADAM (Adaptive Moment Estimation) computes adaptive learning rates for each parameter:
 
-$$
-m_t &= \beta_1 m_{t-1} + (1 - \beta_1) \cdot g_t \\
-v_t &= \beta_2 v_{t-1} + (1 - \beta_2) \cdot g_t^2 \\
-\hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \\
-\hat{v}_t &= \frac{v_t}{1 - \beta_2^t} \\
-w_{t+1} &= w_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \cdot \hat{m}_t 
-$$
+  $$
+  m_t &= \beta_1 m_{t-1} + (1 - \beta_1) \cdot g_t \\
+  v_t &= \beta_2 v_{t-1} + (1 - \beta_2) \cdot g_t^2 \\
+  \hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \\
+  \hat{v}_t &= \frac{v_t}{1 - \beta_2^t} \\
+  w_{t+1} &= w_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \cdot \hat{m}_t 
+  $$
 
-- where
+  where
   - $m_t$ and $v_t$ are the moving averages of the gradients and squared gradients.
   - $\beta_1$ and $\beta_2$ are the decay rates for these moving averages.
   - $\eta$ is the learning rate.
@@ -27,8 +27,13 @@ $$
   - $g_t$ represents the gradient at time step $t$.
 
 :::{Exercise}
-Let's give readers a helpful hint!
+Let's give readers a helpful exercise!
 :::
+
+:::{Tip}
+Let's give readers a helpful exercise!
+:::
+
 
 > ADAM could converge faster than SGD because it adjusts the learning rate dynamically for each parameter based on estimates of first and second moments of the gradients. ADAM is often easier to tune due to its adaptive nature. SGD often leads to better generalization on unseen data. So some researchers leverage the fast convergence of Adam in the early phase and switch to SGD in later stages of training.
 
@@ -371,26 +376,30 @@ Everything is in place except for the loss function needed for training. But how
 
 ### From ELBO to VAE Loss
 Let’s take a step back and consider a more general framework, not limited to the VAE architecture above. Suppose we aim to map the data $x$ to some (often low-dimensional) latent variable $z$ (also referred to as the "code") and then map it back to $x$. Let $q_{\phi}(z \mid x)$ represent the parameterized encoder, and for now, we set aside the decoder. We can derive that, for any $q_{\phi}$,
+
 $$
-\begin{aligned} 
 \log p(x) & =\mathbb{E}_{q_{\phi}(z \mid x)}[\log p(x)] \\ 
 & =\mathbb{E}_{q_{\phi}(z \mid x)}\left[\log \frac{p(x, z) }{p(z \mid x)} \cdot \frac{q_{\phi}(z \mid x)}{q_{\phi}(z \mid x)}\right] \\ 
 & =\mathbb{E}_{q_{\phi}(z \mid x)}\left[\log \frac{q_{\phi}(z \mid x)}{p(z \mid x)}\right] + \mathbb{E}_{q_{\phi}(z \mid x)}\left[\log \frac{p(x, z)}{q_{\phi}(z \mid x)}\right] \\ 
 & = D_{\mathrm{KL}}\left(q_{\phi}(z \mid x) \| p(z \mid x)\right) + \mathbb{E}_{q_{\phi}(z \mid x)}\left[\log \frac{p(x, z)}{q_{\phi}(z \mid x)}\right].
-\end{aligned}
 $$
+
 The left hand side does not involve $q_{\phi}$. The right hand consists of two terms. The first term is more interpretable. It is a KL divergence term that measures the deviation of the modeled posterior (treating as $z$ as the parameter of interest under a specified model) from the true, unknown posterior $p(z \mid x)$. Therefore, it becomes a reasonable objective to minimize this term so that we obtain as an as accurate code as possible. But $p(z \mid x)$ looks more difficult to obtain compared with $p(x,z) = p(z) p(x \mid z)$, so in practice we often maximize the second term,  also known as the Evidence Lower Bound (ELBO).
 
 Why ELBO is relatively easier to approximate? Since $p(x,z) = p(z) p(x \mid z)$, we can specify $p(z)$ as the prior distribution and learn the parameterized $p_{\theta}(x \mid z)$, which directly corresponds to a decoder model.
 In summary, we now turn the modeling of a generative distribution of $x$ into the objective of 
+
 $$
 \max_{\phi, \theta} \mathbb{E}_{q_{\phi}(z \mid x)}\left[\log \frac{p(z) p_{\theta}(x \mid z)}{q_{\phi}(z \mid x)}\right]
 = - D_{\mathrm{KL}}\left(q_{\phi}(z \mid x) \| p(z)\right)  + \mathbb{E}_{q_{\phi}(z \mid x)} \log p_{\theta}(x \mid z) 
 $$
+
 or equivalently, 
+
 $$
 \min_{\phi, \theta} \textrm{loss}(x) = \textrm{loss}_{\textrm{Encoder}}(x) + \textrm{loss}_{\textrm{Decoder}}(x),
 $$
+
 where $\textrm{loss}_{\textrm{Encoder}}(x) = D_{\mathrm{KL}}\left(q_{\phi}(z \mid x) \| p(z)\right)$ aims to regularize the posterior of the code not too far from the prior distribution, and $\textrm{loss}_{\textrm{Decoder}}(x) = -\mathbb{E}_{q_{\phi}(z \mid x)} \log p_{\theta}(x \mid z)$ aims to reduce the reconstruction error.
 
 Going back to VAE case, in line with the above general loss, the VAE loss is the sum of:
@@ -398,18 +407,18 @@ Going back to VAE case, in line with the above general loss, the VAE loss is the
 -   **BCE (Binary Cross-Entropy)**
 
 We give a concrete derivation of the **KL Divergence** in VAE case. Suppose the standard Normal distribution is used for the prior distribution $p(z)$.  It is calculated that for two Normal distributions $\mathcal{N}_0(\mu_0, \sigma_0^2)$  and $\mathcal{N}_1(\mu_1, \sigma_1^2)$, the KL divergence is
+
 $$
 D_{KL}(\mathcal{N}_0 \| \mathcal{N}_1) = \log\frac{\sigma_1}{\sigma_0} + \frac{\sigma_0^2 + (\mu_0 - \mu_1)^2}{2\sigma_1^2} - \frac{1}{2}
 $$
 
 For a VAE, where $q(z|x)$ is approximated by $\mathcal{N}(z; \mu, \sigma^2)$ and $p(z) = \mathcal{N}(z; 0, I)$, we have $\mu_0 = \mu$, $\sigma_0 = \sigma = \exp\left(\frac{1}{2} \log \sigma^2\right)$, $\mu_1 = 0$, $\sigma_1 = 1$. Therefore,
+
 $$
-\begin{aligned}
  D_{\mathrm{KL}}(q(z|x) \| p(z)) 
 &= \log\frac{1}{\sigma} + \frac{\sigma^2 + \mu^2}{2} - \frac{1}{2} \\
 &= -\frac{1}{2} \log \sigma^2 + \frac{\exp(\log \sigma^2) + \mu^2}{2} - \frac{1}{2} \\
 &= -\frac{1}{2} \sum(1 + \text{logvar} - \mu^2 - \exp(\text{logvar}))
-\end{aligned}
 $$
 
 The above leads to the VAE loss:
@@ -803,28 +812,37 @@ Reinforcement Learning (RL) is a type of machine learning where an agent learns 
 
 - Policy Function
 The policy $\pi_\theta(s, a)$ specifies the probability of selecting action $a$ in state $s$ under a policy parameterized by $\theta$. The objective in policy gradient methods is to maximize the expected return from the initial state distribution:
+
 $$J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} [R(\tau)]$$
-where $R(\tau)$ denotes the return of trajectory $\tau$. The policy is updated by:
-$$\theta_{new} = \theta + \alpha \nabla_\theta J(\theta)$$
+
+where $R(\tau)$ denotes the return of trajectory $\tau$. The policy is updated by $\theta_{new} = \theta + \alpha \nabla_\theta J(\theta)$,
 where $\alpha$ is the learning rate.
 
 - Policy Gradient Theorem
 The gradient of the expected return is given by:
+
 $$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^T  G_t \nabla_\theta \log \pi_\theta(s_t, a_t) \right]$$
+
 Here, $G_t$ represents the total discounted reward from timestep $t$ to the end of the episode, and is calculated as $G_t = \sum_{k=t}^{T} \gamma^{k-t} r_k$, where $\gamma$ is the discount factor and $r_k$ is the reward received at step $k$. 
 
 
 #### Value Function and Advantage Function
 The value function $V^\pi(s)$ represents the expected return from starting in state $s$ and following policy $\pi$:
+
 $$V^\pi(s) = \mathbb{E}_{\pi} \left[ \sum_{k=0}^\infty \gamma^k r_{t+k} | S_t = s \right]$$
 
 Advantage Function $A^{\pi}(s,a)$ measures the benefit of taking a particular action $a$ in state $s$ over the average action at that state under the current policy. 
+
 $$ A^\pi(s_t, a_t) = Q^\pi(s_t, a_t) - V^\pi(s_t) = \mathbb{E}[G_t | S_t = s_t, A_t = a_t, \pi] - V^\pi(s)$$
+
 It can be shown that 
+
 $$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^T A^\pi(s_t, a_t)  \nabla_\theta \log \pi_\theta(s_t, a_t) \right]$$
 
 Generalized Advantage Estimation (GAE) uses the value function to produce a more stable estimator of the advantage function for policy gradients:
+
 $$\hat{A}_t = \sum_{k=t}^{T-1} (\gamma \lambda)^{k-t} \delta_k$$
+
 where $\delta_k = r_k + \gamma V(s_{k+1}) - V(s_k)$ represents the Temporal Difference (TD) error at step $k$, and $\lambda$ is a factor that balances bias and variance in the advantage estimation. $T$ denotes the length of the episode.
 
 
@@ -835,7 +853,9 @@ PPO, an advanced policy gradient technique, refines basic policy gradient method
 
 #### PPO Objective Function
 The objective function for PPO minimizes large updates to the policy by using a clipped surrogate objective:
+
 $$L^{CLIP}(\theta) = \hat{\mathbb{E}}_t \left[ \min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t) \right]$$
+
 where:
 - $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$ is the probability ratio.
 - $\hat{A}_t$ is the advantage estimate at timestep $t$.
