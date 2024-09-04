@@ -178,13 +178,13 @@ If you have a `requirements.txt` file that lists all the packages you want to in
    ```
 
 For Jupyter Notebook users, to ensure the newly created Conda environment named `GenAI` shows up in Jupyter Notebook, you need to install the `ipykernel` package in that environment and then register it with Jupyter. 
-```
+```bash
 pip install notebook ipykernel
 python -m ipykernel install --user --name GenAI --display-name "Python 8 (GenAI)"
 jupyter notebook
 ```
 For MSI ondemand cloud users, remember to add the following lines as attached when launching a jupyter in ondemand, so you access the right Python path once activating `GenAI`.
-```
+```bash
 module load conda
 module load cuda
 ```
@@ -206,8 +206,8 @@ Python is a fundamental skill for anyone working in data science and AI. Here ar
 PyTorch is one of the leading libraries for deep learning research. Here's where you can learn more about it:
 
 Install it immediately after setting up the Python environment!
-```
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124 # customized based on https://pytorch.org/get-started/locally/
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124 # customized based on https://pytorch.org/get-started/locally/
 ```
 -   [PyTorch Official Tutorials](https://pytorch.org/tutorials/) - Comprehensive tutorials from the official PyTorch website.
 -   [Deep Learning with PyTorch: A 60 Minute Blitz](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html) - A quick introduction to the core concepts of PyTorch.

@@ -5,13 +5,13 @@
 Let us first go through a typical procedure of loading and using a trained model. 
 
 First, let us inspect the current working directory and organize dependent files accordingly.
-```
+```python
 current_path = os.getcwd()
 print(f"Current Working Directory: {current_path}")
 ```
 
 Load some necessary packages, which requires dependent python files/modules [model.py](https://github.com/JieGroup/GenAI/blob/50daed0b92c72e2d5a1ba882b0432acf85b10daf/llm/model.py) and [tokenizer.py](https://github.com/JieGroup/GenAI/blob/2fc13ea064f1cbc7e36f87b98ac875e63ab8c1a9/llm/tokenizer.py).
-```
+```python
 from contextlib import nullcontext
 import torch
 from model import ModelArgs, Transformer
@@ -20,19 +20,19 @@ import os
 ```
 
 Put the trained language [model](https://github.com/JieGroup/GenAI/blob/9fc9ce870f6c23fee3a2224121d7a834c0bc0ecc/llm/trained_model_config1_tok32000.pt) and [tokenizer](https://github.com/JieGroup/GenAI/blob/50daed0b92c72e2d5a1ba882b0432acf85b10daf/llm/tokenizer.model) files under suitable directories
-```
+```python
 checkpoint = "models/trained_model.pt"
 tokenizer = "data/trained_tokenizer.model"
 ```
 
 We set the device to run the model. For large models, we typically need to use GPU for computational efficiency as it requires many matrix calculations.  The stage of using the model to perform tasks is often called `inference'. This does not mean the same as in statistics!
-```
+```python
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Use device: {device}")
 ```
 
 Load the pretrained model:
-```
+```python
 checkpoint_dict = torch.load(checkpoint, map_location=device)
 gptconf = ModelArgs(**checkpoint_dict['model_args'])
 model = Transformer(gptconf)
@@ -47,18 +47,18 @@ model.load_state_dict(state_dict, strict=False)
  Now, we call model.eval() to ensure that model layers behave correctly during the inference phase. This specifically affects certain PyTorch layers that behave differently during training and inference, such as: 
 > **Batch Normalization**: During training, batch normalization layers use batch statistics. In evaluation mode, these layers use running statistics computed during training.
 > **Dropout Layers**: Dropout is active during training to prevent overfitting by randomly zeroing out neuron elements. During inference, dropout is deactivated to use the full capacity of the model.
-```
+```python
 model.eval()
 model.to(device)
 ```
 
 Load the pretrained tokenizer:
-```
+```python
 enc = Tokenizer(tokenizer_model=tokenizer)
 ```
 
 Config the precision:
-```
+```python
 dtype = 'bfloat16' if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else 'float16' # 'float32' or 'bfloat16' or 'float16'
 torch.backends.cuda.matmul.allow_tf32 = True #enables the use of TF32 for matrix multiplication operations within PyTorch when using CUDA
 torch.backends.cudnn.allow_tf32 = True #enables the use of TF32 precision within the cuDNN library
@@ -72,7 +72,7 @@ ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=
 > The **ctx** context manager is for mixed precision where supported, enhancing computational efficiency without sacrificing accuracy when using GPUs
 
 Prepare the config parameters for generation/decoding:
-```
+```python
 num_samples = 1 # number of samples to draw
 max_new_tokens = 256 # number of tokens generated in each sample
 temperature = 1.0 # 1.0 = no change, < 1.0 = less random, > 1.0 = more random, in predictions
@@ -80,7 +80,7 @@ top_k = 300 # retain only the top_k most likely tokens
 ```
 
 Choose any prompt text, encode it, move to the right device (GPU if possible), and sequentially generate new texts:
-```
+```python
 start = "Once upon a time, there is a unicorn"
 start_ids = enc.encode(start, bos=True, eos=False)
 x = (torch.tensor(start_ids, dtype=torch.long, device=device)[None, ...])
@@ -101,7 +101,7 @@ As Tim walked through the mist, he started to become bitter. He did not like the
 
 Sometimes, you run into an error that says "Expected all tensors to be on the same device, but found at least two devices ..."
 If that happens, check model and data are on the same device:
-```
+```python
 print("Device of model parameters:", next(model.parameters()).device)
 print("Device of input tensor 'x':", x.device)
 ```
@@ -118,7 +118,7 @@ Let us look into the decoding method of the model.
 
 The following `generate` is a method under the model class. It takes a conditioning sequence of indices idx, which is a LongTensor of shape `(batch_size, sentence_length)`, and completes the sequence `max_new_tokens` times, feeding the predictions back into the model each time. The function is often operated under `model.eval()` mode.
 
-```
+```python
    @torch.inference_mode()
    def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
        for _ in range(max_new_tokens):
@@ -142,7 +142,7 @@ The following `generate` is a method under the model class. It takes a condition
 
 
 Suppose we propose a new decoding approach, we can use the following way to change the `model.generate` function for the loaded model instance:
-```
+```python
 def custom_generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
     # Custom generation logic here
     for _ in range(max_new_tokens):
@@ -177,7 +177,7 @@ graph LR
     style F fill:#ccf,stroke:#333,stroke-width:2px
 ```
 Sample code:
-```
+```python
 if temperature == 0.0:
     _, idx_next = torch.topk(logits, k=1, dim=-1)
     idx = torch.cat((idx, idx_next), dim=1)
@@ -186,7 +186,7 @@ if temperature == 0.0:
 #### Temperature Scaling
 
 Adjusts the "sharpness" of the probability distribution. A lower temperature makes the distribution peakier (more greedy), while a higher temperature makes the distribution flatter (more random).
-```
+```python
 logits = logits / temperature
 probs = F.softmax(logits, dim=-1)
 idx_next = torch.multinomial(probs, num_samples=1)
@@ -197,7 +197,7 @@ idx = torch.cat((idx, idx_next), dim=1)
 
 Limits the next word choices to the top k most probable words. Reduces the risk of choosing very low probability words and maintains diversity. The default decoding algorithm was set to be a combination of Top-k Sampling and Temperature Scaling.
 
-```
+```python
 if top_k is not None:
     values, indices = torch.topk(logits, k=top_k)
     logits[logits < values[:, [-1]]] = -float('Inf')
@@ -208,7 +208,7 @@ if top_k is not None:
 
 #### Top-p (Nucleus) Sampling
 Instead of cutting off at a specific number, this approach chooses the smallest set of words whose cumulative probability exceeds the probability p. This focuses on a dynamic number of high-probability words while maintaining diversity.
-```
+```python
 cum_probs = torch.cumsum(F.softmax(logits, dim=-1), dim=-1)
 threshold = torch.rand(1).item()
 idx_next = torch.min((cum_probs > threshold).nonzero(as_tuple=True)[1])
@@ -222,7 +222,7 @@ idx = torch.cat((idx, idx_next.unsqueeze(0)), dim=1)
 #### Beam-search decoding
 Beam search maintains multiple hypotheses (the "beam") at each step and expands them further by exploring several possible next steps. This strategy balances between breadth (diversity) and depth (accuracy).
 
-```
+```python
 beam_width = 5
 candidates = [idx]
 for _ in range(max_new_tokens):
@@ -261,7 +261,7 @@ Tokenization is the process of converting text into a series of tokens, which ca
 **Note**: In transformer models, the vector representation of each token, often referred to as an "embedding," is learned automatically during the training process. Unlike static embeddings (like those from Word2Vec), embeddings in transformers are context-dependent. That is, the same word can have different embeddings based on its surrounding words.
 
 **Example**: Byte Pair Encoding (BPE) is a popular subword tokenization method initially designed for data compression and later adapted for NLP tasks. BPE iteratively merges the most frequent pair of bytes or characters in a dataset into a single new token, continuing this process until a specified number of merges (vocabulary size) has been reached. Pseudocode:
-```
+```python
 Initialize vocabulary V with every unique character in the corpus
 While desired vocabulary size not reached or merges are beneficial:
     Count frequency of adjacent pairs of symbols in the corpus
@@ -276,13 +276,13 @@ For example,  suppose we have the word "hello". The initial vocabulary is {h, e,
 > [**SentencePiece**](https://github.com/google/sentencepiece) is a package that implements subword tokenization. It is language-independent and can be used to train LLMs without requiring pre-tokenized text. SentencePiece can train models directly from raw, untokenized texts, and support both BPE and unigram language model tokenization methods.
 
 Here is an example of using SentencePiece for training a tokenizer from raw text data.
-```
+```python
 import sentencepiece as spm
 spm.SentencePieceTrainer.train(input=DATA_PATH, model_prefix=SAVE_PATH, model_type="bpe", vocab_size=VOCAB_SIZE, input_format="text")
 ```
 It will create a file that contains a tokenizer model, such as [this one](https://github.com/JieGroup/GenAI/blob/50daed0b92c72e2d5a1ba882b0432acf85b10daf/llm/tok2048.model).  When we use it to encode or decode, we need to generate an instance of the following Tokenizer class.
 
-```
+```python
 import os
 from sentencepiece import SentencePieceProcessor
 
