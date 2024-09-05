@@ -26,16 +26,8 @@ $ w_{t+1} = w_t - \eta \cdot g_t $, where
   - $\epsilon$ is a small scalar used to prevent division by zero.
   - $g_t$ represents the gradient at time step $t$.
 
-:::{Exercise}
-Let's give readers a helpful exercise!
-:::
 
-:::{Tip}
-Let's give readers a helpful exercise!
-:::
-
-{attribution="Source of the quote"}
->       ADAM could converge faster than SGD because it adjusts the learning rate dynamically for each parameter based on estimates of first and second moments of the gradients. ADAM is often easier to tune due to its adaptive nature. SGD often leads to better generalization on unseen data. So some researchers leverage the fast convergence of Adam in the early phase and switch to SGD in later stages of training.
+> ADAM could converge faster than SGD because it adjusts the learning rate dynamically for each parameter based on estimates of first and second moments of the gradients. ADAM is often easier to tune due to its adaptive nature. SGD often leads to better generalization on unseen data. So some researchers leverage the fast convergence of Adam in the early phase and switch to SGD in later stages of training.
 
 
 ### Deep Learning Frameworks
@@ -135,7 +127,9 @@ In a particular run, we got the test accuracy of 0.30 after 4 epochs, with the f
 
 **Figure: A Snapshot of Logistic Regression for CIFAR10 at 4 epochs**
 
-![Sample Predictions](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/quickreview-logistic.png?raw=true)
+<!-- ![Sample Predictions](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/quickreview-logistic.png?raw=true) -->
+
+![Sample Predictions](../_static/img/quickreview-logistic.png)
 
 The low accuracy is not surprising if we visualize the data in 2D:
 
@@ -154,8 +148,9 @@ The result will be something like the following. Clearly, it is unrealistic to w
 
 **Figure: 2D visualization of CIFAR10 data**
 
-![2D visual](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/quickreview-logistic-tsne.png?raw=true)
+<!-- ![2D visual](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/quickreview-logistic-tsne.png?raw=true) -->
 
+![2D visual](../_static/img/quickreview-logistic-tsne.png)
 
 
 ### ResNet Model
@@ -259,7 +254,9 @@ In a particular run, we got the test accuracy of 0.75 after 4 epochs, with the f
 
 **Figure: A Snapshot of ResNet for CIFAR10 at 4 epochs**
 
-![Sample Predictions](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/quickreview-resnet.png?raw=true)
+<!-- ![Sample Predictions](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/quickreview-resnet.png?raw=true) -->
+![Sample Predictions](../_static/img/quickreview-resnet.png)
+
 
 The reasonably high accuracy is not surprising if we visualize the feature outputs from the second-last layer in 2D which seem to be almost linearly separable. 
 
@@ -302,7 +299,9 @@ The result will be something like the following.
 
 **Figure: 2D visualization of CIFAR10 data under a trained ResNet18**
 
-![2D visual](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/quickreview-resnet-tsne.png?raw=true)
+<!-- ![2D visual](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/quickreview-resnet-tsne.png?raw=true) -->
+
+![2D visual](../_static/img/quickreview-resnet-tsne.png)
 
 
 
@@ -503,7 +502,8 @@ For example:
 
 **Figure: Illustration of the strong data augmentation-based semisupervised learning. The ideas are theoretically formalized in Appendix D of this [paper](https://arxiv.org/pdf/2106.01432).**
 
-![Sample Predictions](https://github.com/JieGroup/GenAI/blob/5c6681dd75ba7709af7b5c87a03426c8654999d7/img/semi-theory.png?raw=true)
+<!-- ![Sample Predictions](https://github.com/JieGroup/GenAI/blob/5c6681dd75ba7709af7b5c87a03426c8654999d7/img/semi-theory.png?raw=true) -->
+![Sample Predictions](../_static/img/semi-theory.png)
 
 
 **Procedure**: Specifically, we select an unlabeled data point from the unlabeled data distribution, which has been assigned a high-confidence pseudo-label. This pseudo-label is treated as the true label. We then apply strong data augmentations to create a transformed input, which is designed to approximate the labeled data distribution and better reflect the test distribution. The pair of strong-augmented input and its original pseudo-label is subsequently treated as labeled data in the training process. 
@@ -622,8 +622,9 @@ class RandAugment:
 
 **Figure: Visualization of Images Before and After Strong Augmentation**
 
-![Sample Aug](https://github.com/JieGroup/GenAI/blob/db074d653461cddaea96e5b585bfa4b366cca0ad/img/RandAugment-demo.png?raw=true)
+<!-- ![Sample Aug](https://github.com/JieGroup/GenAI/blob/db074d653461cddaea96e5b585bfa4b366cca0ad/img/RandAugment-demo.png?raw=true) -->
 
+![Sample Aug](../_static/img/RandAugment-demo.png)
 
 
 
@@ -1016,7 +1017,8 @@ env.close()
 video_path = save_video(frames)
 display(Video(video_path, embed=True))
 ```
-![Carpole GIF](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/rf-carpole.gif?raw=true)
+<!-- ![Carpole GIF](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/rf-carpole.gif?raw=true) -->
+![Carpole GIF](../_static/img/rf-carpole.gif)
 
 
 ## Computation Resource Management
@@ -1048,8 +1050,13 @@ In training large models under limited GPU memory, minibatching processes small 
 Using the earlier example, Let's analyze the performance difference between CPU and GPU.
 
 
-### Exercises
-- We expect a larger benefit of using GPU especially as the network complexity increases, e.g., more layers or larger batch sizes, due to the GPU's ability to parallelize operations more efficiently than a CPU.
+:::{admonition} Exercises
+:class: tip
+
+- We expect a larger benefit of using GPU especially as the network complexity increases, e.g., more layers or larger batch sizes, due to the GPU's ability to parallelize operations more efficiently than a CPU. Redo the earlier experiments to compare CPU and GPU.
+:::
+
+
 
 
  

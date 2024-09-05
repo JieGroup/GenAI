@@ -106,11 +106,14 @@ print("Device of model parameters:", next(model.parameters()).device)
 print("Device of input tensor 'x':", x.device)
 ```
 
-### Exercises
+
+:::{admonition} Exercises
+:class: tip
+
 - Try different config parameters for decoding and sense the differences. Try to figure out the reasons.
 - Try batching `num_samples=k` prompts into the decoding and compare the time cost with the alternative that runs the above code `k` times. Try to figure out the reasons. 
 - Try to mess up with the codes and see what kind of errors you can get.
-            
+:::     
             
 ## Decoding from A Trained Model
 
@@ -239,14 +242,16 @@ for _ in range(max_new_tokens):
 idx = candidates[0]
 ```
  
-### Exercises
+:::{admonition} Exercises
+:class: tip
+
 - Implement streaming generation for better visualization and UI experiences.
 - Discuss when one decoding method might be preferred over the other.
 - Generate text using different temperature values and discuss how the temperature affects text quality.
 - Implement beam search decoding with different beam widths. Evaluate how increasing the beam width affects the computational cost and the quality of the generated text.
 - Search and investigate how popular models like GPT-2 or Llama-2 utilize default decoding strategies. Discuss any custom modifications or optimizations they might use.
 - Study other decoding strategies such as Speculative Decoding, and brainstorm new possibilities. 
-
+::: 
 
 ## Tokenization and Vocabulary
 
@@ -315,10 +320,14 @@ tok = Tokenizer(tokenizer_model)
 # use tok.decode(list_of_integers)
 ```
 
-### Exercises
+ 
+:::{admonition} Exercises
+:class: tip
+
 - Inspect the encode and decode methods of the above tokenizer
 - The earlier toy example used the same tokenizer used for Llama2. We also trained a custom [tokenizer](https://github.com/JieGroup/GenAI/blob/50daed0b92c72e2d5a1ba882b0432acf85b10daf/llm/tok2048.model) with 2048 merges, and trained a [model](https://github.com/JieGroup/GenAI/blob/9fc9ce870f6c23fee3a2224121d7a834c0bc0ecc/llm/trained_model_config4_tok2048.pt) based on that tokenizer. Now, play with this new pair of tokenizer and model for text generation. 
 - Use a model that is trained from a mis-matched tokenizer and understand the error. 
+::: 
 
 ### Intrinsic Tradeoffs in Tokenization
 
