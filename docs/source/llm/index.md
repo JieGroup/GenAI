@@ -10,7 +10,7 @@ current_path = os.getcwd()
 print(f"Current Working Directory: {current_path}")
 ```
 
-Load some necessary packages, which requires dependent python files/modules [model.py](https://drive.google.com/file/d/1SU7jSZI36KGwBv5-zgc3WkStPK6lGKwL/view?usp=sharing) and [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=sharing).
+Load some necessary packages, which require dependent python files/modules [model.py](https://drive.google.com/file/d/1SU7jSZI36KGwBv5-zgc3WkStPK6lGKwL/view?usp=sharing) and [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=sharing).
 
 ```python
 from contextlib import nullcontext
@@ -68,7 +68,7 @@ ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torc
 ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 ```
 
-> **TF32** is a new compute data type for NVIDIA Ampere GPUs that allows for performance similar to FP16 while maintaining the dynamic range close to that of FP32. The settings for TF32 are global and affect all applicable operations across PyTorch.
+> **TF32** is a new compute data type for NVIDIA Ampere GPUs that allows for performance similar to FP16 while maintaining a dynamic range close to that of FP32. The settings for TF32 are global and affect all applicable operations across PyTorch.
 > **torch.amp.autocast** optimizes performance by using lower precision (like float16) for certain operations to speed up computing and reduce memory usage while maintaining the accuracy of calculations.
 > The **ctx** context manager is for mixed precision where supported, enhancing computational efficiency without sacrificing accuracy when using GPUs
 
@@ -101,7 +101,7 @@ As Tim walked through the mist, he started to become bitter. He did not like the
 ```
 
 Sometimes, you run into an error that says "Expected all tensors to be on the same device, but found at least two devices ..."
-If that happens, check model and data are on the same device:
+If that happens, check that the model and data are on the same device:
 ```python
 print("Device of model parameters:", next(model.parameters()).device)
 print("Device of input tensor 'x':", x.device)
@@ -162,7 +162,7 @@ Below, I'll outline various decoding strategies used in NLP for generating text,
 
 #### Greedy Decoding
 
-Always picks the next word with the highest probability. This method can lead to repetitive and predictable text. Flowchart illustration:
+Always pick the next word with the highest probability. This method can lead to repetitive and predictable text. Flowchart illustration:
 
 ```{mermaid}
 graph LR
@@ -327,7 +327,7 @@ tok = Tokenizer(tokenizer_model)
 
 - Inspect the encode and decode methods of the above tokenizer
 - The earlier toy example used the same tokenizer used for Llama2. We also trained a custom [tokenizer](https://drive.google.com/file/d/1lq3_v_u85X7oYhcBHD7tygtZtQmf7yvL/view?usp=sharing) with 2048 merges, and trained a [model](https://drive.google.com/file/d/1_V81PwtALcRXHBuNXbw8dnoBGOs2qUTM/view?usp=sharing) based on that tokenizer. Now, play with this new pair of tokenizer and model for text generation. 
-- Use a model that is trained from a mis-matched tokenizer and understand the error. 
+- Use a model that is trained from a mismatched tokenizer and understand the error. 
 ::: 
 
 ### Intrinsic Tradeoffs in Tokenization
