@@ -1,6 +1,4 @@
-# Welcome to GenAI's Documentation!
-
-## Table of Contents
+# Welcome to Stat 8931: GenAI!
 
 ```{toctree}
 :maxdepth: 2
