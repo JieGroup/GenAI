@@ -10,7 +10,8 @@ current_path = os.getcwd()
 print(f"Current Working Directory: {current_path}")
 ```
 
-Load some necessary packages, which requires dependent python files/modules [model.py](https://github.com/JieGroup/GenAI/blob/50daed0b92c72e2d5a1ba882b0432acf85b10daf/llm/model.py) and [tokenizer.py](https://github.com/JieGroup/GenAI/blob/2fc13ea064f1cbc7e36f87b98ac875e63ab8c1a9/llm/tokenizer.py).
+Load some necessary packages, which requires dependent python files/modules [model.py](https://drive.google.com/file/d/1SU7jSZI36KGwBv5-zgc3WkStPK6lGKwL/view?usp=sharing) and [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=sharing).
+
 ```python
 from contextlib import nullcontext
 import torch
@@ -19,7 +20,7 @@ from tokenizer import Tokenizer
 import os
 ```
 
-Put the trained language [model](https://github.com/JieGroup/GenAI/blob/9fc9ce870f6c23fee3a2224121d7a834c0bc0ecc/llm/trained_model_config1_tok32000.pt) and [tokenizer](https://github.com/JieGroup/GenAI/blob/50daed0b92c72e2d5a1ba882b0432acf85b10daf/llm/tokenizer.model) files under suitable directories
+Put the trained language [model](https://drive.google.com/file/d/1npTlkOP_TtW-oEMROTDrYXzOjLL2yuUQ/view?usp=sharing) and [tokenizer](https://drive.google.com/file/d/1LezVTflV_Irp0GQn0Rzgn3F77tppozGa/view?usp=sharing) files under suitable directories
 ```python
 checkpoint = "models/trained_model.pt"
 tokenizer = "data/trained_tokenizer.model"
@@ -285,7 +286,7 @@ Here is an example of using SentencePiece for training a tokenizer from raw text
 import sentencepiece as spm
 spm.SentencePieceTrainer.train(input=DATA_PATH, model_prefix=SAVE_PATH, model_type="bpe", vocab_size=VOCAB_SIZE, input_format="text")
 ```
-It will create a file that contains a tokenizer model, such as [this one](https://github.com/JieGroup/GenAI/blob/50daed0b92c72e2d5a1ba882b0432acf85b10daf/llm/tok2048.model).  When we use it to encode or decode, we need to generate an instance of the following Tokenizer class.
+It will create a file that contains a tokenizer model, such as [this one](https://drive.google.com/file/d/1lq3_v_u85X7oYhcBHD7tygtZtQmf7yvL/view?usp=sharing).  When we use it to encode or decode, we need to generate an instance of the following Tokenizer class.
 
 ```python
 import os
@@ -325,7 +326,7 @@ tok = Tokenizer(tokenizer_model)
 :class: tip
 
 - Inspect the encode and decode methods of the above tokenizer
-- The earlier toy example used the same tokenizer used for Llama2. We also trained a custom [tokenizer](https://github.com/JieGroup/GenAI/blob/50daed0b92c72e2d5a1ba882b0432acf85b10daf/llm/tok2048.model) with 2048 merges, and trained a [model](https://github.com/JieGroup/GenAI/blob/9fc9ce870f6c23fee3a2224121d7a834c0bc0ecc/llm/trained_model_config4_tok2048.pt) based on that tokenizer. Now, play with this new pair of tokenizer and model for text generation. 
+- The earlier toy example used the same tokenizer used for Llama2. We also trained a custom [tokenizer](https://drive.google.com/file/d/1lq3_v_u85X7oYhcBHD7tygtZtQmf7yvL/view?usp=sharing) with 2048 merges, and trained a [model](https://drive.google.com/file/d/1_V81PwtALcRXHBuNXbw8dnoBGOs2qUTM/view?usp=sharing) based on that tokenizer. Now, play with this new pair of tokenizer and model for text generation. 
 - Use a model that is trained from a mis-matched tokenizer and understand the error. 
 ::: 
 
