@@ -3,12 +3,12 @@
 
 ## The Surge of AI: Motivation for This Course
 
-Artificial Intelligence (AI) has evolved from a specialized field into a pivotal force shaping modern technology. Through our engagement with students across various disciplines, it is clear that many are intrigued by AI. They range from those engaged in PhD research to others seeking exceptional career opportunities or simply exploring their options. Despite their interest, a common challenge persists: a lack of holistic views about what to learn and how to effectively use AI tools. AI has experienced rapid advancements over the past two decades, with new methodologies and concepts emerging frequently. The terms "AI" and "Generative AI" themselves are broad, encompassing a wide range of disciplines including computer science, statistics, optimization, control, information theory, often leading to disparate interpretations and terminologies across different academic backgrounds. Fortunately, the main concepts and techniques of AI does not evolve as rapidly as it appears. Many thoughts are deeply rooted in established fields, such as how to organize data, set up the optimization problem, and interpretation of results. 
+Artificial Intelligence (AI) has evolved from a specialized field into a pivotal force shaping modern technology. Through our engagement with students across various disciplines, it is clear that many are intrigued by AI. They range from those engaged in PhD research to others seeking exceptional career opportunities or simply exploring their options. Despite their interest, a common challenge persists: a lack of holistic views about what to learn and how to effectively use AI tools. AI has experienced rapid advancements over the past two decades, with new methodologies and concepts emerging frequently. The terms "AI" and "Generative AI" themselves are broad, encompassing a wide range of disciplines including computer science, statistics, optimization, control, information theory, often leading to disparate interpretations and terminologies across different academic backgrounds. Fortunately, the main concepts and techniques of AI do not evolve as rapidly as it appears. Many thoughts are deeply rooted in established fields, such as how to organize data, set up the optimization problem, and interpretation of results. 
 
-This Stat 8931 course is designed with the goal of lowing the barrier for new researchers and inspiring them to pursue state-of-the-art research in the relevant fields. We aim to achieve the goal through on-site implementations, explorations, discussions, and offline communications (as suggested in the syllabus). While many excellent open-source tutorials or courses exist, focusing primarily on practical implementation, our course will be research-oriented and encourage students to critically think the future directions they might take. 
+This Stat 8931 course is designed with the goal of lowering the barrier for new researchers and inspiring them to pursue state-of-the-art research in the relevant fields. We aim to achieve the goal through on-site implementations, explorations, discussions, and offline communications (as suggested in the syllabus). While many excellent open-source tutorials or courses exist, focusing primarily on practical implementation, our course will be research-oriented and encourage students to critically think the future directions they might take. 
 
 
-### Philosophy of Course Arrangement
+## Philosophy of Course Arrangement
 
 Our discussions will often center around three fundamental elements:
 
@@ -21,7 +21,7 @@ Our discussions will often center around three fundamental elements:
 |-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | **Data**   | How to organize the available data? What kind of data processing is necessary?                                                                           | What piece of information is more relevant to the type of learning? How is the information effectively used?                        |
 | **Learning**      | What are alternative algorithms and their practical considerations? Does the optimization convergence imply any generalizability at the population level? | What are alternative problem formulations? What is the rationale behind the learning problem?                                 |
-| **AI**  | To what extent does a data+learning formulation exhibit autonomy? Can the developed ''AI'' survive in open-world environments where the underlying assumptions are not met? | Is this how human sets objectives when acting?                                                 |
+| **AI**  | To what extent does the data + learning formulation exhibit autonomy? Can the developed ''AI'' survive in open-world environments where the underlying assumptions are not met? | Is this how human sets objectives when acting?                                                 |
 
 
 Following the above framework, we refer to AI as the broad field concerned with creating systems that can perform tasks which would typically require human intelligence. Generative AI specifically refers to the focus on creating models that can generate new data samples by learning and approximating data distributions.
@@ -125,7 +125,7 @@ This approach has a faster setup and takes less disk space compared with Approac
 
 - On Windows:
   ```bash
-  .\GenAI\Scriptsctivate
+  .\GenAI\Scripts activate
   ```
 
 - On macOS or Linux:
@@ -214,7 +214,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 #### Learn CUDA
 
-CUDA is a parallel computing platform and application programming interface model created by Nvidia. It allows software developers to use a CUDA-enabled graphics processing unit (GPU) for general purpose processing. Here are some tutorials to get started:
+CUDA is a parallel computing platform and application programming interface model created by Nvidia. It allows software developers to use a CUDA-enabled graphics processing unit (GPU) for general-purpose processing. Here are some tutorials to get started:
 
 -   [CUDA Tutorials on PyTorch](https://pytorch.org/tutorials/advanced/cpp_extension.html) - Learn how to extend PyTorch with custom C++ and CUDA extensions.
 -   [GPU Puzzles](https://github.com/srush/GPU-Puzzles) - Practice your GPU programming skills with these puzzles.
@@ -230,4 +230,5 @@ Slurm is a highly configurable open-source workload manager. Here are some resou
 Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications. 
 -   [Kubernetes documentations](https://kubernetes.io/docs/tutorials/) - Kubernetes basics.
 -   [Kubernetes Course - Full Beginners Tutorial](https://www.youtube.com/watch?v=X48VuDVv0do) - A video tutorial for beginners.
+
 
