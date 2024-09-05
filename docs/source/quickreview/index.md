@@ -4,20 +4,21 @@
 ## Optimization Algorithms
 
 - Stochastic Gradient Descent (SGD) updates parameters using a subset (batch) of the data to compute the gradient, which helps in overcoming the computational challenges of handling large datasets:
-$ w_{t+1} = w_t - \eta \cdot g_t $, where
+$w_{t+1} = w_t - \eta \cdot g_t$
+, where
     - $w_t$​ is the parameter vector at step $t$
     - $\eta$ is the learning rate
     - $g_t = \nabla L(w_t)$ is the gradient of the loss function $L$ with respect to $w_t$​ averaged over a batch.
 
 - ADAM (Adaptive Moment Estimation) computes adaptive learning rates for each parameter:
 
-  $$
+    $$
   m_t &= \beta_1 m_{t-1} + (1 - \beta_1) \cdot g_t \\
   v_t &= \beta_2 v_{t-1} + (1 - \beta_2) \cdot g_t^2 \\
   \hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \\
   \hat{v}_t &= \frac{v_t}{1 - \beta_2^t} \\
-  w_{t+1} &= w_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \cdot \hat{m}_t 
-  $$
+  w_{t+1} &= w_t - \frac{\eta}{\sqrt{\hat{v}_t} + \epsilon} \cdot \hat{m}_t
+    $$
 
   where
   - $m_t$ and $v_t$ are the moving averages of the gradients and squared gradients.
