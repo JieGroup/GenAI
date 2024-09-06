@@ -1072,3 +1072,7 @@ This documentation includes code examples and concepts adapted from the followin
 [3] RandAugment: Practical data augmentation with no separate search. [code](https://github.com/google-research/uda#unsupervised-data-augmentation)
 
 We acknowledge and thank the original authors for their contributions to the open-source community.
+
+
+
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLScOYr7RTgCxnPkqEWdECiz5RDqoUhwjBtvvcYdMoPkzDNSxLA/viewform?embedded=true" width="640" height="1449" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>

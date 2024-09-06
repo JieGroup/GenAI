@@ -442,3 +442,6 @@ This notebook includes code examples and concepts adapted from the following sou
 - Hugging Face blog on [introduction to tokenizers](https://huggingface.co/learn/nlp-course/en/chapter2/4?fw=pt).
 
 We acknowledge and thank the original authors for their contributions to the open-source community.
+
+
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfruUlvgs3DoWeL6Aj_GHNq7NDceEvWHoHiYKsv2Xkn2kodvg/viewform?embedded=true" width="640" height="1449" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
