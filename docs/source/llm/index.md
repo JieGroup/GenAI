@@ -1,3 +1,4 @@
+
 # 2. Large Language Modeling
 
 ## What the Blackbox Is
@@ -160,7 +161,7 @@ model.generate = custom_generate.__get__(model, Transformer)
 
 Below, I'll outline various decoding strategies used in NLP for generating text, providing a context for each and how they can be implemented based on your provided `generate` method.
 
-#### Greedy Decoding
+### Greedy Decoding
 
 Always pick the next word with the highest probability. This method can lead to repetitive and predictable text. Flowchart illustration:
 
@@ -187,7 +188,7 @@ if temperature == 0.0:
     idx = torch.cat((idx, idx_next), dim=1)
 ```
 
-#### Temperature Scaling
+### Temperature Scaling
 
 Adjusts the "sharpness" of the probability distribution. A lower temperature makes the distribution peakier (more greedy), while a higher temperature makes the distribution flatter (more random).
 ```python
@@ -197,7 +198,7 @@ idx_next = torch.multinomial(probs, num_samples=1)
 idx = torch.cat((idx, idx_next), dim=1)
 ```
 
-#### Top-k Sampling
+### Top-k Sampling
 
 Limits the next word choices to the top k most probable words. Reduces the risk of choosing very low probability words and maintains diversity. The default decoding algorithm was set to be a combination of Top-k Sampling and Temperature Scaling.
 
@@ -210,7 +211,7 @@ if top_k is not None:
     idx = torch.cat((idx, idx_next), dim=1)
 ```
 
-#### Top-p (Nucleus) Sampling
+### Top-p (Nucleus) Sampling
 Instead of cutting off at a specific number, this approach chooses the smallest set of words whose cumulative probability exceeds the probability p. This focuses on a dynamic number of high-probability words while maintaining diversity.
 ```python
 cum_probs = torch.cumsum(F.softmax(logits, dim=-1), dim=-1)
@@ -223,7 +224,7 @@ idx = torch.cat((idx, idx_next.unsqueeze(0)), dim=1)
 
 
 
-#### Beam-search decoding
+### Beam-search decoding
 Beam search maintains multiple hypotheses (the "beam") at each step and expands them further by exploring several possible next steps. This strategy balances between breadth (diversity) and depth (accuracy).
 
 ```python
