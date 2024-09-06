@@ -33,7 +33,8 @@ Following the above framework, we refer to AI as the broad field concerned with 
 
 
 ### Prerequisite
-This course does not have strict graduate-level prerequisites. However, a basic understanding of statistics or machine learning, along with programming experience in Python, will be advantageous. 
+This course is intended for research-oriented students. A basic understanding of statistics, machine learning, and programming experience in Python will be helpful.
+
 
 ### Expectation from Students
 Students are expected to have:
@@ -82,10 +83,8 @@ In summary, this course is not an introduction of generative AI tools. It is a r
 
 This website contains the main lecture notes created by GenAI course team. Each chapter will consist of background of the problem, formulations, principles, and implementation strategies. In line with the motivation and philosophy of the course design, the course will be a highly interweaved mixture of practical coding, study of basic principles, and open problems raised to stimulate further thinking. Specifically, we will have a significant portion of the course material dedicated to code implementation so you can immediately apply the learned techniques to various domain problems. 
 
-This website is home to the GenAI course lecture notes crafted by Jie Ding and the course design team. Each chapter is structured to cover the background of the topic, problem formulations, underlying principles, and practical implementation strategies. Reflecting the course's philosophy, the content is an integrated blend of hands-on coding exercises, theoretical exploration, and discussions on open problems designed to encourage further inquiry and innovation. 
-
 **Software Environment**
-A substantial portion of the course is devoted to coding implementations, allowing you to apply the techniques you learn directly to problems across various domains. Python is chosen for its versatility and simplicity, making it ideal for both beginners and experienced programmers. It is widely used in the AI community due to its extensive libraries and community support. Detailed instructions on setting up this environment will be covered at the end of this introduction., Necessary dependencies will be provided to ensure you can seamlessly transfer code into a Jupyter notebook within each chapter.  
+Python is chosen for its versatility and simplicity. It is widely used in the AI community due to its extensive libraries and community support. Detailed instructions on setting up this environment will be covered at the end of this introduction., Necessary dependencies will be provided to ensure you can seamlessly transfer code into a Jupyter notebook within each chapter.  
 
 **Hardware Environment** 
 Thanks to the generous support from Minnesota Supercomputing Institute (MSI), all enrolled students will receive an educational account providing access to a GPU cluster equipped with a Slurm fair queuing system. This setup allows you to utilize necessary computational resources to practice the techniques learned and to conduct research projects related to the course.
@@ -191,17 +190,17 @@ module load conda
 module load cuda
 ```
 
-### Skill Sets
+### Additional Resources
 
-Here are resources to help you develop skills for conducting advanced R&D. While Python and PyTorch are required, familiarity with other technologies listed will greatly enhance your learning experience and capability to handle advanced topics.
+Here are free resources to help you develop skills for conducting advanced R&D. While Python and PyTorch are required, familiarity with other technologies listed will greatly enhance your learning experience and capability to address practical challenges.
 
 #### Learn Python
 
 Python is a fundamental skill for anyone working in data science and AI. Here are some great resources to get started or to sharpen your Python skills:
 
 -   [Python Official Tutorial](https://docs.python.org/3/tutorial/index.html) - Ideal for beginners.
--   [Real Python](https://realpython.com) - Offers in-depth tutorials and explanations on various Python topics.
--   [Automate the Boring Stuff with Python](https://automatetheboringstuff.com) - A practical and fun approach to learning Python.
+-   [Real Python](https://realpython.com) - In-depth tutorials and explanations on various Python topics.
+-   [Automate the Boring Stuff with Python](https://automatetheboringstuff.com) - Fun approach to learning Python.
 
 #### Learn Pytorch
 
