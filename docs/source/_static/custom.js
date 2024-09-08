@@ -46,26 +46,23 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 // functionality for Google Analytics dashboard
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on the dashboard page
     if (window.location.pathname.includes("dashboard.html")) {
         console.log("Google Analytics Dashboard Loaded");
 
-        // Google Analytics embed code here
-        // Example: Embedding Google Analytics data using Google Analytics Embed API
         gapi.analytics.ready(function() {
 
             // Authorize the user using your Google Analytics View ID and API key
             gapi.analytics.auth.authorize({
-                container: 'auth-button',
-                clientid: 'YOUR_CLIENT_ID',
+                container: 'auth-button',  // You can create a div in your dashboard.md for this
+                clientid: 'YOUR_CLIENT_ID',  // Replace with your Google API client ID
             });
 
-            // Create a new Google Analytics view
+            // Create a new Google Analytics view selector
             var viewSelector = new gapi.analytics.ViewSelector({
                 container: 'view-selector'
             });
 
-            // Fetch some statistics, like pageviews
+            // Fetch statistics such as sessions or pageviews
             viewSelector.on('change', function(ids) {
                 var dataChart = new gapi.analytics.googleCharts.DataChart({
                     query: {
@@ -76,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ids: ids
                     },
                     chart: {
-                        container: 'analytics-dashboard',
+                        container: 'analytics-dashboard',  // Ensure this ID matches the div in dashboard.md
                         type: 'LINE',
                         options: {
                             width: '100%'
