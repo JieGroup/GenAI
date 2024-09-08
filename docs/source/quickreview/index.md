@@ -306,6 +306,25 @@ The result will be something like the following.
 
 
 
+### Computation Resource Management
+
+Deep learning computations can be extremely resource-intensive. Accelerating these computations is crucial, particularly using Graphics Processing Units (GPUs): Optimized for parallelizing matrix operations in deep learning. 
+
+- **CPU** vs **GPUs**:  CPUs are generally used for tasks that require less parallel computation, such as data preprocessing or running the training loop itself. GPUs, on the other hand, are optimized for highly parallelizable tasks like matrix multiplications in training neural networks.  A typical workflow:
+
+- **Minibatching**
+In training large models under limited GPU memory, minibatching processes small subsets of the dataset at a time, and accumulates gradients over multiple forward passes before performing a backpropagation step. Basically, it simulates a larger batch size without exceeding memory limits. 
+
+Using the earlier example, Let's analyze the performance difference between CPU and GPU.
+
+
+:::{admonition} Exercises
+:class: tip
+
+- We expect a larger benefit of using GPU especially as the network complexity increases, e.g., more layers or larger batch sizes, due to the GPU's ability to parallelize operations more efficiently than a CPU. Redo the earlier experiments to compare CPU and GPU.
+:::
+
+
 
 ## Unsupervised Learning
 
@@ -1026,41 +1045,6 @@ display(Video(video_path, embed=True))
 <!-- ![Carpole GIF](https://github.com/JieGroup/GenAI/blob/122674c6f2c94f657dcd1e2bb01705be49fde389/img/rf-carpole.gif?raw=true) -->
 ![Carpole GIF](../_static/img/rf-carpole.gif)
 
-
-## Computation Resource Management
-
-Deep learning computations can be extremely resource-intensive. Accelerating these computations is crucial, particularly using Graphics Processing Units (GPUs): Optimized for parallelizing matrix operations in deep learning. 
-
-- **CPU** vs **GPUs**:  CPUs are generally used for tasks that require less parallel computation, such as data preprocessing or running the training loop itself. GPUs, on the other hand, are optimized for highly parallelizable tasks like matrix multiplications in training neural networks.  A typical workflow:
-
-```{mermaid}
-sequenceDiagram
-    participant CPU as CPU
-    participant GPU as GPU
-
-    CPU->>CPU: Preprocess Data
-    CPU->>GPU: Transfer Data to GPU
-    GPU->>GPU: Perform Forward Pass
-    loop
-        GPU->>GPU: Accumulate Gradients
-    end
-    GPU->>GPU: Compute Gradient
-    GPU->>GPU: Update Parameters
-    GPU->>CPU: Send Updates/Status
-    CPU->>GPU: Transfer Next Data Batch
-```
-
-- **Minibatching**
-In training large models under limited GPU memory, minibatching processes small subsets of the dataset at a time, and accumulates gradients over multiple forward passes before performing a backpropagation step. Basically, it simulates a larger batch size without exceeding memory limits. 
-
-Using the earlier example, Let's analyze the performance difference between CPU and GPU.
-
-
-:::{admonition} Exercises
-:class: tip
-
-- We expect a larger benefit of using GPU especially as the network complexity increases, e.g., more layers or larger batch sizes, due to the GPU's ability to parallelize operations more efficiently than a CPU. Redo the earlier experiments to compare CPU and GPU.
-:::
 
 
 
