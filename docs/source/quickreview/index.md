@@ -983,8 +983,12 @@ env.close()
 
 Save trained model.
 ```python
-torch.save(agent.policy_net.state_dict(), 'results/ppo_policy_net.pth')
-torch.save(agent.value_net.state_dict(), 'results/ppo_value_net.pth')
+## making directory
+import os
+result_dir = os.path.join(os.getcwd(), 'results')
+os.makedirs(result_dir, exist_ok=True)
+torch.save(agent.policy_net.state_dict(), os.path.join(result_dir, 'ppo_policy_net.pth'))
+torch.save(agent.value_net.state_dict(), os.path.join(result_dir, 'ppo_value_net.pth'))
 print("Models saved successfully.")
 ```
 
@@ -993,15 +997,16 @@ Visualize and save to mp4.
 from IPython.display import Video, display
 import moviepy.editor as mpy
 
-def save_video(frames, filename='results/gameplay.mp4', fps=30):
+ddef save_video(frames, filename='gameplay.mp4', fps=30):
+    filepath = os.path.join(result_dir, filename)
     clip = mpy.ImageSequenceClip(frames, fps=fps)
-    clip.write_videofile(filename, codec='libx264')
-    return filename
+    clip.write_videofile(filepath, codec='libx264')
+    return filepath
 
 env = gym.make('CartPole-v1', render_mode='rgb_array')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 agent = PPOAgent(env)
-agent.policy_net.load_state_dict(torch.load('results/ppo_policy_net.pth'))
+agent.policy_net.load_state_dict(torch.load(os.path.join(result_dir, 'ppo_policy_net.pth')))
 agent.policy_net.to(device)
 
 frames = []
