@@ -64,6 +64,9 @@ html_js_files = [
     'custom.js',
 ]
 
+html_show_sourcelink = False # Hide the "View page source" link
+html_show_sphinx = False # Remove footnote
+
 html_theme_options = {
     'canonical_url': '',
     'analytics_id': 'G-ZDQXZS0531',  #  Provided by Google in your dashboard
