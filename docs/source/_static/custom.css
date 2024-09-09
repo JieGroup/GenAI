@@ -68,16 +68,10 @@ a:hover {
 /* Adjust the code block to create space for the "Copy to clipboard" button */
 div.highlight {
     position: relative;
-    padding-right: 3em;  /* Add space on the right for the button */
+    padding-right: 2em;  /* Add space on the right for the button */
     overflow: auto;  /* Ensure long code lines can scroll */
 }
 
-/* Ensure no overlap between the button and code lines */
-pre, code {
-    font-size: 1.4em;  /* Adjusted font size */
-    line-height: 1.5;  /* Adjusted line height */
-    padding-right: 5em;  /* Ensure the code content has enough space from the button */
-}
 
 .md-clipboard.md-icon {
     position: absolute;
