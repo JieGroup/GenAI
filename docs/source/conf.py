@@ -26,8 +26,12 @@ extensions = [
     'sphinx.ext.napoleon',
     'myst_parser',  # if using Markdown
     'sphinx.ext.mathjax',
+    'sphinx.ext.imgmath',  # Use this if rendering math as images
     'sphinxcontrib.mermaid',
 ]
+
+# Set font size for image-based math rendering
+imgmath_font_size = 10  # Adjust font size here (in pt)
 
 templates_path = ['_templates']
 exclude_patterns = []
