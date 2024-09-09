@@ -74,9 +74,9 @@ div.highlight {
 
 /* Ensure no overlap between the button and code lines */
 pre, code {
-    font-size: 1.3em;  /* Adjusted font size */
+    font-size: 1.4em;  /* Adjusted font size */
     line-height: 1.5;  /* Adjusted line height */
-    padding-right: 2.5em;  /* Ensure the code content has enough space from the button */
+    padding-right: 5em;  /* Ensure the code content has enough space from the button */
 }
 
 .md-clipboard.md-icon {
@@ -101,9 +101,4 @@ pre, code {
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
     font-size: 1em;  /* Adjusted font size for icon */
-}
-
-/* Hide the floating Read the Docs version flyout */
-.floating.container.bottom-right {
-    display: none !important;
 }
