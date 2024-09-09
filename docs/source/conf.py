@@ -4,7 +4,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 import sphinx_rtd_theme
-
+from datetime import date
 import errno
 import sphinx.util.osutil
 sphinx.util.osutil.ENOENT = errno.ENOENT
@@ -13,7 +13,8 @@ sphinx.util.osutil.ENOENT = errno.ENOENT
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'GenAI'
-copyright = '2024, Jie Ding'
+# copyright = '2024, Jie Ding'
+copyright = f'{date.today().year}, Jie Ding'
 author = 'Jie Ding'
 release = '0.1'
 
@@ -72,7 +73,7 @@ html_theme_options = {
     'analytics_id': 'G-ZDQXZS0531',  #  Provided by Google in your dashboard
     'logo_only': False,
     'display_version': False,
-    'prev_next_buttons_location': 'bottom',
+    'prev_next_buttons_location': 'both', #'bottom',
     'style_external_links': False,
     'vcs_pageview_mode': '',
     'style_nav_header_background': 'white',

@@ -1,7 +1,14 @@
 /* custom.css */
 
 body {
-    font-size: 18px;  /* Adjust the base font size as needed */
+    font-size: 20px;  /* Adjust the base font size as needed */
+    line-height: 1.6;  /* Adjust line height for better readability */
+}
+
+/* Adjust font size for inline code and code blocks */
+pre, code {
+    font-size: 1.1em;  /* Increase font size for better readability */
+    line-height: 1.5;
 }
 
 /* Customize the sidebar background color */
@@ -43,7 +50,7 @@ a:hover {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 0.7em;  /* Adjusted font size */
+    font-size: 0.8em;  /* Adjusted font size */
     color: #333;
     transition: color 0.3s;
 }
@@ -59,3 +66,6 @@ a:hover {
     font-size: 1em;  /* Adjusted font size for icon */
 }
 
+.rst-versions {
+    display: none !important;
+}
