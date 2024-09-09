@@ -89,6 +89,7 @@ pre, code {
     font-size: 0.7em;  /* Adjusted font size */
     color: #333;
     transition: color 0.3s;
+    z-index: 1;  /* Ensure the button appears above the scrollable content */
 }
 
 .md-clipboard.md-icon:hover {
@@ -102,6 +103,7 @@ pre, code {
     font-size: 1em;  /* Adjusted font size for icon */
 }
 
-.rst-versions {
+/* Hide the floating Read the Docs version flyout */
+div.floating.container {
     display: none !important;
 }
