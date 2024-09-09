@@ -1,15 +1,37 @@
 /* custom.css */
 
+/* Adjust general text font size */
 body {
-    font-size: 20px;  /* Adjust the base font size as needed */
-    line-height: 1.6;  /* Adjust line height for better readability */
+    font-size: 20px;
+    line-height: 1.6;
 }
 
-/* Adjust font size for inline code and code blocks */
-pre, code {
-    font-size: 1.1em;  /* Increase font size for better readability */
-    line-height: 1.5;
+/* Adjust heading levels */
+h1, h1 a {
+    font-size: 2.4em; /* Adjust the font size for # (level 1 heading) */
 }
+
+h2, h2 a {
+    font-size: 2em; /* Adjust the font size for ## (level 2 heading) */
+}
+
+h3, h3 a {
+    font-size: 1.8em; /* Adjust the font size for ### (level 3 heading) */
+}
+
+h4, h4 a {
+    font-size: 1.6em;
+}
+
+h5, h5 a {
+    font-size: 1.4em;
+}
+
+h6, h6 a {
+    font-size: 1.2em;
+}
+
+
 
 /* Customize the sidebar background color */
 .wy-side-nav-search {
@@ -43,6 +65,20 @@ a:hover {
     color: #0056b3;
 }
 
+/* Adjust the code block to create space for the "Copy to clipboard" button */
+div.highlight {
+    position: relative;
+    padding-right: 3em;  /* Add space on the right for the button */
+    overflow: auto;  /* Ensure long code lines can scroll */
+}
+
+/* Ensure no overlap between the button and code lines */
+pre, code {
+    font-size: 1.3em;  /* Adjusted font size */
+    line-height: 1.5;  /* Adjusted line height */
+    padding-right: 2.5em;  /* Ensure the code content has enough space from the button */
+}
+
 .md-clipboard.md-icon {
     position: absolute;
     top: 8px;
@@ -50,7 +86,7 @@ a:hover {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 0.8em;  /* Adjusted font size */
+    font-size: 0.7em;  /* Adjusted font size */
     color: #333;
     transition: color 0.3s;
 }
