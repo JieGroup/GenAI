@@ -31,7 +31,8 @@ extensions = [
 ]
 
 # Set font size for image-based math rendering
-imgmath_font_size = 10  # Adjust font size here (in pt)
+imgmath_image_format = 'svg'
+imgmath_font_size = 12  # Adjust font size here (in pt)
 
 templates_path = ['_templates']
 exclude_patterns = []
