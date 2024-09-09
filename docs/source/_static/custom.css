@@ -96,3 +96,8 @@ div.highlight {
     font-weight: 900;
     font-size: 1em;  /* Adjusted font size for icon */
 }
+
+/* Adjust font size for block LaTeX equations ($$...$$) */
+div.math {
+    font-size: 0.8em; /* Adjust the block equation font size to 80% of normal */
+}
