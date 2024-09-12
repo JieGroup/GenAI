@@ -154,7 +154,7 @@ The result will be something like the following. Clearly, it is unrealistic to w
 ![2D visual](../_static/img/quickreview-logistic-tsne.png)
 
 
-### ResNet Model
+### ResNet Model {#resnet-model}
 Now suppose we will use a deep neural network, particularly a ResNet model, to train a classifier from scratch. 
 
 Prepare for logging.
@@ -432,13 +432,12 @@ $$
 D_{KL}(\mathcal{N}_0 \| \mathcal{N}_1) = \log\frac{\sigma_1}{\sigma_0} + \frac{\sigma_0^2 + (\mu_0 - \mu_1)^2}{2\sigma_1^2} - \frac{1}{2}
 $$
 
-For a VAE, where $q(z|x)$ is approximated by $\mathcal{N}(z; \mu, \sigma^2)$ and $p(z) = \mathcal{N}(z; 0, I)$, we have $\mu_0 = \mu$, $\sigma_0 = \sigma = \exp\left(\frac{1}{2} \log \sigma^2\right)$, $\mu_1 = 0$, $\sigma_1 = 1$. Therefore,
+For a VAE, where $q(z \mid x)$ is approximated by $\mathcal{N}(z; \mu, \sigma^2)$ and $p(z) = \mathcal{N}(z; 0, I)$, we have $\mu_0 = \mu$, $\sigma_0 = \sigma = \exp\left(\frac{1}{2} \log \sigma^2\right)$, $\mu_1 = 0$, $\sigma_1 = 1$. Therefore,
 
 $$
- D_{\mathrm{KL}}(q(z|x) \| p(z)) 
+D_{\mathrm{KL}}(q(z|x) \| p(z)) 
 &= \log\frac{1}{\sigma} + \frac{\sigma^2 + \mu^2}{2} - \frac{1}{2} \\
-&= -\frac{1}{2} \log \sigma^2 + \frac{\exp(\log \sigma^2) + \mu^2}{2} - \frac{1}{2} \\
-&= -\frac{1}{2} \sum(1 + \text{logvar} - \mu^2 - \exp(\text{logvar}))
+&= -\frac{1}{2} (1 + \log \sigma^2 - \mu^2 - \exp(\log \sigma^2)).
 $$
 
 The above leads to the VAE loss:
@@ -739,7 +738,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 criterion = nn.CrossEntropyLoss()
 ```
 
-Start training and visualizing of results.
+Start training and visualizing of results. The functions `evaluate_model` and `visualize_predictions` are the same as those used for [supervised learning](#resnet-model).
 ```python
 def train(model, labeled_loader, unlabeled_loader, test_loader, optimizer, device, epochs=100, threshold=0.9):
     model.train()

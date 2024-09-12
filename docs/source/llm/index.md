@@ -1,33 +1,82 @@
 
 # 2. Large Language Modeling
 
+In addition to the standard packages in our Introduction, install the following
+```bash
+pip install sentencepiece gdown
+```
+
+We will need the following function to load larger files shared through Google Drive. This can also be useful for your homework submissions.
+
+
+```python
+import gdown
+import zipfile
+import os
+
+def download_and_unzip(file_id, output_dir=None):
+
+    if output_dir is None:
+        output_dir = os.getcwd()
+        
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Download file
+    url = f'https://drive.google.com/uc?id={file_id}'
+    output = os.path.join(output_dir, 'temp.zip')
+    gdown.download(url, output, quiet=False)
+
+    # Unzip file
+    with zipfile.ZipFile(output, 'r') as zip_ref:
+        # Get the name of the first file in the archive
+        original_name = zip_ref.namelist()[0]
+        zip_ref.extractall(output_dir)
+
+    # Remove the temporary zip file
+    os.remove(output)
+
+    # The path to the extracted file
+    extracted_file = os.path.join(output_dir, original_name)
+
+    print(f"File extracted as: {extracted_file}, saved to {output_dir}")
+    return extracted_file
+```
+
 ## What the Blackbox Is
 
 Let us first go through a typical procedure of loading and using a trained model. 
 
 First, let us inspect the current working directory and organize dependent files accordingly.
+
 ```python
 current_path = os.getcwd()
 print(f"Current Working Directory: {current_path}")
 ```
 
-Load some necessary packages, which require dependent python files/modules [model.py](https://drive.google.com/file/d/1SU7jSZI36KGwBv5-zgc3WkStPK6lGKwL/view?usp=sharing) and [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=sharing).
+Load dependent python files/modules [model.py](https://drive.google.com/file/d/1SU7jSZI36KGwBv5-zgc3WkStPK6lGKwL/view?usp=sharing) and [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=sharing). 
 
+We then import the above files and some other dependent packages that will be used soon.
 ```python
-from contextlib import nullcontext
-import torch
 from model import ModelArgs, Transformer
 from tokenizer import Tokenizer
+from contextlib import nullcontext
 import os
+import torch
 ```
 
-Put the trained language [model](https://drive.google.com/file/d/1npTlkOP_TtW-oEMROTDrYXzOjLL2yuUQ/view?usp=sharing) and [tokenizer](https://drive.google.com/file/d/1LezVTflV_Irp0GQn0Rzgn3F77tppozGa/view?usp=sharing) files under suitable directories
+Load my pretrained language [model](https://drive.google.com/file/d/1npTlkOP_TtW-oEMROTDrYXzOjLL2yuUQ/view?usp=sharing) and [tokenizer](https://drive.google.com/file/d/1LezVTflV_Irp0GQn0Rzgn3F77tppozGa/view?usp=sharing) files under your favorite directories.
+
+
 ```python
-checkpoint = "models/trained_model.pt"
-tokenizer = "data/trained_tokenizer.model"
+trained_model_tok32000_id = '1bJMOyA86CDayzwmU5KjlZnbhCXHUzO41'
+tok_32000_id = '1UhsXL-ymGFy1fBftMvMbss2PGFzRxZV4'
+
+checkpoint = download_and_unzip(trained_model_tok32000_id, output_dir=) # e.g., "models/trained_model.pt"
+tokenizer = download_and_unzip(tok_32000_id, output_dir=) # e.g., "data/trained_tokenizer.model"
 ```
 
-We set the device to run the model. For large models, we typically need to use GPU for computational efficiency as it requires many matrix calculations.  The stage of using the model to perform tasks is often called `inference'. This does not mean the same as in statistics!
+We set the device to run the model. For large models, we typically need to use a GPU for computational efficiency, as they require many matrix calculations. The process of using the model to perform tasks is often called inference. However, this is different from the meaning of inference in statistics!
+
 ```python
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Use device: {device}")
@@ -39,7 +88,7 @@ checkpoint_dict = torch.load(checkpoint, map_location=device)
 gptconf = ModelArgs(**checkpoint_dict['model_args'])
 model = Transformer(gptconf)
 state_dict = checkpoint_dict['model']
-unwanted_prefix = '_orig_mod.' #the unwanted prefix was sometimes added during compiling
+unwanted_prefix = '_orig_mod.' # sometimes added during compiling
 for k,v in list(state_dict.items()):
     if k.startswith(unwanted_prefix):
         state_dict[k[len(unwanted_prefix):]] = state_dict.pop(k)
