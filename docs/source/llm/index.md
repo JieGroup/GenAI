@@ -64,7 +64,7 @@ import os
 import torch
 ```
 
-Load my pretrained language [model](https://drive.google.com/file/d/1npTlkOP_TtW-oEMROTDrYXzOjLL2yuUQ/view?usp=sharing) and [tokenizer](https://drive.google.com/file/d/1LezVTflV_Irp0GQn0Rzgn3F77tppozGa/view?usp=sharing) files under your favorite directories.
+Load my pretrained language model and tokenizer files under your favorite directories.
 
 
 ```python
