@@ -7,20 +7,6 @@ Building a large language model (LLM) from scratch was once a task reserved for 
 
 This chapter details the process of building your own LLM from the ground up, from architecture definition and data curation to effective training and evaluation techniques.
 
-## Table of Contents
-1. [Determine the Use Case For Your LLM](#determine-the-use-case-for-your-llm)
-2. [Create Your Model Architecture](#create-your-model-architecture)
-    - [Creating The Transformer’s Components](#creating-the-transformers-components)
-    - [Assembling the Encoder and Decoder](#assembling-the-encoder-and-decoder)
-3. [Data Curation](#data-curation)
-    - [Characteristics of a High-Quality Dataset](#characteristics-of-a-high-quality-dataset)
-    - [Where Can You Source Data For Training an LLM?](#where-can-you-source-data-for-training-an-llm)
-4. [Training Your Custom LLM](#training-your-custom-llm)
-    - [LLM Training Techniques](#llm-training-techniques)
-5. [Fine-Tuning Your LLM](#fine-tuning-your-llm)
-6. [Evaluating Your Bespoke LLM](#evaluating-your-bespoke-llm)
-    - [LLM Benchmarks](#llm-benchmarks)
-7. [Conclusion](#conclusion)
 
 ## Determine the Use Case For Your LLM
 
@@ -30,6 +16,107 @@ Key reasons for creating your own LLM include:
 - **Domain-Specificity**: Training with industry-specific data.
 - **Greater Data Security**: Incorporating sensitive or proprietary information securely.
 - **Ownership and Control**: Retaining control over confidential data and improving the LLM over time.
+
+
+## Transformer Model Architecture
+
+
+## Transformer Structure
+
+
+### Mermaid Diagram for Large Language Model Training Procedure
+
+The diagram provides an overview of the typical steps involved in training a language model.
+
+```{mermaid}
+graph TD
+    A[Data Preparation] --> B[Architecture Configuration]
+    B --> C[Model Training]
+    C --> D[Decoding]
+    D --> E[Application Integration]
+
+    style A fill:#f4d03f,stroke:#333,stroke-width:2px
+    style B fill:#85c1e9,stroke:#333,stroke-width:2px
+    style C fill:#a3e4d7,stroke:#333,stroke-width:2px
+    style D fill:#f7dc6f,stroke:#333,stroke-width:2px
+    style E fill:#d7bde2,stroke:#333,stroke-width:2px
+```
+
+
+### Transformer Model Architecture
+
+We will look into it through a toy model, which can be downloaded from [here]().  Its architecture is:
+
+```{mermaid}
+graph LR
+    A[Input Embeddings] --> B[Decoder Block 1]
+    B --> C[Decoder Block 2]
+    C --> D[Decoder Block 3]
+    D --> E[Decoder Block 4]
+    E --> F[Decoder Block 5]
+    F --> G[Decoder Block 6]
+    G --> H[Output Layer]
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#ccf,stroke:#333,stroke-width:2px
+    style C fill:#ccf,stroke:#333,stroke-width:2px
+    style D fill:#ccf,stroke:#333,stroke-width:2px
+    style E fill:#ccf,stroke:#333,stroke-width:2px
+    style F fill:#ccf,stroke:#333,stroke-width:2px
+    style G fill:#ccf,stroke:#333,stroke-width:2px
+    style H fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+```
+Transformer(
+  (tok_embeddings): Embedding(32000, 288)
+  (dropout): Dropout(p=0.0, inplace=False)
+  (layers): ModuleList(
+    (0-5): 6 x TransformerBlock(
+      (attention): Attention(
+        (wq): Linear(in_features=288, out_features=288, bias=False)
+        (wk): Linear(in_features=288, out_features=288, bias=False)
+        (wv): Linear(in_features=288, out_features=288, bias=False)
+        (wo): Linear(in_features=288, out_features=288, bias=False)
+        (attn_dropout): Dropout(p=0.0, inplace=False)
+        (resid_dropout): Dropout(p=0.0, inplace=False)
+      )
+      (feed_forward): FeedForward(
+        (w1): Linear(in_features=288, out_features=768, bias=False)
+        (w2): Linear(in_features=768, out_features=288, bias=False)
+        (w3): Linear(in_features=288, out_features=768, bias=False)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (attention_norm): RMSNorm()
+      (ffn_norm): RMSNorm()
+    )
+  )
+  (norm): RMSNorm()
+  (output): Linear(in_features=288, out_features=32000, bias=False)
+)
+```
+
+As seen above, it consists of:
+
+  - `Embedding(32000, 288)`: Maps input tokens from a vocabulary of 32,000 to 288-dimensional embeddings.
+  - `Dropout(p=0.0)`: Applies dropout with a probability of 0.0 (effectively no dropout in this setup).
+  - **6 x TransformerBlock**: Six layers of Transformer blocks, each containing:
+    - **Attention Mechanism**
+      - `Linear(in_features=288, out_features=288)`: Four linear transformations (for queries, keys, values, and output) in the multi-head attention mechanism, all with 288 features.
+      - `Dropout(p=0.0)`: Two dropout layers for attention and residual dropout, both set to 0.0 probability.
+    - **FeedForward Network**
+      - `Linear(in_features=288, out_features=768)`: First linear layer of the feed-forward network.
+      - `Linear(in_features=768, out_features=288)`: Second linear layer that projects back to 288 features.
+      - `Dropout(p=0.0)`: Dropout layer in the feed-forward network.
+    - **Normalization**
+      - `RMSNorm()`: Normalization layer for both the output of the attention block and the feed-forward network.
+- **Final Normalization**
+  - `RMSNorm()`: Normalization layer after the last Transformer block.
+- **Output Projection**
+  - `Linear(in_features=288, out_features=32000)`: Linear layer that projects the output of the Transformer to a vocabulary size of 32,000.
+
+
+
 
 ## Create Your Model Architecture
 

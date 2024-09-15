@@ -6,42 +6,6 @@ In addition to the standard packages in our Introduction, install the following
 pip install sentencepiece gdown
 ```
 
-We will need the following function to load larger files shared through Google Drive. This can also be useful for your homework submissions.
-
-
-```python
-import gdown
-import zipfile
-import os
-
-def download_and_unzip(file_id, output_dir=None):
-
-    if output_dir is None:
-        output_dir = os.getcwd()
-        
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Download file
-    url = f'https://drive.google.com/uc?id={file_id}'
-    output = os.path.join(output_dir, 'temp.zip')
-    gdown.download(url, output, quiet=False)
-
-    # Unzip file
-    with zipfile.ZipFile(output, 'r') as zip_ref:
-        # Get the name of the first file in the archive
-        original_name = zip_ref.namelist()[0]
-        zip_ref.extractall(output_dir)
-
-    # Remove the temporary zip file
-    os.remove(output)
-
-    # The path to the extracted file
-    extracted_file = os.path.join(output_dir, original_name)
-
-    print(f"File extracted as: {extracted_file}, saved to {output_dir}")
-    return extracted_file
-```
-
 ## What the Blackbox Is
 
 Let us first go through a typical procedure of loading and using a trained model. 
@@ -53,12 +17,14 @@ current_path = os.getcwd()
 print(f"Current Working Directory: {current_path}")
 ```
 
-Load dependent python files/modules [model.py](https://drive.google.com/file/d/1SU7jSZI36KGwBv5-zgc3WkStPK6lGKwL/view?usp=sharing) and [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=sharing). 
+Load dependent python files/modules [model.py](https://drive.google.com/file/d/1SU7jSZI36KGwBv5-zgc3WkStPK6lGKwL/view?usp=sharing) and [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=sharing). These will serve as a toy example to show the use of LLM. We also need the utility function `download_and_unzip` from [utils.py](https://drive.google.com/file/d/1tKQCXmrT4whJr1V33nBVRhaNzniRT5KE/view?usp=sharing) to load larger files shared through Google Drive. This can also be useful for your homework submissions.
+
 
 We then import the above files and some other dependent packages that will be used soon.
 ```python
 from model import ModelArgs, Transformer
 from tokenizer import Tokenizer
+from utils import download_and_unzip
 from contextlib import nullcontext
 import os
 import torch
@@ -336,7 +302,7 @@ Here is an example of using SentencePiece for training a tokenizer from raw text
 import sentencepiece as spm
 spm.SentencePieceTrainer.train(input=DATA_PATH, model_prefix=SAVE_PATH, model_type="bpe", vocab_size=VOCAB_SIZE, input_format="text")
 ```
-It will create a file that contains a tokenizer model, such as [this one](https://drive.google.com/file/d/1lq3_v_u85X7oYhcBHD7tygtZtQmf7yvL/view?usp=sharing).  When we use it to encode or decode, we need to generate an instance of the following Tokenizer class.
+It will create a file that contains a tokenizer model.  When we use it to encode or decode, we need to generate an instance of the following Tokenizer class.
 
 ```python
 import os
@@ -354,7 +320,6 @@ class Tokenizer:
         self.pad_id = self.sp_model.pad_id()       # Padding token
 
     def encode(self, text, bos=True, eos=True):
-        # Encodes text into a list of token ids
         tokens = self.sp_model.encode(text)
         if bos:
             tokens = [self.bos_id] + tokens
@@ -363,21 +328,31 @@ class Tokenizer:
         return tokens
 
     def decode(self, tokens):
-        # Decodes a list of token ids back into text
         return self.sp_model.decode(tokens)
-
-tok = Tokenizer(tokenizer_model)
-# use tok.encode(text, bos=True, eos=False)
-# use tok.decode(list_of_integers)
 ```
+
+In the above, the `encode` function encodes a text into a list of token ids, and the `decode` function decodes a list of token ids back into text.
 
  
 :::{admonition} Exercises
 :class: tip
 
-- Inspect the encode and decode methods of the above tokenizer
-- The earlier toy example used the same tokenizer used for Llama2. We also trained a custom [tokenizer](https://drive.google.com/file/d/1lq3_v_u85X7oYhcBHD7tygtZtQmf7yvL/view?usp=sharing) with 2048 merges, and trained a [model](https://drive.google.com/file/d/1_V81PwtALcRXHBuNXbw8dnoBGOs2qUTM/view?usp=sharing) based on that tokenizer. Now, play with this new pair of tokenizer and model for text generation. 
-- Use a model that is trained from a mismatched tokenizer and understand the error. 
+- The earlier toy example used the same tokenizer for Llama2. We also trained a custom tokenizer with 2048 merges, and trained a model based on that tokenizer. You can fetch them here:
+```python
+trained_model_tok2048_id = '15CpwmPuO4p54ZGcJBnyghs_Ns35Ci34O'
+tok_2048_id = '1eRcXnGXBLJiRf6sQOCOPDUezBC3A6xEE'
+checkpoint = download_and_unzip(trained_model_tok2048_id, output_dir=)
+tokenizer = download_and_unzip(tok_2048_id, output_dir=)
+```
+Now, play with this new pair of tokenizer and model for text generation, e.g.,
+using
+```
+tok = Tokenizer(tokenizer_model)
+tok.encode("Hello world", bos=True, eos=False)
+tok.decode([])
+```
+
+- Use a model that is trained from a mismatched tokenizer and inspect the error. 
 ::: 
 
 ### Intrinsic Tradeoffs in Tokenization
@@ -388,110 +363,20 @@ A larger vocabulary enhances the model's ability to capture more context and det
 
 
 
-## Transformer Structure
-
-
-### Mermaid Diagram for Large Language Model Training Procedure
-
-The diagram provides an overview of the typical steps involved in training a language model.
-
-```{mermaid}
-graph TD
-    A[Data Preparation] --> B[Architecture Configuration]
-    B --> C[Model Training]
-    C --> D[Decoding]
-    D --> E[Application Integration]
-
-    style A fill:#f4d03f,stroke:#333,stroke-width:2px
-    style B fill:#85c1e9,stroke:#333,stroke-width:2px
-    style C fill:#a3e4d7,stroke:#333,stroke-width:2px
-    style D fill:#f7dc6f,stroke:#333,stroke-width:2px
-    style E fill:#d7bde2,stroke:#333,stroke-width:2px
-```
-
-
-### Transformer Model Architecture
-
-We will look into it through a toy model, which can be downloaded from [here]().  Its architecture is:
-
-```{mermaid}
-graph LR
-    A[Input Embeddings] --> B[Decoder Block 1]
-    B --> C[Decoder Block 2]
-    C --> D[Decoder Block 3]
-    D --> E[Decoder Block 4]
-    E --> F[Decoder Block 5]
-    F --> G[Decoder Block 6]
-    G --> H[Output Layer]
-
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#ccf,stroke:#333,stroke-width:2px
-    style C fill:#ccf,stroke:#333,stroke-width:2px
-    style D fill:#ccf,stroke:#333,stroke-width:2px
-    style E fill:#ccf,stroke:#333,stroke-width:2px
-    style F fill:#ccf,stroke:#333,stroke-width:2px
-    style G fill:#ccf,stroke:#333,stroke-width:2px
-    style H fill:#f9f,stroke:#333,stroke-width:2px
-```
-
-```
-Transformer(
-  (tok_embeddings): Embedding(32000, 288)
-  (dropout): Dropout(p=0.0, inplace=False)
-  (layers): ModuleList(
-    (0-5): 6 x TransformerBlock(
-      (attention): Attention(
-        (wq): Linear(in_features=288, out_features=288, bias=False)
-        (wk): Linear(in_features=288, out_features=288, bias=False)
-        (wv): Linear(in_features=288, out_features=288, bias=False)
-        (wo): Linear(in_features=288, out_features=288, bias=False)
-        (attn_dropout): Dropout(p=0.0, inplace=False)
-        (resid_dropout): Dropout(p=0.0, inplace=False)
-      )
-      (feed_forward): FeedForward(
-        (w1): Linear(in_features=288, out_features=768, bias=False)
-        (w2): Linear(in_features=768, out_features=288, bias=False)
-        (w3): Linear(in_features=288, out_features=768, bias=False)
-        (dropout): Dropout(p=0.0, inplace=False)
-      )
-      (attention_norm): RMSNorm()
-      (ffn_norm): RMSNorm()
-    )
-  )
-  (norm): RMSNorm()
-  (output): Linear(in_features=288, out_features=32000, bias=False)
-)
-```
-
-As seen above, it consists of:
-
-  - `Embedding(32000, 288)`: Maps input tokens from a vocabulary of 32,000 to 288-dimensional embeddings.
-  - `Dropout(p=0.0)`: Applies dropout with a probability of 0.0 (effectively no dropout in this setup).
-  - **6 x TransformerBlock**: Six layers of Transformer blocks, each containing:
-    - **Attention Mechanism**
-      - `Linear(in_features=288, out_features=288)`: Four linear transformations (for queries, keys, values, and output) in the multi-head attention mechanism, all with 288 features.
-      - `Dropout(p=0.0)`: Two dropout layers for attention and residual dropout, both set to 0.0 probability.
-    - **FeedForward Network**
-      - `Linear(in_features=288, out_features=768)`: First linear layer of the feed-forward network.
-      - `Linear(in_features=768, out_features=288)`: Second linear layer that projects back to 288 features.
-      - `Dropout(p=0.0)`: Dropout layer in the feed-forward network.
-    - **Normalization**
-      - `RMSNorm()`: Normalization layer for both the output of the attention block and the feed-forward network.
-- **Final Normalization**
-  - `RMSNorm()`: Normalization layer after the last Transformer block.
-- **Output Projection**
-  - `Linear(in_features=288, out_features=32000)`: Linear layer that projects the output of the Transformer to a vocabulary size of 32,000.
-
-
 
 ## References
 
-This notebook includes code examples and concepts adapted from the following sources:
+This notebook includes code examples and concepts adapted from the following sources. We acknowledge and thank the authors for their contributions to the open-source community.
 
-- Andrej Karpathy's [llama.c project](https://github.com/karpathy/llama2.c). 
-- Hugging Face blog on [introduction to tokenizers](https://huggingface.co/learn/nlp-course/en/chapter2/4?fw=pt).
 
-We acknowledge and thank the original authors for their contributions to the open-source community.
+- llama.c project. [code](https://github.com/karpathy/llama2.c)
 
+- Introduction to tokenizers. [blog](https://huggingface.co/learn/nlp-course/en/chapter2/4?fw=pt)
+
+- Fast Inference from Transformers via Speculative Decoding.  [paper](https://arxiv.org/pdf/2211.17192)
+
+- How to generate text: using different decoding methods for language generation with Transformers. [blog](https://huggingface.co/blog/how-to-generate)
+
+- SentencePiece: an unsupervised text tokenizer and detokenizer. [code](https://github.com/google/sentencepiece)
 
 <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfruUlvgs3DoWeL6Aj_GHNq7NDceEvWHoHiYKsv2Xkn2kodvg/viewform?embedded=true" width="640" height="1449" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>

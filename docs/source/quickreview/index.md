@@ -858,7 +858,7 @@ $$ A^\pi(s_t, a_t) = Q^\pi(s_t, a_t) - V^\pi(s_t) = \mathbb{E}[G_t | S_t = s_t, 
 
 It can be shown that 
 
-$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^T A^\pi(s_t, a_t)  \nabla_\theta \log \pi_\theta(s_t, a_t) \right]$$
+$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^T A^{\pi_{\theta}}(s_t, a_t)  \nabla_\theta \log \pi_\theta(s_t, a_t) \right]$$
 
 Generalized Advantage Estimation (GAE) uses the value function to produce a more stable estimator of the advantage function for policy gradients:
 
@@ -888,17 +888,19 @@ where:
 
 ### Example: Carpole Game
 
+```bash
+pip install gym moviepy ipython
+```
+Note: the following code runs well on Numpy version 1.26, but may give errors on other versions.
 ```python
-# pip install gym moviepy ipython
-
 import gym
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
+import numpy as np
 
-# Define the policy network
 class PolicyNet(nn.Module):
     def __init__(self, input_size, output_size, hidden_size=64):
         super(PolicyNet, self).__init__()
@@ -911,7 +913,6 @@ class PolicyNet(nn.Module):
         x = F.relu(self.fc2(x))
         return torch.softmax(self.fc3(x), dim=-1)
 
-# Define the value network
 class ValueNet(nn.Module):
     def __init__(self, input_size, hidden_size=64):
         super(ValueNet, self).__init__()
@@ -924,7 +925,6 @@ class ValueNet(nn.Module):
         x = F.relu(self.fc2(x))
         return self.fc3(x)
 
-# The agent class
 class PPOAgent:
     def __init__(self, env, gamma=0.99, lr=1e-3):
         self.env = env
@@ -934,21 +934,32 @@ class PPOAgent:
         self.value_net = ValueNet(env.observation_space.shape[0]).to(self.device)
         self.policy_optimizer = torch.optim.Adam(self.policy_net.parameters(), lr=lr)
         self.value_optimizer = torch.optim.Adam(self.value_net.parameters(), lr=lr)
+
         print(f"Initialized agent with state space: {env.observation_space.shape}, action space: {env.action_space.n}")
 
     def select_action(self, state):
-        state = state[0]
-        state = np.array(state, dtype=np.float32)
+
+        if isinstance(state, tuple):
+            state = state[0]
+        elif isinstance(state, dict):
+            state = state['observation']
+   
+        # Ensure state is a NumPy array
+        if not isinstance(state, np.ndarray):
+            state = np.array(state, dtype=np.float32)
+
         state_tensor = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
         probs = self.policy_net(state_tensor)
         dist = Categorical(probs)
         action = dist.sample()
         log_prob = dist.log_prob(action)
         value = self.value_net(state_tensor)
+
         return action.item(), log_prob, value
 
     def update_policy(self, rewards, log_probs, states, actions, values):
         discounts = [self.gamma ** i for i in range(len(rewards))]
+
         # Ensure rewards are on the same device
         rewards = torch.tensor(rewards, device=self.device).float()
         R = sum([a * b for a, b in zip(discounts, rewards)])
@@ -958,6 +969,7 @@ class PPOAgent:
         for log_prob, value, reward in zip(log_probs, values, rewards):
             advantage = R - value.item()
             policy_loss.append(-log_prob * advantage)
+            # Ensure R is a tensor on the right device
             value_loss.append(F.smooth_l1_loss(value, torch.tensor([R], device=self.device)))
 
         # Gradient descent for policy network
@@ -981,7 +993,7 @@ class PPOAgent:
             while not done:
                 action, log_prob, value = self.select_action(state)
                 step_output = self.env.step(action)
-                new_state, reward, done, *_ = step_output  # Using *_ to handle extra values
+                new_state, reward, done, *_ = step_output
                 log_probs.append(log_prob)
                 values.append(value)
                 rewards.append(reward)
@@ -1011,6 +1023,9 @@ print("Models saved successfully.")
 ```
 
 Visualize and save to mp4.
+
+Note: You may encounter the error: `AttributeError: 'list' object has no attribute 'shape'` in some work environments. To fix this issue, consider changing the line `frames.append(frame)` to `frames.append(frame[0])`.
+
 ```python
 from IPython.display import Video, display
 import moviepy.editor as mpy
@@ -1053,13 +1068,16 @@ display(Video(video_path, embed=True))
 
 ## References
 
-This documentation includes code examples and concepts adapted from the following sources:
+This documentation includes code examples and concepts adapted from the following sources. We acknowledge and thank the authors for their contributions to the open-source community.
 
-[1] SemiFL: Semi-Supervised Federated Learning for Unlabeled Clients with Alternate Training.  [paper](https://arxiv.org/pdf/2106.01432) [code](https://github.com/diaoenmao/SemiFL-Semi-Supervised-Federated-Learning-for-Unlabeled-Clients-with-Alternate-Training/tree/main)
-[2] FixMatch: Simplifying Semi-Supervised Learning with Consistency and Confidence. [paper](https://arxiv.org/abs/2001.07685)
-[3] RandAugment: Practical data augmentation with no separate search. [code](https://github.com/google-research/uda#unsupervised-data-augmentation)
+- SemiFL: Semi-Supervised Federated Learning for Unlabeled Clients with Alternate Training.  [paper](https://arxiv.org/pdf/2106.01432) and [code](https://github.com/diaoenmao/SemiFL-Semi-Supervised-Federated-Learning-for-Unlabeled-Clients-with-Alternate-Training/tree/main)
 
-We acknowledge and thank the original authors for their contributions to the open-source community.
+- FixMatch: Simplifying Semi-Supervised Learning with Consistency and Confidence. [paper](https://arxiv.org/abs/2001.07685)
+
+- RandAugment: Practical data augmentation with no separate search. [code](https://github.com/google-research/uda#unsupervised-data-augmentation)
+
+- Intro to Policy Optimization. [blog](https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html)
+ 
 
 
 
