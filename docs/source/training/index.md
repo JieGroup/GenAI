@@ -8,7 +8,6 @@ Building a large language model (LLM) from scratch was once a task reserved for 
 This chapter details the process of building your own LLM from the ground up, from architecture definition and data curation to effective training and evaluation techniques.
 
 
-## Determine the Use Case For Your LLM
 
 The first and most crucial step in building an LLM is defining its purpose. This influences the model's size, the amount of training data needed, and the computational resources required.
 
@@ -17,14 +16,6 @@ Key reasons for creating your own LLM include:
 - **Greater Data Security**: Incorporating sensitive or proprietary information securely.
 - **Ownership and Control**: Retaining control over confidential data and improving the LLM over time.
 
-
-## Transformer Model Architecture
-
-
-## Transformer Structure
-
-
-### Mermaid Diagram for Large Language Model Training Procedure
 
 The diagram provides an overview of the typical steps involved in training a language model.
 
@@ -43,9 +34,180 @@ graph TD
 ```
 
 
-### Transformer Model Architecture
 
-We will look into it through a toy model, which can be downloaded from [here]().  Its architecture is:
+## Transformer Model Architecture
+
+
+Let us break down the components of the Transformer model, including the embedding layer, transformer blocks, and attention mechanism. 
+
+
+### Input and Output
+
+The Transformer class initializes the model parameters and sets up the embedding layer.
+
+
+```python
+class Transformer(nn.Module):
+    def __init__(self, args: ModelArgs):
+        super().__init__()
+        self.args = args
+        self.vocab_size = args.vocab_size
+
+        # Convert input token indices into dense vector representations
+        self.tok_embeddings = nn.Embedding(args.vocab_size, args.dim)
+
+        # Add transformer blocks here
+        ...
+
+        # Convert the final hidden state of the model back into a distribution over the vocabulary
+        self.output = nn.Linear(args.dim, args.vocab_size, bias=False)
+
+        # Weight Tying: using the same weight matrix to reduce complexity
+        self.tok_embeddings.weight = self.output.weight
+
+        # Precompute positional embeddings
+        self.freqs_cos, self.freqs_sin = ...
+
+    def forward(self, tokens: torch.Tensor, targets: Optional[torch.Tensor] = None):
+        h = self.tok_embeddings(tokens)
+        h = self.dropout(h)
+        for layer in self.layers:
+            h = layer(h, self.freqs_cos[:seqlen], self.freqs_sin[:seqlen])
+        h = self.norm(h)
+
+        if targets is not None: # training-stage
+            logits = self.output(h)
+            self.last_loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+        else: # inference-stage: only select the hidden state of the last token in each sequence
+            logits = self.output(h[:, [-1], :])
+            self.last_loss = None
+
+        return logits
+```
+
+where ModelArgs contains the following hyperparameters (with the Llama 7B model default):
+
+```python
+from dataclasses import dataclass
+@dataclass
+class ModelArgs:
+    dim: int = 4096
+    n_layers: int = 32
+    n_heads: int = 32
+    n_kv_heads: Optional[int] = None
+    vocab_size: int = 32000
+    hidden_dim: Optional[int] = None
+    multiple_of: int = 256
+    norm_eps: float = 1e-5
+    max_seq_len: int = 2048
+    dropout: float = 0.0
+```
+
+### Transformer Blocks
+The model contains a series of TransformerBlock layers, each consisting of an attention mechanism and a feed-forward network.
+
+```python
+class Transformer(nn.Module):
+    def __init__(self, args: ModelArgs):
+        ...
+        self.layers = torch.nn.ModuleList()
+        for layer_id in range(args.n_layers):
+            self.layers.append(TransformerBlock(layer_id, args))
+        
+        # Normalizes the input to the attention and feed-forward layers.
+        self.norm = RMSNorm(args.dim, eps=args.norm_eps)
+        ...
+
+class TransformerBlock(nn.Module):
+    def __init__(self, layer_id: int, args: ModelArgs):
+        super().__init__()
+        self.n_heads = args.n_heads
+        self.dim = args.dim
+        self.head_dim = args.dim // args.n_heads
+        self.attention = Attention(args)
+        self.feed_forward = FeedForward(dim=args.dim, hidden_dim=args.hidden_dim, multiple_of=args.multiple_of, dropout=args.dropout)
+        self.layer_id = layer_id
+        self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
+        self.ffn_norm = RMSNorm(args.dim, eps=args.norm_eps)
+
+    def forward(self, x, freqs_cos, freqs_sin):
+        h = x + self.attention.forward(self.attention_norm(x), freqs_cos, freqs_sin)
+        out = h + self.feed_forward.forward(self.ffn_norm(h))
+        return out
+```
+
+> Unlike **batch normalization**, which normalizes across the batch dimension, **layer normalization** normalizes across the features of each individual token in a sequence. It works independently for each token without relying on the batch statistics. It is applied at every transformer layer to stabilize training by keeping activations within a consistent range.
+
+
+
+
+### Attention
+
+The attention mechanism allows the model to weigh different parts of the input sequence differently when producing the token embeddings. Attention mechanisms are used in self-attention for transformers or other forms like cross-attention in encoder-decoder models.
+
+- Input $x$ is projected into queries $Q$, keys $K$, and values $V$
+
+  - x has shape `(batch_size, seq_len, dim)`
+  - After linear projections: $xq, xk, xv$ have shapes `(batch_size, seq_len, num_heads, head_dim)` with `head_dim = dim / num_heads`
+  - Dot product of queries and keys: $s = xq \cdot xk^T$ gives shape `(batch_size, num_heads, seq_len, seq_len)`
+  - Weighted sum of values: $\textrm{output}=\textrm{softmax}(s) \cdot xv$ gives shape `(batch_size, num_heads, seq_len, head_dim)`
+  - Final Projection: Concatenate across heads and project back to `(batch_size, seq_len, dim)`
+
+- Use Position Embeddings to encode positional information
+
+- Compute scaled dot-product attention: 
+
+$$
+\textrm{Attention}(Q,K,V) = \textrm{softmax}(QK^T / \sqrt{d_k}) V
+$$
+
+- The attended representation is then projected back to the model's dimension
+
+```python
+class Attention(nn.Module):
+    def __init__(self, args: ModelArgs):
+            super().__init__()
+            ...
+            
+    def forward(self, x: torch.Tensor, freqs_cos: torch.Tensor, freqs_sin: torch.Tensor):
+        # QKV projections
+        self.wq = nn.Linear(args.dim, args.n_heads * self.head_dim, bias=False)
+        self.wk = nn.Linear(args.dim, args.n_heads * self.head_dim, bias=False)
+        self.wv = nn.Linear(args.dim, args.n_heads * self.head_dim, bias=False)
+
+        # Final projection into the residual stream
+        self.wo = nn.Linear(args.n_heads * self.head_dim, args.dim, bias=False)
+        
+        # reorganize dimensions and apply relative positional embeddings to update xq, xk using freqs_cos, freqs_sin
+        ...
+
+        scores = torch.matmul(xq, xk.transpose(2, 3)) / math.sqrt(self.head_dim)
+        scores = F.softmax(scores.float(), dim=-1).type_as(xq)
+        output = torch.matmul(scores, xv)
+        output = self.wo(output)
+        return output
+```
+
+### Summary and Example
+
+A complete Pytorch implementation of the model is included in [model.py](https://drive.google.com/file/d/1SU7jSZI36KGwBv5-zgc3WkStPK6lGKwL/view?usp=sharing).
+
+In training our earlier demo model with FileID `15CpwmPuO4p54ZGcJBnyghs_Ns35Ci34O`, we used the following config:
+```python
+class ModelArgs:
+    dim: int = 288
+    n_layers: int = 6
+    n_heads: int = 6
+    n_kv_heads: Optional[int] = 6
+    vocab_size: int = 2048
+    hidden_dim: Optional[int] = None
+    multiple_of: int = 32
+    norm_eps: float = 1e-5
+    max_seq_len: int = 256
+    dropout: float = 0.1
+```
+
+This corresponds to the architecture:
 
 ```{mermaid}
 graph LR
@@ -67,10 +229,11 @@ graph LR
     style H fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
+and specifically:
 ```
 Transformer(
-  (tok_embeddings): Embedding(32000, 288)
-  (dropout): Dropout(p=0.0, inplace=False)
+  (tok_embeddings): Embedding(2048, 288)
+  (dropout): Dropout(p=0.1, inplace=False)
   (layers): ModuleList(
     (0-5): 6 x TransformerBlock(
       (attention): Attention(
@@ -92,76 +255,52 @@ Transformer(
     )
   )
   (norm): RMSNorm()
-  (output): Linear(in_features=288, out_features=32000, bias=False)
+  (output): Linear(in_features=288, out_features=2048, bias=False)
 )
 ```
 
-As seen above, it consists of:
+As seen above, this model consists of:
 
-  - `Embedding(32000, 288)`: Maps input tokens from a vocabulary of 32,000 to 288-dimensional embeddings.
-  - `Dropout(p=0.0)`: Applies dropout with a probability of 0.0 (effectively no dropout in this setup).
+  - `Embedding(32000, 288)`: Maps input tokens from a vocabulary of 2048 to 288-dimensional embeddings
+  - `Dropout(p=0.0)`: Applies dropout with a probability of 0.1
   - **6 x TransformerBlock**: Six layers of Transformer blocks, each containing:
     - **Attention Mechanism**
-      - `Linear(in_features=288, out_features=288)`: Four linear transformations (for queries, keys, values, and output) in the multi-head attention mechanism, all with 288 features.
-      - `Dropout(p=0.0)`: Two dropout layers for attention and residual dropout, both set to 0.0 probability.
+      - `Linear(in_features=288, out_features=288)`: Four linear transformations (for queries, keys, values, and output) in the multi-head attention mechanism
+      - `Dropout(p=0.1)`: Two dropout layers for attention and residual dropout
     - **FeedForward Network**
-      - `Linear(in_features=288, out_features=768)`: First linear layer of the feed-forward network.
-      - `Linear(in_features=768, out_features=288)`: Second linear layer that projects back to 288 features.
-      - `Dropout(p=0.0)`: Dropout layer in the feed-forward network.
+      - `Linear(in_features=288, out_features=768)`: First linear layer
+      - `Linear(in_features=768, out_features=288)`: Second linear layer that projects back to 288 features
+      - `Dropout(p=0.1)`: Dropout layer in the feed-forward network
     - **Normalization**
-      - `RMSNorm()`: Normalization layer for both the output of the attention block and the feed-forward network.
+      - `RMSNorm()`: Normalization layer for both the output of the attention block and the feed-forward network
 - **Final Normalization**
   - `RMSNorm()`: Normalization layer after the last Transformer block.
 - **Output Projection**
-  - `Linear(in_features=288, out_features=32000)`: Linear layer that projects the output of the Transformer to a vocabulary size of 32,000.
+  - `Linear(in_features=288, out_features=2048)`: Linear layer that projects the output of the Transformer to a vocabulary size.
 
 
 
 
-## Create Your Model Architecture
+## Various Model Architectures
 
-The architecture of the neural network determines the model's capabilities. The transformer architecture is the best choice for LLMs due to its ability to handle long-range dependencies, parallel processing, and capturing underlying patterns from data.
+The architecture of the neural network determines the model's capabilities. The transformer architecture becomes a standard for LLMs due to its ability to handle long-range dependencies and parallel processing.
 
-Frameworks like PyTorch and TensorFlow provide the necessary components for neural network development.
-
-Some popular architectures include the following 
+We have covered the decoder-only architecture, as exemplified by the GPT family of models. However, there are other key architectures that use attention mechanisms in different ways:
 
 | Architecture | Description | Suitable for |
 |--------------|-------------|--------------|
-| **Bi-directional Encoder Representation from Transformers (BERT)** | Encoder-only architecture, best suited for tasks that can understand language. | Classification and sentiment analysis |
-| **Generative Pre-trained Transformer (GPT)** | Decoder-only architecture suited for generative tasks and fine-tuned with labeled data on discriminative tasks. Given the unidirectional architecture, context only flows forward. The GPT framework helps achieve strong natural language understanding using a single-task-agnostic model through generative pre-training and discriminative fine-tuning. | Textual entailment, sentence similarity, question answering. |
-| **Text-To-Text Transformer (Sequence-to-Sequence models)** | Encoder-decoder architecture. It leverages the transfer learning approach to convert every text-based language problem into a text-to-text format, that is taking text as input and producing the next text as output. With a bidirectional architecture, context flows in both directions. | Translation, Question & Answering, Summarization. |
-| **Mixture of Experts (MoE)** | Model architecture decisions that can be applied to any of the‌ architectures. Designed to scale up model capacity substantially while adding minimal computation overhead, converting dense models into sparse models. The MoE layer consists of many expert models and a sparse gating function. The gates route each input to the top-K (K>=2 or K=1) best experts during inference. | Generalize well across tasks for computational efficiency during inference, with low latency |
+| **Generative Pre-trained Transformer (GPT)** | Decoder-only: Suited for generative tasks and fine-tuned with labeled data on discriminative tasks. Given the unidirectional architecture, context only flows forward. The GPT framework helps achieve strong natural language understanding using a single-task-agnostic model through generative pre-training and fine-tuning. | Textual entailment, sentence similarity, question answering. |
+| **Bi-directional Encoder Representation from Transformers (BERT)** | Encoder-only: Focus on understanding input sequences by applying self-attention over the entire input bidirectionally, making it suitable for tasks like classification. | Classification and sentiment analysis |
+| **Text-To-Text Transformer (Sequence-to-Sequence models)** | Encoder-Decoder: Utilize both an encoder to process the input and a decoder to generate the output. With a bidirectional architecture, context flows in both directions. | Translation, Question & Answering, Summarization. |
+| **Mixture of Experts (MoE)** | Designed to scale up model capacity by converting dense models into sparse models. The MoE layer consists of many expert models and a sparse gating function. The gates route each input to the top-K best experts during inference. | Generalize well with computational efficiency during inference |
 
 
+All these architectures leverage the attention mechanism. The main difference lies in how attention is applied:
+- Decoder-only models use unidirectional attention to predict the next token in a sequence
+- Encoder-only focuses on bidirectional context
+- Encoder-decoder uses a decoder that attends to both the input (through encoder-decoder attention) and its own past outputs (through self-attention)
 
-### Creating The Transformer’s Components
 
-#### 1. Embedding Layer
-Converts input into vector representations. This involves:
-- Tokenizing the input.
-- Assigning integer IDs to tokens.
-- Converting integers into multi-dimensional vectors (embeddings).
-
-#### Positional Encoder
-Generates positional encodings added to each embedding to maintain the position of tokens within a sequence.
-
-#### Self-Attention Mechanism
-The most crucial component, responsible for comparing each embedding to determine similarity and semantic relevance. Multi-head attention allows parallel processing, enhancing performance and reliability.
-
-#### Feed-Forward Network
-Captures higher-level features of the input sequence with sub-layers: 
-- First Linear Layer
-- Non-Linear Activation Function (e.g., ReLU)
-- Second Linear Layer
-
-#### Normalization Layers
-Ensures input embeddings fall within a reasonable range, stabilizing the model.
-In particular, the transformer architecture utilizes layer normalization, which normalizes the output for each token at every layer – as opposed to batch normalization, for example, which normalizes across each portion of data used during a time step. Layer normalization is ideal for transformers because it maintains the relationships between the aspects of each token; and does not interfere with the self-attention mechanism.
-
-#### Residual Connections
-Feeds the output of one layer directly into the input of another, preventing information loss and aiding in faster, more effective training.
-During forward propagation, i,e., as training data is fed into the model, residual connections provide an additional pathway that ensures that the original data is preserved and can bypass transformations at that layer. Conversely, during backward propagation, i,e., when the model adjusts its parameters according to its loss function, residual connections help gradients flow more easily through the network, helping to mitigate vanishing gradients, where gradients become increasingly smaller as they pass through more layers.
 
 ### Assembling the Encoder and Decoder
 
@@ -239,6 +378,97 @@ There are several places to source training data for your language model. Depend
 - **Private Datasets**: Curated in-house or purchased.
 - **Directly From the Internet**: Less recommended due to potential inaccuracies and biases.
 
+
+### Example Dataset: TinyStories 
+
+As before, fetch [utils.py](https://drive.google.com/file/d/1tKQCXmrT4whJr1V33nBVRhaNzniRT5KE/view?usp=sharing) and run the following to download the TinyStories dataset. A bunch of json files will be created within `TinyStories_all_data` under your specified directory `data_dir`.
+
+```python
+from utils import download_TinyStories
+download_TinyStories(data_dir="demo_data")
+```
+
+## Tokenization
+
+We went through [tokenization and vocabulary](https://genai-course.jding.org/en/latest/llm/index.html#tokenization-and-vocabulary) and discussed their tradeoffs. Here is an implementation of it:
+
+```python
+import glob
+import json
+import os
+from tqdm import tqdm
+import sentencepiece as spm
+
+def train_vocab(vocab_size, data_dir, dataset_name="TinyStories_all_data"):
+    """
+    Trains a custom sentencepiece tokenizer on the TinyStories dataset.
+    It produces a file saved in "tok{vocab_size}" under the data_dir directory.
+    """
+
+    assert vocab_size > 0, "Vocab size must be positive"
+    prefix = os.path.join(data_dir, f"tok{vocab_size}") #output file prefix
+    
+    # Export a number of shards into a text file for vocab training. The lower the more efficiency
+    num_shards = 10
+    temp_file = os.path.join(data_dir, "temp.txt")
+    data_dir = os.path.join(data_dir, dataset_name)
+    shard_filenames = sorted(glob.glob(os.path.join(data_dir, "*.json")))
+
+    print(f"Writing temporary file {temp_file} with {num_shards} shards...")
+    with open(temp_file, "w", encoding="utf-8") as of:
+        for shard in tqdm(shard_filenames[:num_shards]):
+            with open(shard, "r") as f:
+                data = json.load(f)
+            for example in data:
+                text = example["story"]
+                text = text.strip()
+                of.write(text + "\n")
+    print(f"Size: {os.path.getsize(temp_file) / 1024 / 1024:.2f} MB")
+    print("Train the sentencepiece model ...")
+    spm.SentencePieceTrainer.train(input=temp_file, model_prefix=prefix, model_type="bpe", vocab_size=vocab_size, split_digits=False, allow_whitespace_only_pieces=True, byte_fallback=True, unk_surface=r" \342\201\207 ", normalization_rule_name="identity")
+    os.remove(temp_file)
+    tokenizer_model = f"{prefix}.model"
+    print(f"Trained tokenizer is in {tokenizer_model}")
+    return tokenizer_model
+
+tokenizer_model = train_vocab(2048, "demo_data", "TinyStories_all_data")
+```
+
+Using the above generated tokenizer model, we can pretokenizer the original text data for model training. Use the Python module [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=sharing).
+
+```python
+from tokenizer import pretokenize
+output_bin_dir = pretokenize(data_dir="demo_data", dataset_name="TinyStories_all_data", tokenizer_model=tokenizer_model)
+# This will create a directory called TinyStories_all_data_pretok under data_dir
+```
+
+## Putting the Model and Data together
+
+
+Set up the configuration (including hyper-) parameters in a [demo_training_config.py](https://drive.google.com/file/d/1bxSYERj2F81n5WkzLukOj355Zhccf-JG/view?usp=sharing) module, and then load it for training, e.g.,
+
+```python
+from demo_training_config import Config
+config = Config()
+config_dict = config.to_dict()
+pretok_bin_dir = config.pretok_bin_dir
+model_out_dir = config.model_out_dir
+...
+```
+
+A full training script can be downloaded at [demo_train.py](https://drive.google.com/file/d/1Jr1eQvJCo9MKlWryCpGnd8s0gRsFvH6v/view?usp=sharing). 
+
+
+### LLM Hyperparameters
+
+- **Batch Size**: batch is a collection of instances from the training data, which are fed into the model at a particular timestep. Larger batches require more memory but also accelerate the training process as you get through more data at each interval. Conversely, smaller batches use less memory but prolong training. Generally, it is best to go with the largest data batch your hardware will allow while remaining stable, but finding this optimal batch size requires experimentation.
+- **Learning Rate**: how quickly the LLM updates itself in response to its loss function, i.e., its frequency of incorrect prediction, during training. A higher learning rate expedites training but could cause instability and overfitting. A lower learning rate, in contrast, is more stable and improves generalization – but lengthens the training process.
+- **Temperature**: adjusts the range of possible output to determine how “creative” the LLM is. Represented by a value between 0.0 (minimum) and 2.0 (maximum), a lower temperature will generate more predictable output, while a higher value increases the randomness and creativity of responses.
+
+
+
+
+
 ### How Long Does It Take to Train an LLM From Scratch?
 
 The training time for an LLM varies based on several factors:
@@ -253,51 +483,6 @@ Training an LLM for simple tasks with small datasets might take a few hours, whi
 To mitigate these issues, monitor the model's performance and stop training when it consistently produces the expected outcomes and makes accurate predictions on unseen data.
 
 
-## Training Your Custom LLM
-
-Training involves forward and backward propagation over multiple batches of data and epochs until the model's parameters converge.
-
-### LLM Training Techniques
-
-#### Parallelization
-Distributes training tasks across multiple GPUs.
-- **Data Parallelization**: Divides training data into shards.
-- **Tensor Parallelization**: Divides matrix multiplications.
-- **Pipeline Parallelization**: Distributes transformer layers.
-- **Model Parallelization**: Distributes the model across GPUs.
-
-#### Gradient Checkpointing
-Gradient checkpointing is a technique used to reduce the memory requirements of training LLMs. It is a valuable training technique because it makes it more feasible to train LLMs on devices with restricted memory capacity. Subsequently, by mitigating out-of-memory errors, gradient checkpointing helps make the training process more stable and reliable.
-
-Typically, during forward propagation, the model’s neural network produces a series of intermediate activations: output values derived from the training data that the network later uses to refine its loss function. With gradient checkpointing, though all intermediate activations are calculated, only a subset of them are stored in memory at defined checkpoints.
-
-During backward propagation, the intermediate activations that were not stored are recalculated. However, instead of recalculating all the activations, only the subset – stored at the checkpoint – needs to be recalculated. Although gradient checkpointing reduces memory requirements, the tradeoff is that it increases processing overhead; the more checkpoints used, the greater the overhead.
-
-#### LLM Hyperparameters
-- **Batch Size**: batch is a collection of instances from the training data, which are fed into the model at a particular timestep. Larger batches require more memory but also accelerate the training process as you get through more data at each interval. Conversely, smaller batches use less memory but prolong training. Generally, it is best to go with the largest data batch your hardware will allow while remaining stable, but finding this optimal batch size requires experimentation.
-- **Learning Rate**: how quickly the LLM updates itself in response to its loss function, i.e., its frequency of incorrect prediction, during training. A higher learning rate expedites training but could cause instability and overfitting. A lower learning rate, in contrast, is more stable and improves generalization – but lengthens the training process.
-- **Temperature**: adjusts the range of possible output to determine how “creative” the LLM is. Represented by a value between 0.0 (minimum) and 2.0 (maximum), a lower temperature will generate more predictable output, while a higher value increases the randomness and creativity of responses.
-
-## Fine-Tuning Your LLM
-
-
-After training your LLM from scratch with larger, general-purpose datasets, you will have a base, or pre-trained, language model. To prepare your LLM for your chosen use case, you likely have to fine-tune it. Fine-tuning is the process of further training a base LLM with a smaller, task or domain-specific dataset to enhance its performance on a particular use case. Fine-tuning methods broadly fall into two categories: full fine-tuning and transfer learning: 
-- **Full Fine-Tuning**: Updates all base model parameters.  This is the most comprehensive way to train an LLM for a specific task or domain – but requires more time and resources.
-- **Transfer Learning**: Freezes most layers and tunes specific ones. The remaining layers – or, often, newly added – unfrozen layers are fine-tuned with the smaller fine-tuning dataset – requiring less time and computational resources than full fine-tuning.
-
-## Evaluating Your Bespoke LLM
-
-Evaluation ensures the LLM performs as expected using unseen datasets to avoid overfitting.
-
-### LLM Benchmarks
-Standardized tests to objectively evaluate performance. Some of the most widely used benchmarks for evaluating LLM performance include:
-- **ARC**: a question-answer (QA) benchmark designed to evaluate knowledge and reasoning skills.
-- **HellaSwag**: uses sentence completion exercises to test commonsense reasoning  and natural language inference (NLI) capabilities.
-- **MMLU**: a  benchmark comprised of 15,908 questions across 57 tasks that measure natural language understanding (NLU), i.e., how well an LLM _understands_ language and, subsequently, can solve problems.
-- **TruthfulQA**: measuring a model’s ability to generate truthful answers, i.e., its propensity to “hallucinate”.
-- **GSM8K**: measures multi-step mathematical abilities through a collection of 8,500 grade-school-level math word problems.
-- **HumanEval**: measures an LLM’s ability to generate functionally correct code.
-- **MT Bench**: evaluates a language model’s ability to effectively engage in multi-turn dialogues – like those engaged in by chatbots.
 
 ## Conclusion
 

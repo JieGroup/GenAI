@@ -1,6 +1,26 @@
 # 6. Efficiency and Memory in Large Model Training
 
 
+
+### LLM Efficient Training Techniques
+
+#### Parallelization
+Distributes training tasks across multiple GPUs.
+- **Data Parallelization**: Divides training data into shards.
+- **Tensor Parallelization**: Divides matrix multiplications.
+- **Pipeline Parallelization**: Distributes transformer layers.
+- **Model Parallelization**: Distributes the model across GPUs.
+
+#### Gradient Checkpointing
+Gradient checkpointing is a technique used to reduce the memory requirements of training LLMs. It is a valuable training technique because it makes it more feasible to train LLMs on devices with restricted memory capacity. Subsequently, by mitigating out-of-memory errors, gradient checkpointing helps make the training process more stable and reliable.
+
+Typically, during forward propagation, the model’s neural network produces a series of intermediate activations: output values derived from the training data that the network later uses to refine its loss function. With gradient checkpointing, though all intermediate activations are calculated, only a subset of them are stored in memory at defined checkpoints.
+
+During backward propagation, the intermediate activations that were not stored are recalculated. However, instead of recalculating all the activations, only the subset – stored at the checkpoint – needs to be recalculated. Although gradient checkpointing reduces memory requirements, the tradeoff is that it increases processing overhead; the more checkpoints used, the greater the overhead.
+
+
+
+
 ## Accelerate Large Model Training using DeepSpeed
 
 Training large models often leads to OOM errors due to hardware limitations. Data Parallelism using ZeRO can help optimize the use of available hardware by distributing optimizer states, gradients, and model parameters across multiple GPUs. This post explores how to leverage DeepSpeed ZeRO using Accelerate.

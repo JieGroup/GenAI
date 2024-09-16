@@ -3,13 +3,18 @@
 
 Large Language Models (LLMs) such as GPT-3/4, Falcon, and Llama are rapidly advancing in their ability to tackle human-centric tasks. Deploying these models in real-world tasks remains challenging due to the computational and memory demands for inference, especially with extensive contextual information. This note is based on [this blog](https://huggingface.co/docs/transformers/main/en/llm_tutorial_optimization).
 
-## Contents
 
-1. [Lower Precision](#lower-precision)
-2. [Flash Attention](#flash-attention)
-3. [Page Attention]()
-4. [KV Cache]()
+## Model Compiling
 
+Add the following after saving the checkpoint during the training
+```python
+from export import model_export
+
+# The function model_export serializes the model’s state dictionary to a binary file (model.bin). 
+# This file is meant to be a lightweight alternative to the full checkpoint, 
+# for deployment or inference where only the model parameters are needed, not the full training state.
+model_export(model, os.path.join(out_dir, "model.bin"), version=0)
+```
 
 ## Lower Precision
 
