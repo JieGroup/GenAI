@@ -433,7 +433,9 @@ model_out_dir = config.model_out_dir
 
 #### Training
 
-A full training script can be downloaded at [demo_train.py](https://drive.google.com/file/d/1Jr1eQvJCo9MKlWryCpGnd8s0gRsFvH6v/view?usp=sharing). This script sets up and trains a model from scratch, utilizing the earlier defined Transformer architecture, downloaded data, and hyperparameters.  
+A full training script can be downloaded at [demo_train.py](https://drive.google.com/file/d/1Jr1eQvJCo9MKlWryCpGnd8s0gRsFvH6v/view?usp=sharing). This script sets up and trains a model from scratch, based on the earlier defined Transformer architecture, downloaded data, and hyperparameters.  
+
+The following is a simplified sketch of the training procedure.
 
 ```python
 from model import Transformer, ModelArgs
@@ -503,12 +505,14 @@ while iter_num <= config.max_iters:
 In classical settings such as regression and classification with small output spaces, there exist statistical diagnostic tools to quantify whether a model can be improved further or has reached its theoretical performance limit (given the data). For instance, [this paper](https://par.nsf.gov/servlets/purl/10347493#:~:text=To%20our%20best%20knowledge%2C%20there,challenging%20to%20construct%20proper%20tests) formulates classifier diagnostics from a hypothesis testing perspective.
 
 **Discuss** potential approaches (both practical and theoretical) to decide if we should invest more resources in continuing to train a model or update its architecture. Consider aspects beyond validation performance as this alone does not address the problem. 
+:::
 
+:::{admonition} Exercises
+:class: tip
 
-- **How Long Does It Take to Train an LLM From Scratch?**
+**How Long Does It Take to Train an LLM From Scratch?**
 
 The training time varies significantly depending on several factors, such as model complexity, training dataset, computational resources, choices in hyperparameters, alongside the specific task and evaluation criteria.
-
 
 **Discuss** the equation(s) or methods that could be used to predict the total training time based on an initial pilot run, and clearly define what constitutes a pilot run in this context.
 :::
@@ -517,12 +521,21 @@ The training time varies significantly depending on several factors, such as mod
 
 ## References
 
-This notebook includes code examples and concepts adapted from the following sources. We acknowledge and thank the authors for their contributions to the open-source community.
+- Llama 2: Open foundation and fine-tuned chat models. [paper](https://arxiv.org/pdf/2307.09288)
 
+- BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. [paper](https://arxiv.org/pdf/1810.04805)
+
+- Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer. [paper](https://arxiv.org/pdf/1910.10683)
+
+- Scaling vision with sparse mixture of experts. [paper](https://arxiv.org/pdf/2106.05974)
+
+- GPT-4 Technical Report. [paper](https://arxiv.org/pdf/2303.08774)
+
+- Is a Classification Procedure Good Enough?—A Goodness-of-Fit Assessment Tool for Classification Learning. [paper](https://par.nsf.gov/servlets/purl/10347493#:~:text=To%20our%20best%20knowledge%2C%20there,challenging%20to%20construct%20proper%20tests)
+
+This notes include code examples and concepts adapted from the following sources. We acknowledge and thank the authors for their contributions to the open-source community.
 
 - llama.c open-source project. [code](https://github.com/karpathy/llama2.c)
 
 - TinyStories: How Small Can Language Models Be and Still Speak
 Coherent English? [paper](https://arxiv.org/pdf/2305.07759), [data](https://huggingface.co/datasets/roneneldan/TinyStories)
-
-- Is a Classification Procedure Good Enough?—A Goodness-of-Fit Assessment Tool for Classification Learning. [paper](https://par.nsf.gov/servlets/purl/10347493#:~:text=To%20our%20best%20knowledge%2C%20there,challenging%20to%20construct%20proper%20tests)
