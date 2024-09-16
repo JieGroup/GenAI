@@ -3,19 +3,20 @@
 
 ## Introduction
 
-Building a large language model (LLM) from scratch was once a task reserved for larger organizations due to the considerable computational resources and specialized knowledge required. Today, with the growing availability of resources and knowledge, organizations of all sizes can develop custom LLMs to enhance productivity, efficiency, and competitive edge.
 
-This chapter details the process of building your own LLM from the ground up, from architecture definition and data curation to effective training and evaluation techniques.
+Building a large language model from scratch has traditionally been the domain of large organizations with extensive computational resources and specialized expertise. However, advancements in technology and an increasing openness in sharing research methodologies have begun to democratize this process.
+
+While university researchers and smaller organizations may still face resource constraints, they now have greater access to tools and techniques that make it feasible to develop custom LLMs. This not only opens up possibilities for advancing research in fields beyond text data, such as AI for science, but also enables a wider range of applications that can drive innovation and contribute to the broader community.
 
 
+In this chapter, we will outline the process of building your own (albeit smaller) LLM from the ground up, covering essential steps such as architecture design, data curation, effective training, and evaluation techniques.
 
-The first and most crucial step in building an LLM is defining its purpose. This influences the model's size, the amount of training data needed, and the computational resources required.
 
-Key reasons for creating your own LLM include:
+The first and most crucial step in building an LLM is defining its purpose. This decision influences the model's size, the amount of training data needed, and the computational resources required. Key reasons for creating your own LLM include:
+
 - **Domain-Specificity**: Training with industry-specific data.
 - **Greater Data Security**: Incorporating sensitive or proprietary information securely.
-- **Ownership and Control**: Retaining control over confidential data and improving the LLM over time.
-
+- **Ownership and Control**: Retaining control over confidential data and improving the model over time.
 
 The diagram provides an overview of the typical steps involved in training a language model.
 
@@ -504,7 +505,7 @@ In classical settings such as regression and classification with small output sp
 **Discuss** potential approaches (both practical and theoretical) to decide if we should invest more resources in continuing to train a model or update its architecture. Consider aspects beyond validation performance as this alone does not address the problem. 
 
 
-- How Long Does It Take to Train an LLM From Scratch? 
+- **How Long Does It Take to Train an LLM From Scratch?**
 
 The training time varies significantly depending on several factors, such as model complexity, training dataset, computational resources, choices in hyperparameters, alongside the specific task and evaluation criteria.
 
