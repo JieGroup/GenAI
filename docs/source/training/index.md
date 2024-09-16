@@ -136,7 +136,7 @@ class TransformerBlock(nn.Module):
         return out
 ```
 
-> Unlike **batch normalization**, which normalizes across the batch dimension, **layer normalization** normalizes across the features of each individual token in a sequence. It works independently for each token without relying on the batch statistics. It is applied at every transformer layer to stabilize training by keeping activations within a consistent range.
+> Unlike **batch normalization**, which normalizes across the batch dimension, **layer normalization** normalizes across the features of each individual token in a sequence. It works independently for each token without relying on the batch statistics. It is applied at every transformer layer to stabilize training by keeping token representations within a consistent range.
 
 
 
@@ -166,10 +166,8 @@ $$
 ```python
 class Attention(nn.Module):
     def __init__(self, args: ModelArgs):
-            super().__init__()
-            ...
-            
-    def forward(self, x: torch.Tensor, freqs_cos: torch.Tensor, freqs_sin: torch.Tensor):
+        super().__init__()
+
         # QKV projections
         self.wq = nn.Linear(args.dim, args.n_heads * self.head_dim, bias=False)
         self.wk = nn.Linear(args.dim, args.n_heads * self.head_dim, bias=False)
@@ -177,16 +175,26 @@ class Attention(nn.Module):
 
         # Final projection into the residual stream
         self.wo = nn.Linear(args.n_heads * self.head_dim, args.dim, bias=False)
-        
+      
+        # Create a mask for causal attention
+        mask = torch.full((1, 1, args.max_seq_len, args.max_seq_len), float("-inf"))
+        self.mask = torch.triu(mask, diagonal=1)
+        ...
+
+    def forward(self, x: torch.Tensor, freqs_cos: torch.Tensor, freqs_sin: torch.Tensor):
+  
         # reorganize dimensions and apply relative positional embeddings to update xq, xk using freqs_cos, freqs_sin
         ...
 
         scores = torch.matmul(xq, xk.transpose(2, 3)) / math.sqrt(self.head_dim)
+        scores = scores + self.mask[:, :, :seqlen, :seqlen] 
         scores = F.softmax(scores.float(), dim=-1).type_as(xq)
         output = torch.matmul(scores, xv)
         output = self.wo(output)
         return output
 ```
+
+Here, we used Causal Masking `mask` to ensure that the future positions have zero contribution in the weighted sum, which prevents attending to future tokens.
 
 ### Summary and Example
 
@@ -301,48 +309,11 @@ All these architectures leverage the attention mechanism. The main difference li
 - Encoder-decoder uses a decoder that attends to both the input (through encoder-decoder attention) and its own past outputs (through self-attention)
 
 
-
-### Assembling the Encoder and Decoder
-
-#### Encoder
-Converts input sequences into weighted embeddings.
-Structure:
-- Embedding layer
-- Positional encoder
-- Self-attention mechanism
-- Feed-Forward network
-- Normalization layers and residual connections
-
-#### Decoder
-Generates output tokens from weighted embeddings produced by the encoder.
-  
-The decoder has a similar architecture to the encoder, with a couple of key differences:
-
--   It has two self-attention layers, while the encoder has one.
--   It employs two types of self-attention
-    -   **Masked Multi-Head Attention:**  uses a causal masking mechanism to prevent comparisons against future tokens.
-    -   **Encoder-Decoder Multi-Head Attention:** each output token calculates attention scores against all input tokens, better establishing the relationship between the input and output for greater accuracy. This cross-attention mechanism also employs casual masking to avoid influence from future output tokens.
-    
-Structure:
-- Embedding layer
-- Positional encoder
-- Masked self-attention mechanism
-- Normalization layer
-    -  **Residual connection that feeds into normalization layer**
-- Encoder-Decoder self-attention mechanism
-	-  **Residual connection that feeds into normalization layer**
-- Feed-Forward network
-- Normalization layers and residual connections
-
-#### Complete Transformer
-Combines multiple encoders and decoders stacked in equal sizes to enhance performance by capturing different characteristics and underlying patterns from the input.
-
-
 ## Data Curation
 
 High-quality, vast amounts of data are essential for training an LLM. The quality of data determines the model's accuracy, bias, predictability, and resource utilization.
 
-A general rule of thumb in language model development is that the more performant and capable you want your Large Language Model (LLM) to be, the more parameters it requires. Consequently, a larger amount of data must also be curated to train such models effectively. To better illustrate this relationship between model size, performance, and data requirements, here's a comparison of a few existing LLMs and the amount of data, in tokens, used to train them:
+A general rule of thumb in language model development is that a larger model has a larger capability. Consequently, a considerable amount of data are often curated to train such models. To better illustrate this relationship between model size and data requirements, here is a comparison of a few existing LLMs:
 
 | Model         | # of Parameters | # of Tokens      |
 |---------------|-----------------|------------------|
@@ -350,7 +321,7 @@ A general rule of thumb in language model development is that the more performan
 | Llama 2       | 70 billion      | 2 trillion       |
 | Falcon 180B   | 180 billion     | 3.5 trillion     |
 
-For better context, consider that 100,000 tokens equate to approximately 75,000 words, or about the length of an entire novel. Therefore, GPT-3, for example, was trained on the equivalent of about 5 million novels' worth of data.
+For better context, consider that 100,000 tokens roughly equate to about 75,000 words, or the length of a typical novel. GPT-3, for example, was trained on hundreds of billions of tokens, which is approximately equivalent to the content of several million novels.
 
 ### Characteristics of a High-Quality Dataset
 - Filtered for inaccuracies
@@ -360,35 +331,35 @@ For better context, consider that 100,000 tokens equate to approximately 75,000 
 - Privacy redaction
 - Diverse in formats and subjects
 
-### Where Can You Source Data For Training an LLM?
-
-There are several places to source training data for your language model. Depending on the amount of data you need, it is likely that you will draw from each of the sources outlined below.
+### Where to Source Data For Training an LLM?
 
 - **Existing Public Datasets**: Data that has been previously used to train LLMs and made available for public use. Prominent examples include:
-  - **The Common Crawl**: A dataset containing terabytes of raw web data extracted from billions of pages. It also has widely-used variations or subsets, including RefinedWeb and C4 (Colossal Cleaned Crawled Corpus).
-  - **The Pile**: A popular text corpus that contains data from 22 data sources across 5 categories:
-	  - **Academic Writing**: e.g., arXiv
-	  - **Online or Scraped Resources**: e.g., Wikipedia
-	  - **Prose**: e.g., Project Gutenberg
-	  - **Dialog**: e.g., YouTube subtitles
-	  - **Miscellaneous**: e.g., GitHub
-  - **StarCoder**: Close to 800GB of coding samples in a variety of programming languages.
-  - **Hugging Face**: An online resource hub and community that features over 100,000 public datasets.
+  - [The Common Crawl](https://www.commoncrawl.org/overview): A dataset containing terabytes of raw web data extracted from billions of pages
+  - [The Pile](https://pile.eleuther.ai/): A dataset that contains data from 22 data sources across 5 categories:
+	  - *Academic Writing*: e.g., arXiv
+	  - *Online or Scraped Resources*: e.g., Wikipedia
+	  - *Prose*: e.g., Project Gutenberg
+	  - *Dialog*: e.g., YouTube subtitles
+	  - *Miscellaneous*: e.g., GitHub
+  - [StarCoder](https://arxiv.org/pdf/2305.06161): Near 800GB of coding samples in several programming languages
+  - [Hugging Face](https://huggingface.co/datasets): An online community with over 100,000 public datasets
 
-- **Private Datasets**: Curated in-house or purchased.
-- **Directly From the Internet**: Less recommended due to potential inaccuracies and biases.
+- **Private Datasets**: Curated in-house or purchased
+- **Directly From the Internet**: Less recommended due to potential inaccuracies/biases
 
 
 ### Example Dataset: TinyStories 
 
-As before, fetch [utils.py](https://drive.google.com/file/d/1tKQCXmrT4whJr1V33nBVRhaNzniRT5KE/view?usp=sharing) and run the following to download the TinyStories dataset. A bunch of json files will be created within `TinyStories_all_data` under your specified directory `data_dir`.
+The [TinyStories dataset](https://huggingface.co/datasets/roneneldan/TinyStories) is a collection of short, simple stories designed to train and evaluate language models on narrative understanding and generation. 
+
+As before, use [utils.py](https://drive.google.com/file/d/1tKQCXmrT4whJr1V33nBVRhaNzniRT5KE/view?usp=sharing) and run the following to download the TinyStories dataset. A bunch of json files will be created within `TinyStories_all_data` under your specified directory `data_dir`.
 
 ```python
 from utils import download_TinyStories
 download_TinyStories(data_dir="demo_data")
 ```
 
-## Tokenization
+### Tokenization
 
 We went through [tokenization and vocabulary](https://genai-course.jding.org/en/latest/llm/index.html#tokenization-and-vocabulary) and discussed their tradeoffs. Here is an implementation of it:
 
@@ -442,8 +413,9 @@ output_bin_dir = pretokenize(data_dir="demo_data", dataset_name="TinyStories_all
 # This will create a directory called TinyStories_all_data_pretok under data_dir
 ```
 
-## Putting the Model and Data together
+### Putting the Model and Data together
 
+#### Configuration parameters
 
 Set up the configuration (including hyper-) parameters in a [demo_training_config.py](https://drive.google.com/file/d/1bxSYERj2F81n5WkzLukOj355Zhccf-JG/view?usp=sharing) module, and then load it for training, e.g.,
 
@@ -451,44 +423,105 @@ Set up the configuration (including hyper-) parameters in a [demo_training_confi
 from demo_training_config import Config
 config = Config()
 config_dict = config.to_dict()
+
+# Load configuration parameters
 pretok_bin_dir = config.pretok_bin_dir
 model_out_dir = config.model_out_dir
 ...
 ```
 
-A full training script can be downloaded at [demo_train.py](https://drive.google.com/file/d/1Jr1eQvJCo9MKlWryCpGnd8s0gRsFvH6v/view?usp=sharing). 
+#### Training
+
+A full training script can be downloaded at [demo_train.py](https://drive.google.com/file/d/1Jr1eQvJCo9MKlWryCpGnd8s0gRsFvH6v/view?usp=sharing). This script sets up and trains a model from scratch, utilizing the earlier defined Transformer architecture, downloaded data, and hyperparameters.  
+
+```python
+from model import Transformer, ModelArgs
+from tokenizer import BatchProcessor
+import math
+import os
+import time
+from contextlib import nullcontext
+from functools import partial
+import torch
+
+# Set up mixed precision
+ctx = nullcontext() if device_type == "cpu" else torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16)
+
+# Create batches using partial function
+iter_batches = partial(BatchProcessor.iter_batches, batch_size=config.batch_size, device=config.device, ...)
+
+# Initialize model and optimizer
+model_args = ModelArgs(dim=config.dim, n_layers=config.n_layers, n_heads=config.n_heads, ...)
+model = Transformer(model_args)
+model.to(config.device)
+optimizer = model.configure_optimizers(config.weight_decay, config.learning_rate, ...)
+
+# Function to estimate loss on validation data
+@torch.no_grad()
+def estimate_loss():
+    model.eval()
+    # Evaluate loss...
+    model.train()
+    return train_loss, val_loss
+
+# Training loop
+train_batch_iter = iter_batches(split="train")
+while iter_num <= config.max_iters:
+    # Adjust learning rate and evaluate periodically
+    if iter_num % config.eval_interval == 0:
+        losses = estimate_loss()
+        # Save checkpoints ...
+
+    # Forward and backward pass with optional gradient accumulation
+    for micro_step in range(config.gradient_accumulation_steps):
+        with ctx:
+            logits = model(X, Y)
+            loss = model.last_loss / gradient_accumulation_steps
+        # Fetch next batch and backpropagate
+        X, Y = next(train_batch_iter)
+        scaler.scale(loss).backward()
+
+    # Optimizer step and update
+    scaler.step(optimizer)
+    scaler.update()
+    optimizer.zero_grad(set_to_none=True)
+```
+
+> In the above, `set_to_none=True` saves memory by not allocating memory for zeroed-out gradients until the next backward pass computes new gradients.
+
+> `ctx` is a context manager for automatic mixed precision training. Operations within the `with ctx` block are performed in mixed precision to improve training speed and reduce memory usage on compatible GPUs. So certain computations are automatically done in 16-bit (half precision) instead of the standard 32-bit (full precision). 
+
+> While ctx manages mixed precision during the forward pass, GradScaler handles the scaling of the loss during the backward pass in mixed precision training. It aims to prevent gradient underflow by scaling up the loss value before backpropagation.
 
 
-### LLM Hyperparameters
+:::{admonition} Exercises
+:class: tip
 
-- **Batch Size**: batch is a collection of instances from the training data, which are fed into the model at a particular timestep. Larger batches require more memory but also accelerate the training process as you get through more data at each interval. Conversely, smaller batches use less memory but prolong training. Generally, it is best to go with the largest data batch your hardware will allow while remaining stable, but finding this optimal batch size requires experimentation.
-- **Learning Rate**: how quickly the LLM updates itself in response to its loss function, i.e., its frequency of incorrect prediction, during training. A higher learning rate expedites training but could cause instability and overfitting. A lower learning rate, in contrast, is more stable and improves generalization – but lengthens the training process.
-- **Temperature**: adjusts the range of possible output to determine how “creative” the LLM is. Represented by a value between 0.0 (minimum) and 2.0 (maximum), a lower temperature will generate more predictable output, while a higher value increases the randomness and creativity of responses.
+- A crucial question in any learning task is: **How do we assess whether further model improvement is necessary at the current training stage?**
+
+In classical settings such as regression and classification with small output spaces, there exist statistical diagnostic tools to quantify whether a model can be improved further or has reached its theoretical performance limit (given the data). For instance, [this paper](https://par.nsf.gov/servlets/purl/10347493#:~:text=To%20our%20best%20knowledge%2C%20there,challenging%20to%20construct%20proper%20tests) formulates classifier diagnostics from a hypothesis testing perspective.
+
+**Discuss** potential approaches (both practical and theoretical) to decide if we should invest more resources in continuing to train a model or update its architecture. Consider aspects beyond validation performance as this alone does not address the problem. 
 
 
+- How Long Does It Take to Train an LLM From Scratch? 
+
+The training time varies significantly depending on several factors, such as model complexity, training dataset, computational resources, choices in hyperparameters, alongside the specific task and evaluation criteria.
 
 
-
-### How Long Does It Take to Train an LLM From Scratch?
-
-The training time for an LLM varies based on several factors:
-- **Complexity of the Use Case**: More complex tasks require more extensive training.
-- **Training Data**: The amount, complexity, and quality of the data significantly impact training time.
-- **Computational Resources**: The available hardware affects how quickly the model can be trained.
-
-Training an LLM for simple tasks with small datasets might take a few hours, while more complex tasks with large datasets could take months. Challenges in Training include
-- **Underfitting**: Occurs when the model is trained for too short a time and fails to capture relationships in the data.
-- **Overfitting**: Happens when the model is trained for too long and learns the training data too well, failing to generalize to new data.
-
-To mitigate these issues, monitor the model's performance and stop training when it consistently produces the expected outcomes and makes accurate predictions on unseen data.
+**Discuss** the equation(s) or methods that could be used to predict the total training time based on an initial pilot run, and clearly define what constitutes a pilot run in this context.
+:::
 
 
 
-## Conclusion
+## References
 
-Building an LLM from scratch involves:
-- Defining the use case
-- Creating the model architecture
-- Data curation
-- Training and fine-tuning
-- Evaluation
+This notebook includes code examples and concepts adapted from the following sources. We acknowledge and thank the authors for their contributions to the open-source community.
+
+
+- llama.c open-source project. [code](https://github.com/karpathy/llama2.c)
+
+- TinyStories: How Small Can Language Models Be and Still Speak
+Coherent English? [paper](https://arxiv.org/pdf/2305.07759), [data](https://huggingface.co/datasets/roneneldan/TinyStories)
+
+- Is a Classification Procedure Good Enough?—A Goodness-of-Fit Assessment Tool for Classification Learning. [paper](https://par.nsf.gov/servlets/purl/10347493#:~:text=To%20our%20best%20knowledge%2C%20there,challenging%20to%20construct%20proper%20tests)
