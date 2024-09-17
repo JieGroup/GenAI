@@ -503,17 +503,29 @@ while iter_num <= config.max_iters:
 > While ctx manages mixed precision during the forward pass, GradScaler handles the scaling of the loss during the backward pass in mixed precision training. It aims to prevent gradient underflow by scaling up the loss value before backpropagation.
 
 
-:::{admonition} Exercises
+:::{admonition} Exercise 1
 :class: tip
 
-- A crucial question in any learning task is: **How do we assess whether further model improvement is necessary at the current training stage?**
+[BertViz](https://github.com/jessevig/bertviz) is an interactive tool for visualizing attention in language models such as BERT, GPT-2, or T5. Use this tool to explore the attention mechanism by visualizing the attention patterns of a few selected layers and heads on different input examples. This exercise will be useful for your homework3.
+
+Consider questions such as:
+- How does attention evolve throughout the model's layers?
+- How does attention evolve throughout the model training?
+- Are there noticeable patterns in attention when comparing simple versus complex sentences?
+:::
+
+
+:::{admonition} Exercise 2
+:class: tip
+
+A crucial question in any learning task is: **How do we assess whether further model improvement is necessary at the current training stage?**
 
 In classical settings such as regression and classification with small output spaces, there exist statistical diagnostic tools to quantify whether a model can be improved further or has reached its theoretical performance limit (given the data). For instance, [this paper](https://par.nsf.gov/servlets/purl/10347493#:~:text=To%20our%20best%20knowledge%2C%20there,challenging%20to%20construct%20proper%20tests) formulates classifier diagnostics from a hypothesis testing perspective.
 
 **Discuss** potential approaches (both practical and theoretical) to decide if we should invest more resources in continuing to train a model or update its architecture. Consider aspects beyond validation performance as this alone does not address the problem. 
 :::
 
-:::{admonition} Exercises
+:::{admonition} Exercise 3
 :class: tip
 
 **How Long Does It Take to Train an LLM From Scratch?**
@@ -561,11 +573,22 @@ Some of the most widely used benchmarks for evaluating LLM performance include:
 
 - GPT-4 Technical Report. [paper](https://arxiv.org/pdf/2303.08774)
 
+- Attention in transformers, visually explained. [video](https://www.youtube.com/watch?v=eMlx5fFNoYc)
+
+- Code for The Annotated Transformer [blog](http://nlp.seas.harvard.edu/annotated-transformer/), [code](https://github.com/harvardnlp/annotated-transformer/)
+
+- Language Models are Unsupervised Multitask Learners (GPT-2). [paper](https://hayate-lab.com/wp-content/uploads/2023/05/61b1321d512410607235e9a7457a715c.pdf), [code](https://github.com/openai/gpt-2)
+
+- A PyTorch re-implementation of [GPT-2](https://github.com/openai/gpt-2), both training and inference. [code](https://github.com/karpathy/nanoGPT)
+
+- The Illustrated Transformer. [blog](https://jalammar.github.io/illustrated-transformer/)
+
 - Is a Classification Procedure Good Enough?—A Goodness-of-Fit Assessment Tool for Classification Learning. [paper](https://par.nsf.gov/servlets/purl/10347493#:~:text=To%20our%20best%20knowledge%2C%20there,challenging%20to%20construct%20proper%20tests)
 
-This notes include code examples and concepts adapted from the following sources. We acknowledge and thank the authors for their contributions to the open-source community.
+This lecture note includes code examples and concepts adapted from the following sources. We acknowledge and thank the authors for their contributions to the open-source community.
 
 - llama.c open-source project. [code](https://github.com/karpathy/llama2.c)
 
 - TinyStories: How Small Can Language Models Be and Still Speak
 Coherent English? [paper](https://arxiv.org/pdf/2305.07759), [data](https://huggingface.co/datasets/roneneldan/TinyStories)
+

@@ -458,3 +458,8 @@ pruned_model.fit(train_data, train_labels, epochs=10, callbacks=[sparsity.Update
 -   [Rotary Position Embedding (RoPE)](https://arxiv.org/abs/2104.09864)
 -   [ALiBi (Attention Linear Biases)](https://arxiv.org/abs/2108.12409)
 
+- DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model. [paper](https://arxiv.org/pdf/2405.04434)
+
+- A Survey on Large Language Models for Recommendation. [paper](https://arxiv.org/pdf/2305.19860)
+
+- Mobile V-MoEs: Scaling Down Vision Transformers via Sparse Mixture-of-Experts. [paper](https://arxiv.org/pdf/2309.04354)
