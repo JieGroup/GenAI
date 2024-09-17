@@ -506,7 +506,7 @@ while iter_num <= config.max_iters:
 :::{admonition} Exercise 1
 :class: tip
 
-[BertViz](https://github.com/jessevig/bertviz) is an interactive tool for visualizing attention in language models such as BERT, GPT-2, or T5. Use this tool to explore the attention mechanism by visualizing the attention patterns of a few selected layers and heads on different input examples. This exercise will be useful for your homework3.
+[BertViz](https://github.com/jessevig/bertviz) is an interactive tool for visualizing attention in language models such as BERT, GPT-2, or T5. Use this tool to explore the attention mechanism by visualizing the attention patterns of a few selected layers and heads on different input examples. This exercise will be useful for your upcoming homework3.
 
 Consider questions such as:
 - How does attention evolve throughout the model's layers?
@@ -530,7 +530,7 @@ In classical settings such as regression and classification with small output sp
 
 **How Long Does It Take to Train an LLM From Scratch?**
 
-The training time varies significantly depending on several factors, such as model complexity, training dataset, computational resources, choices in hyperparameters, alongside the specific task and evaluation criteria.
+The training time varies significantly depending on several factors, such as model complexity, training dataset, computational resources, choices in hyperparameters, and task evaluation criteria.
 
 **Discuss** the equation(s) or methods that could be used to predict the total training time based on an initial pilot run, and clearly define what constitutes a pilot run in this context.
 :::
