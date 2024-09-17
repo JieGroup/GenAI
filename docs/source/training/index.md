@@ -150,25 +150,52 @@ class TransformerBlock(nn.Module):
 
 ### Attention
 
-The attention mechanism allows the model to weigh different parts of the input sequence differently when producing the token embeddings. Attention mechanisms are used in self-attention for transformers or other forms like cross-attention in encoder-decoder models.
+The attention mechanism allows the model to weigh different parts of the input sequence differently when producing the token embeddings. This is crucial in capturing context-specific relationships between tokens. Attention mechanisms are used in self-attention for transformers or other forms like cross-attention in encoder-decoder models.
 
-- Input $x$ is projected into queries $Q$, keys $K$, and values $V$
-
-  - x has shape `(batch_size, seq_len, dim)`
-  - After linear projections: $xq, xk, xv$ have shapes `(batch_size, seq_len, num_heads, head_dim)` with `head_dim = dim / num_heads`
-  - Dot product of queries and keys: $s = xq \cdot xk^T$ gives shape `(batch_size, num_heads, seq_len, seq_len)`
-  - Weighted sum of values: $\textrm{output}=\textrm{softmax}(s) \cdot xv$ gives shape `(batch_size, num_heads, seq_len, head_dim)`
-  - Final Projection: Concatenate across heads and project back to `(batch_size, seq_len, dim)`
-
-- Use Position Embeddings to encode positional information
-
-- Compute scaled dot-product attention: 
+The general formula for a multi-head scaled dot-product attention mechanism on input tensors $Q, K, V \in \mathbb{R}^{\ell \times d_m}$ is defined as follows:
 
 $$
-\textrm{Attention}(Q,K,V) = \textrm{softmax}(QK^T / \sqrt{d_k}) V
+\begin{aligned}
+O & =\left(H_1 H_2 \cdots H_h\right) W^O \\
+H_i & =S_i V_i^{\prime} \\
+S_i & =\operatorname{softmax}\left(\frac{Q_i^{\prime} K_i^{\prime \top}}{\sqrt{d_k}}\right) \\
+V_i^{\prime} & =V W_i^V \\
+K_i^{\prime} & =K W_i^K \\
+Q_i^{\prime} & =Q W_i^Q
+\end{aligned}
 $$
 
-- The attended representation is then projected back to the model's dimension
+where 
+- $O$ is the output
+- $H_i$ is the output of the $i$-th attention head
+- $S_i$ is the attention score matrix for the $i$-th head
+- $Q_i^{\prime}, K_i^{\prime}, V_i^{\prime}$ are the query, key, value projections for the $i$-th head, respectively
+- $\ell$ (`seq_len`) is the max sequence length
+- $d_m$ (`dim`) is the model dimension
+- $h$ (`num_heads`) is the number of attention heads
+- $d_k$ and $d_v$ (`head_dim`) are the dimensions of the key and value projections
+
+The projection matrices $W_i^Q, W_i^K \in \mathbb{R}^{d_m \times d_k}$ and $W_i^V \in \mathbb{R}^{d_m \times d_v}$ are learnable parameters. Typically,$d_k=d_v=d_m / h$, meaning the dimensions of the keys and values are set so that the overall dimension is evenly split across the multiple heads.
+
+#### Self-attention
+
+In the self-attention mechanism, $Q, K$, and $V$ are all set to the input $X$.
+The process can be summarized as follows:
+
+- Linear Projections: The input $X$ is linearly projected into queries ($Q$), keys ($K$), and values ($V$) using the learned matrices $W_i^Q, W_i^K, W_i^V$.
+  - Input $X$ has shape `(batch_size, seq_len, dim)`
+  - After linear projections: $Q, K, V$ have shapes `(batch_size, seq_len, num_heads, head_dim)` with `head_dim = dim / num_heads`
+  
+- Scaled Dot-Product Attention: The dot product of queries and keys is computed, scaled by $\sqrt{d_k}$, and passed through a softmax function to obtain the attention scores.
+  - Scores $S = \text{softmax}\left(\frac{Q K^T}{\sqrt{d_k}}\right)$ have shape `(batch_size, num_heads, seq_len, seq_len)`
+  
+- Weighted Sum of Values: The attention scores are used to weigh the values.
+  - The weighted sum $\text{output} = S V$ results in a tensor with shape `(batch_size, num_heads, seq_len, head_dim)`
+  
+- Concatenate and Project: The outputs from all attention heads are concatenated and linearly projected back to the model dimension $d_m$.
+  - Final output shape: `(batch_size, seq_len, dim)`
+ 
+#### Self-attention implementation
 
 ```python
 class Attention(nn.Module):
@@ -203,7 +230,7 @@ class Attention(nn.Module):
 
 Here, we used Causal Masking `mask` to ensure that the future positions have zero contribution in the weighted sum, which prevents attending to future tokens.
 
-### Summary and Example
+### Model Summary and Example
 
 A complete Pytorch implementation of the model is included in [model.py](https://drive.google.com/file/d/1SU7jSZI36KGwBv5-zgc3WkStPK6lGKwL/view?usp=sharing).
 
@@ -592,18 +619,3 @@ This lecture note includes code examples and concepts adapted from the following
 - TinyStories: How Small Can Language Models Be and Still Speak
 Coherent English? [paper](https://arxiv.org/pdf/2305.07759), [data](https://huggingface.co/datasets/roneneldan/TinyStories)
 
-<!--
-Definition 1 (Standard Attention). The (multi-head) scaled dot-product attention on input tensors $Q, K, V \in \mathbb{R}^{\ell \times d_m}$ is defined as)
-$$
-\begin{aligned}
-O & =\left(H_1 H_2 \cdots H_h\right) W^O \\
-H_i & =S_i V_i^{\prime} \\
-S_i & =\operatorname{softmax}\left(\frac{Q_i^{\prime} K_i^{\prime \top}}{\sqrt{d_k}}\right) \\
-V_i^{\prime} & =V W_i^V \\
-K_i^{\prime} & =K W_i^K \\
-Q_i^{\prime} & =Q W_i^Q
-\end{aligned}
-$$
-where $O$ is the output; $Q_i^{\prime}, K_i^{\prime}, V_i^{\prime}, S_i$, and $H_i$ are the query, key, value, attention score, and head value of the $i$-th head, respectively. The natural numbers $\ell, d_m$ and $h$ are the context length, model dimension, and number of heads, respectively. Moreover, $W_i^Q, W_i^K \in \mathbb{R}^{d_m \times d_k}$ and $W_i^V \in \mathbb{R}^{d_m \times d_v}$, where $d_k$ and $d_v$ are the key and value dimensions, respectively.
-Parameters $d_m, d_k, d_v$ and $h$ are often chosen so that $d_k=d_v=d_m / h$, and in most recent models, including Transformer models, $Q, K$, and $V$ are set to $X$, a single input tensor; whereby, the attention mechanism is called self-attention.
--->
