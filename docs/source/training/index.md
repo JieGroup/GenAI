@@ -48,6 +48,12 @@ The Transformer class initializes the model parameters and sets up the embedding
 
 
 ```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from dataclasses import dataclass
+from typing import Optional
+
 class Transformer(nn.Module):
     def __init__(self, args: ModelArgs):
         super().__init__()
@@ -516,6 +522,30 @@ The training time varies significantly depending on several factors, such as mod
 
 **Discuss** the equation(s) or methods that could be used to predict the total training time based on an initial pilot run, and clearly define what constitutes a pilot run in this context.
 :::
+
+
+
+## Evaluating Your Bespoke LLM
+
+Evaluating a large language model is inherently complex and often subjective, as different use cases and societal considerations can influence what we deem as "successful" or "safe" model behavior. For instance, an LLM's performance may be measured not only by its ability to understand and generate language accurately but also by how it adheres to ethical and safety standards, which can vary significantly across cultures and regulatory regimes. Thus, evaluation is not just a technical exercise but also a reflection of diverse priorities and values. We will revisit this in later chapters on human value alignment and AI safety.
+
+Despite these complexities, standardized benchmarks offer a valuable starting point for assessing an LLM's general capabilities. These benchmarks provide objective measures of the model's language understanding, reasoning, and problem-solving skills, serving as an initial evaluation in a zero-shot setting. By using these benchmarks, we can establish a baseline for how well the model performs before considering further task-specific fine-tuning or adjustments.
+
+Some of the most widely used benchmarks for evaluating LLM performance include:
+
+- **[ARC](https://arxiv.org/abs/1803.05457)**: The AI2 Reasoning Challenge is a question-answering (QA) benchmark designed to evaluate the model's knowledge and reasoning skills, particularly focusing on scientific and commonsense reasoning.
+
+- **[HellaSwag](https://arxiv.org/abs/1905.07830)**: This benchmark uses sentence completion exercises to test commonsense reasoning and natural language inference (NLI) capabilities, challenging models to predict the most plausible continuation of a given scenario.
+
+- **[MMLU](https://arxiv.org/abs/2009.03300)**: The Massive Multitask Language Understanding benchmark consists of 15,908 questions across 57 tasks, measuring natural language understanding (NLU) by testing the model's ability to comprehend and solve diverse problems across various domains.
+
+- **[TruthfulQA](https://arxiv.org/abs/2109.07958)**: This benchmark measures a model’s ability to generate truthful answers, evaluating its propensity to "hallucinate" or generate misleading information, which is crucial for ensuring the reliability of generated content.
+
+- **[GSM8K](https://arxiv.org/abs/2110.14168)**: This dataset assesses multi-step mathematical reasoning abilities through a collection of 8,500 grade-school-level math word problems, challenging models to handle complex arithmetic and logical reasoning.
+
+- **[HumanEval](https://arxiv.org/abs/2107.03374)**: This benchmark evaluates an LLM’s ability to generate functionally correct code by measuring how well the model can complete coding tasks that require an understanding of programming logic and syntax.
+
+- **[MT Bench](https://arxiv.org/pdf/2402.14762)**: The Multi-Turn Bench evaluates a language model’s ability to engage effectively in multi-turn dialogues, like those performed by chatbots, assessing coherence and relevance over extended interactions.
 
 
 
