@@ -592,3 +592,18 @@ This lecture note includes code examples and concepts adapted from the following
 - TinyStories: How Small Can Language Models Be and Still Speak
 Coherent English? [paper](https://arxiv.org/pdf/2305.07759), [data](https://huggingface.co/datasets/roneneldan/TinyStories)
 
+<!--
+Definition 1 (Standard Attention). The (multi-head) scaled dot-product attention on input tensors $Q, K, V \in \mathbb{R}^{\ell \times d_m}$ is defined as)
+$$
+\begin{aligned}
+O & =\left(H_1 H_2 \cdots H_h\right) W^O \\
+H_i & =S_i V_i^{\prime} \\
+S_i & =\operatorname{softmax}\left(\frac{Q_i^{\prime} K_i^{\prime \top}}{\sqrt{d_k}}\right) \\
+V_i^{\prime} & =V W_i^V \\
+K_i^{\prime} & =K W_i^K \\
+Q_i^{\prime} & =Q W_i^Q
+\end{aligned}
+$$
+where $O$ is the output; $Q_i^{\prime}, K_i^{\prime}, V_i^{\prime}, S_i$, and $H_i$ are the query, key, value, attention score, and head value of the $i$-th head, respectively. The natural numbers $\ell, d_m$ and $h$ are the context length, model dimension, and number of heads, respectively. Moreover, $W_i^Q, W_i^K \in \mathbb{R}^{d_m \times d_k}$ and $W_i^V \in \mathbb{R}^{d_m \times d_v}$, where $d_k$ and $d_v$ are the key and value dimensions, respectively.
+Parameters $d_m, d_k, d_v$ and $h$ are often chosen so that $d_k=d_v=d_m / h$, and in most recent models, including Transformer models, $Q, K$, and $V$ are set to $X$, a single input tensor; whereby, the attention mechanism is called self-attention.
+-->
