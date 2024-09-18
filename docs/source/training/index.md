@@ -335,7 +335,7 @@ We have covered the decoder-only architecture, as exemplified by the GPT family 
 | **Bi-directional Encoder Representation from Transformers (BERT)** | Encoder-only: Focus on understanding input sequences by applying self-attention over the entire input bidirectionally, making it suitable for tasks like classification. | Classification and sentiment analysis |
 | **Text-To-Text Transformer (Sequence-to-Sequence models)** | Encoder-Decoder: Utilize both an encoder to process the input and a decoder to generate the output. With a bidirectional architecture, context flows in both directions. | Translation, Question & Answering, Summarization. |
 | **Mixture of Experts (MoE)** | Designed to scale up model capacity by converting dense models into sparse models. The MoE layer consists of many expert models and a sparse gating function. The gates route each input to the top-K best experts during inference. | Generalize well with computational efficiency during inference |
-| **Group Query Attention** | Group Query Attention (GQA) is an alternative to the multi-head self-attention mechanism. Queries are grouped together based on their similarity or other criteria, leading to shared key and value representations for each query group. | Generalize well with computational and memory efficiency during inference. |
+| **Group Query Attention (GQA)** | GQA is an alternative to the multi-head self-attention mechanism. Queries are grouped together based on their similarity or other criteria, leading to shared key and value representations for each query group. | Generalize well with computational and memory efficiency during inference. |
 
 
 All these architectures leverage the attention mechanism. The main difference lies in how attention is applied:
