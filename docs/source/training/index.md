@@ -321,6 +321,17 @@ As seen above, this model consists of:
   - `Linear(in_features=288, out_features=2048)`: Linear layer that projects the output of the Transformer to a vocabulary size.
 
 
+:::{admonition} Exercise 1
+:class: tip
+
+[BertViz](https://github.com/jessevig/bertviz) is an interactive tool for visualizing attention in language models such as BERT, GPT-2, or T5. Use this tool to explore the attention mechanism by visualizing the attention patterns of a few selected layers and heads on different input examples. This exercise will be useful for your upcoming homework3.
+
+Consider questions such as:
+- How does attention evolve throughout the model's layers?
+- Are there noticeable patterns in attention when comparing simple versus complex sentences?
+- How does attention evolve throughout the model training? (to be revisited soon)
+:::
+
 
 
 ## Various Model Architectures
@@ -530,17 +541,6 @@ while iter_num <= config.max_iters:
 
 > While ctx manages mixed precision during the forward pass, GradScaler handles the scaling of the loss during the backward pass in mixed precision training. It aims to prevent gradient underflow by scaling up the loss value before backpropagation.
 
-
-:::{admonition} Exercise 1
-:class: tip
-
-[BertViz](https://github.com/jessevig/bertviz) is an interactive tool for visualizing attention in language models such as BERT, GPT-2, or T5. Use this tool to explore the attention mechanism by visualizing the attention patterns of a few selected layers and heads on different input examples. This exercise will be useful for your upcoming homework3.
-
-Consider questions such as:
-- How does attention evolve throughout the model's layers?
-- How does attention evolve throughout the model training?
-- Are there noticeable patterns in attention when comparing simple versus complex sentences?
-:::
 
 
 :::{admonition} Exercise 2
