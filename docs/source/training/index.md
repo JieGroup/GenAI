@@ -451,7 +451,7 @@ def train_vocab(vocab_size, data_dir, dataset_name="TinyStories_all_data"):
 tokenizer_model = train_vocab(2048, "demo_data", "TinyStories_all_data")
 ```
 
-Using the above generated tokenizer model, we can pretokenizer the original text data for model training. Use the Python module [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=sharing).
+Using the above generated tokenizer model, we can pretokenizer the original text data for model training. Use the Python module [tokenizer.py](https://drive.google.com/file/d/1uXCgdmip79J6efM5hiHGCy9mdr_U8BXT/view?usp=drive_link).
 
 ```python
 from tokenizer import pretokenize
