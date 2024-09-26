@@ -184,4 +184,253 @@ results_task_b_after_b = trainer_b.evaluate(test_task_b)
 print("Accuracy on Task A after Task B fine-tuning:", results_task_a_after_b["eval_accuracy"])
 print("Accuracy on Task B after Task B fine-tuning:", results_task_b_after_b["eval_accuracy"])
 ```
+# Fine-tuning LLM for Tabular Data
 
+## 1. Motivation
+The application of LLMs for tabular data prediction opens up new possibilities for data analysis, allowing models to leverage contextual information within the data, which traditional models might overlook. 
+
+## 2. Traditional Problems in Tabular Data Prediction and Baseline
+
+Consider a traditional classification problem with the dataset California. It contains 8 attributes of 20,640 districts in California and the goal was to predict
+the median house value in each district. Here we created a
+balanced classification task by predicting whether the house value is below or above the median (10,317 positive).
+
+``` python
+import pandas as pd
+import numpy as np
+from sklearn.datasets import fetch_california_housing
+
+# Load the dataset
+housing = fetch_california_housing(as_frame=True)
+df = housing.frame
+
+# Display the first few rows
+df.head()
+
+median_value = df['MedHouseVal'].median()
+
+# Create the binary target variable
+df['Above_Median'] = (df['MedHouseVal'] > median_value).astype(int)
+df = df.drop('MedHouseVal', axis=1)
+df['Above_Median'].value_counts()
+```
+
+We do a simple train-test spliting to first fit and evaluate two traditional models: logistic regression and XGBoost.
+
+```python
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+# Split the data
+X = df.drop('Above_Median', axis=1)
+y = df['Above_Median']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize the features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+```
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# Train the model
+log_reg = LogisticRegression(max_iter=1000)
+log_reg.fit(X_train_scaled, y_train)
+
+# Make predictions
+y_pred_lr = log_reg.predict(X_test_scaled)
+
+# Evaluate the model
+accuracy_lr = accuracy_score(y_test, y_pred_lr)
+print(f'Logistic Regression Accuracy: {accuracy_lr:.4f}')
+
+```
+```python
+from xgboost import XGBClassifier
+
+# Train the model
+xgb_clf = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+xgb_clf.fit(X_train, y_train)
+
+# Make predictions
+y_pred_xgb = xgb_clf.predict(X_test)
+
+# Evaluate the model
+accuracy_xgb = accuracy_score(y_test, y_pred_xgb)
+print(f'XGBoost Accuracy: {accuracy_xgb:.4f}')
+```
+
+## 3. Classification of Tabular Data with Large Language Model
+
+To let an LLM make prediction on tabular data, we need to transform the rows of tabular data and describe our task into text prompts. This involves two steps: 
+
+- Serialize feature names and values into  natural-language string. 
+
+- Add task-specific prompt.
+
+For example, the dataset California contains 8 features named `MedInc`,	`HouseAge`,	`AveRooms`,	`AveBedrms`, `Population`, `AveOccup`,	`Latitude`,	`Longitude`. One way to serialize them is to simply write 
+```
+- MedInc: 3.2377
+- HouseAge: 32
+- AveRooms: 6,597
+- AveBedrms: 1,579
+- Population: 3,689
+- AveOccup: 1,459
+- Latitude: 34.15
+- Longitude: -118.01
+```
+, and add our question for LLM to anwser：
+
+```
+Is this house block valuable? Yes or No?
+Answer:
+```
+The code for above template would look like this
+
+
+```python
+# Define a template for the prompt as per your new format
+def create_prompt(row):
+    # Serialization of row data
+    serialization = '\n'.join([f'- {col}: {val}' for col, val in row.items()])
+    # Combine serialization with the question and answer template
+    prompt = f"{serialization}\nIs this house block valuable? Yes or No?\nAnswer:\n|||\n"
+    return prompt
+
+# Apply to training and test sets
+X_train_prompts = X_train.apply(create_prompt, axis=1)
+X_test_prompts = X_test.apply(create_prompt, axis=1)
+```
+
+Now we can load the LLM and see how it predict on an example prompt. The logic here is that we let the LLM pick the next word with higher probability between 'Yes' and 'No', and set it as its prediction on this data. 
+
+```python
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+# Load the tokenizer and model for GPT-2
+tokenizer = AutoTokenizer.from_pretrained('gpt2')
+model = AutoModelForCausalLM.from_pretrained('gpt2')
+tokenizer.pad_token = tokenizer.eos_token
+
+# Function to make zero-shot predictions based on evaluating the logits
+def zero_shot_predict(prompt):
+    # Tokenize the input prompt
+    inputs = tokenizer(prompt, return_tensors='pt')
+    
+    # Get the logits from the model
+    with torch.no_grad():
+        outputs = model(**inputs)
+    
+    # Get the logits for the last token in the sequence
+    logits = outputs.logits[:, -1, :]
+    
+    # Tokens for 'Yes' and 'No'
+    yes_token = tokenizer.convert_tokens_to_ids('Yes')
+    no_token = tokenizer.convert_tokens_to_ids('No')
+    
+    # Compare the logits for 'Yes' and 'No'
+    yes_logit = logits[:, yes_token].item()
+    no_logit = logits[:, no_token].item()
+    
+    # Choose the token with the higher logit
+    if yes_logit > no_logit:
+        return 'Yes'
+    else:
+        return 'No'
+
+# Example prediction
+example_prompt = X_test_prompts.iloc[0]
+print(zero_shot_predict(example_prompt))
+```
+
+Typically, you may verify that the predictions from a relatively small model like GPT-2 would approximate random guessing in binary classification tasks. This is precisely where fine-tuning would prove its value. Here we use the model with a classification head, and the labels correspond to Yes and No. We fine-tune this model on our labeled examples.
+
+```python
+import numpy as np
+import evaluate
+from datasets import Dataset
+from transformers import Trainer, TrainingArguments, AutoTokenizer, GPT2ForSequenceClassification, DataCollatorWithPadding
+
+# Load the tokenizer and model for GPT-2 adapted for sequence classification
+tokenizer = AutoTokenizer.from_pretrained('gpt2')
+model = GPT2ForSequenceClassification.from_pretrained('gpt2', num_labels=2)
+
+# Set pad token if not already defined (GPT-2 does not have a default pad token)
+tokenizer.pad_token = tokenizer.eos_token  
+model.config.pad_token_id = model.config.eos_token_id
+
+train_size = 2000
+# Update the dataset dictionary
+train_data = {'text': X_train_prompts[:train_size], 'labels': y_train[:train_size]}
+test_data = {'text': X_test_prompts.tolist(), 'labels': y_test}
+
+train_dataset = Dataset.from_dict(train_data)
+test_dataset = Dataset.from_dict(test_data)
+
+# Tokenization function that maps texts to model inputs
+def tokenize_function(examples):
+    return tokenizer(examples["text"], truncation=True, padding='max_length', max_length=512)
+
+tokenized_train = train_dataset.map(tokenize_function, batched=True)
+tokenized_test = test_dataset.map(tokenize_function, batched=True)
+
+# Set format for PyTorch
+tokenized_train.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
+tokenized_test.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
+
+# Load the accuracy metric
+accuracy_metric = evaluate.load('accuracy')
+
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    predictions = np.argmax(logits, axis=-1)
+    return accuracy_metric.compute(predictions=predictions, references=labels)
+```
+
+```python
+epochs = 5
+train_batch_size=8
+test_batch_size=16
+lr=1e-5
+
+# Define training arguments
+training_args = TrainingArguments(
+    output_dir='./results',
+    num_train_epochs=epochs,
+    per_device_train_batch_size=train_batch_size,
+    per_device_eval_batch_size=test_batch_size,
+    evaluation_strategy='epoch',
+    save_strategy="epoch",
+    logging_dir='./logs',
+    learning_rate=lr,
+    load_best_model_at_end=True,
+    metric_for_best_model='accuracy',
+)
+
+# Define a data collator
+from transformers import DataCollatorWithPadding
+data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+
+# Initialize Trainer with compute_metrics
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_train,
+    eval_dataset=tokenized_test,
+    tokenizer=tokenizer,
+    data_collator=data_collator,
+    compute_metrics=compute_metrics,
+)
+# Start fine-tuning
+trainer.train()
+```
+
+
+
+# Reference
+
+- TabLLM  [paper](https://arxiv.org/pdf/2210.10723)
