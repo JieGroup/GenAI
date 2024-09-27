@@ -4,14 +4,14 @@
 
 ## Overview of Using LLM in Practice
 
-```mermaid
+```{mermaid}
 graph LR
     UseCase[Define Science Domain] --> DataCuration[Data Curation]
     DataCuration --> Architecture[Set Architecture]
     Architecture --> Training[Training]
     Training --> Base[Base Model]
 ```
-```mermaid
+```{mermaid}
 graph LR
     BaseModel[Base Model] --> FineTuning[Supervised Fine-tuning]
 	UseCase[Define Application Case] --> FineTuning[Supervised Fine-tuning]
