@@ -389,8 +389,9 @@ import numpy as np
 from sklearn.datasets import fetch_california_housing
 
 # Inspect
-df.head()housing = fetch_california_housing(as_frame=True)
+housing = fetch_california_housing(as_frame=True)
 df = housing.frame
+df.head()
 
 # Create the binary target variable
 median_value = df['MedHouseVal'].median()
