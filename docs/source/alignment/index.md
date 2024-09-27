@@ -346,6 +346,12 @@ def zero_shot_predict(prompt):
 example_prompt = X_test_prompts.iloc[0]
 print(zero_shot_predict(example_prompt))
 ```
+:::{admonition} Exercises
+:class: tip
+- Design code to assess performance metrics (e.g. accuracy, F1) based on a predefined dataset size.
+- Try to obtain the output directly given the prompt.
+- Try different formats for the prompt and see if performance changes.
+:::
 
 Typically, you may verify that the predictions from a relatively small model like GPT-2 would approximate random guessing in binary classification tasks. This is precisely where fine-tuning would prove its value. Here we use the model with a classification head, and the labels correspond to Yes and No. We fine-tune this model on our labeled examples.
 
@@ -429,6 +435,13 @@ trainer = Trainer(
 trainer.train()
 ```
 
+:::{admonition} Exercises
+:class: tip
+
+- Evaluate the performance of the fine-tuned LLM.
+- Think about reasonable setup, such as the size of the training dataset, for comparing with traditional methods like logistic regression.
+- Experiment with various LLMs to determine if there are notable differences in performance.
+:::    
 
 
 # Reference
