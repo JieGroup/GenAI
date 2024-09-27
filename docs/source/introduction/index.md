@@ -58,24 +58,29 @@ We will dissect the model structures that underlie large language modeling, incl
 **Chapter 3. Training LLMs from Scratch** (Sept 27)
 We will cover the end-to-end process of building a transformer-based model from scratch. Specifically, we will go through computational tools such as Pytorch and cloud-computing, build model architectures, evaluate models, and examine how different hyperparameter choices could affect model performance.
 
-**Chapter 4. Finetuning and Human-Value Alignment** (Oct 4)
-We will introduce techniques used in finetuning LLMs towards particular tasks or preferences. These include instruction finetuning and reinforcement learning from human feedback. We will also explore the connection between practical algorithms and fundamentals in optimization and statistics.
+**Chapter 4. Finetuning LLMs** (Oct 4)
+This chapter introduces techniques for finetuning large language models to adapt them to specific tasks or user preferences. We will cover instruction finetuning, explore use cases such as LLM-based recommender systems and tabular data analysis, and examine the challenge of catastrophic forgetting during finetuning.
 
-**Chapter 5. Computation and Memory Problems in Foundation Models’ Training** (Oct 11, Oct 18)
+
+**Chapter 5. Human-Value Alignment** (Oct 11)
+In this chapter, we will address the challenge of aligning LLM outputs with human values, such as making them more helpful, harmless, humorous, and personalized. We will discuss the technique of reinforcement learning from human feedback (RLHF) and explore emerging research directions focused on aligning AI systems with multi-dimensional value metrics.
+
+
+**Chapter 6. Computation and Memory Problems in Foundation Models’ Training** (Oct 18)
 We will target strategies for optimizing computation and memory usage in the training and finetuning of large foundational models. Topics include distributed training methodologies, memory-efficient techniques like ZeRO and parameter-efficient finetuning, alongside explorations of mixture-of-experts architectures.
 
 **Chapter X. Project Preparation and Proposal Discussion** (Oct 18, Oct 25)
 
-**Chapter 6. Diffusion Models** (Nov 1)
+**Chapter 7. Diffusion Models** (Nov 1)
 We will introduce diffusion models, a class of generative models that have shown remarkable proficiency in synthesizing high-quality data, especially text-to-image data. We will start with variation autoencoders and then discuss the architecture of many state-of-the-art diffusion models. We will explore how such models can enable the multi-scale representations crucial for generating photorealistic images from textual descriptions.
 
-**Chapter 7. Retrieval Augmented Generation** (Nov 8)
+**Chapter 8. Retrieval Augmented Generation** (Nov 8)
 We will examine how Retrieval-Augmented Generation (RAG) can improve the performance of LLMs in knowledge-intensive tasks, examining its computational scalability and safety.
 
-**Chapter 8. Efficient Deployment Strategies for Foundation Models** (Nov 15)
+**Chapter 9. Efficient Deployment Strategies for Foundation Models** (Nov 15)
 We will introduce standard techniques to reduce sizes of standard deep model and transformer models, such as compiling, quantization, pruning, knowledge distillation, their applications to model deployment, and the statistical rationales.
 
-**Chapter 9. Ethics and Safety in Generative AI** (Nov 22)
+**Chapter 10. Ethics and Safety in Generative AI** (Nov 22)
 As we navigate the complexities and capabilities of AI technologies, ethical considerations will form an integral part of our curriculum. We will introduce quantitative methods and metrics to assess the safety of generative models from two perspectives. One is from an ethics perspective, including fairness and toxicity. We will also delve into content moderation techniques grounded in statistical detection and watermarking techniques. The other is from a machine learning security perspective. We will study several angles that practical AI systems must counteract, including adversarial examples, privacy, data poisoning backdoor attacks, membership inference attacks, model-stealing attacks, and their statistical foundations. The lecture will also discuss how these security issues are arising in large generative models.
 
 **Chapter Y. Final Project Presentation and Discussion** (Dec 6)
