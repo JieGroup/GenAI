@@ -122,9 +122,8 @@ A typical Fine-tuning involves the following steps:
 Here is an example code for reproducing Alpaca, an instruction-finetuned model based on the original LLaMA. The difference is that we are fine-tuning on LLaMA2-7B.
 
 ```bash
-pip install peft
+pip install peft wandb datasets
 pip install -U bitsandbytes
-pip install wandb
 ```
 
 Download the utility Python module for this chapter [here](https://drive.google.com/file/d/1g7mTV5HMxYstud-8Q2wIegedo_AnoUhb/view?usp=sharing).
