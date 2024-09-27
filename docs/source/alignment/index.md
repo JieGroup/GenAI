@@ -272,16 +272,16 @@ To let an LLM make prediction on tabular data, we need to transform the rows of 
 
 - Add task-specific prompt.
 
-For example, the dataset California contains 8 features named `MedInc`,	`HouseAge`,	`AveRooms`,	`AveBedrms`, `Population`, `AveOccup`,	`Latitude`,	`Longitude`. One way to serialize them is to simply write 
+For example, the dataset California contains 8 features named `MedInc`,	`HouseAge`,	`AveRooms`,	`AveBedrms`, `Population`, `AveOccup`,	`Latitude`,	`Longitude`, and one specifc row of the data has the corresponding value (8.33,	41.0,	6.98,	1.02,	322.0,	2.56,	37.88,	-122.23). One way to serialize them is to simply write 
 ```
-- MedInc: 3.2377
-- HouseAge: 32
-- AveRooms: 6,597
-- AveBedrms: 1,579
-- Population: 3,689
-- AveOccup: 1,459
-- Latitude: 34.15
-- Longitude: -118.01
+- MedInc: 8.33
+- HouseAge: 41.0
+- AveRooms: 6.98
+- AveBedrms: 1.02
+- Population: 322.0
+- AveOccup: 2.56
+- Latitude: 37.88
+- Longitude: -122.23
 ```
 , and add our question for LLM to anwser：
 
