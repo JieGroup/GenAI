@@ -8,7 +8,7 @@ from datetime import date
 import errno
 import sphinx.util.osutil
 sphinx.util.osutil.ENOENT = errno.ENOENT
-source_encoding = 'utf-8-sig'
+# source_encoding = 'utf-8-sig'
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information

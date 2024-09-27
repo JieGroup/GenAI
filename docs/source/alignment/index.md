@@ -42,7 +42,7 @@ Fine-tuning techniques can be categorized into two main approaches: Full-paramet
 All parameters of the base model are updated during training:
 
 $$
-\theta = \theta − \eta \cdot \nabla_{\theta} L(\theta).
+\theta = \theta - \eta \cdot \nabla_{\theta} L(\theta).
 $$ 
 
 This is the most comprehensive way to adapt a model to a new task or domain. However, it requires substantial computational resources and time, and could cause overfitting on small datasets.
@@ -52,7 +52,7 @@ This is the most comprehensive way to adapt a model to a new task or domain. How
 PEFT addresses the need to fine-tune large pretrained models efficiently, especially when computational resources are constrained. Instead of updating all parameters in the base model, PEFT methods selectively **update a small subset of parameters** or **introduce additional trainable components** while freezing most of the pretrained network. This approach maintains the efficiency of transfer learning without the computational cost of full-parameter fine-tuning.
 
 $$
-\theta_{task} = \theta_{task} − \eta \cdot \nabla_{\theta} L(\theta_{task}, \theta_{frozen}).
+\theta_{task} = \theta_{task} - \eta \cdot \nabla_{\theta} L(\theta_{task}, \theta_{frozen}).
 $$ 
 
 
@@ -68,7 +68,7 @@ $$
 h_{\text{modified}} = \text{Concat}(P_{\text{prefix}}, h)
 $$
 
-where \( P_{\text{prefix}} \) is learned during fine-tuning. These tunable vectors serve as prompts that guide the model’s behavior without altering the original model weights. The advantage is that it allows parallel computation of the modified hidden representations. However, it has been noted to suffer from optimization difficulties and lack of stability during training.
+where \( P_{\text{prefix}} \) is learned during fine-tuning. These tunable vectors serve as prompts that guide the model's behavior without altering the original model weights. The advantage is that it allows parallel computation of the modified hidden representations. However, it has been noted to suffer from optimization difficulties and lack of stability during training.
 
 #### Low-Rank Adaptation (LoRA)
 LoRA introduces low-rank matrices that reparameterize the updates of pretrained weight matrices. The fine-tuning happens in a low-dimensional subspace. Specifically, for a pre-trained large weight matrix $W_0 \in \mathbb{R}^{m \times n}$, let $\Delta W$ be its update during the fine-tuning, that is, the updated weighted matrix is $W_0+\Delta W$.
@@ -464,7 +464,7 @@ For example, the dataset California contains 8 features named `MedInc`,	`HouseAg
 - Latitude: 37.88
 - Longitude: -122.23
 ```
-and add our question for LLM to anwser：
+and add our question for LLM to anwser:
 
 ```
 Is this house block valuable (Yes or No)?
