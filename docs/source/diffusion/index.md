@@ -728,10 +728,10 @@ which reveals a generic form of SDE, called Forward Diffusion:
 
 $$
 \mathrm{d} \boldsymbol{x} = \underbrace{\boldsymbol{f}(\boldsymbol{x},t)}_{\text{drift}} \mathrm{d} t+\underbrace{g(t)}_{\text{diffusion}}\mathrm{d} \boldsymbol{w}.
-$$ (sde)
+$$ (fsde)
 
 
-The reverse direction of the diffusion equation {eq}`sde` is to move backward in time. The reverse-time SDE is given as follows: 
+The reverse direction of the diffusion equation {eq}`fsde` is to move backward in time. The reverse-time SDE is given as follows: 
 
 $$
 \mathrm{d} \boldsymbol{x}=[\underbrace{\boldsymbol{f}(\boldsymbol{x}, t)}_{\text {drift }}-g(t)^2 \underbrace{\nabla_{\boldsymbol{x}} \log p_t(\boldsymbol{x})}_{\text {score function }}] \mathrm{d} t+\underbrace{g(t) \mathrm{d} \overline{\boldsymbol{w}}}_{\text {reverse-time diffusion }} ,
