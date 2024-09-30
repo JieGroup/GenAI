@@ -57,7 +57,7 @@ The Evidence Lower Bound (ELBO) is a fundamental concept in generative modeling,
 #### Concept Overview
 
 In generative modeling, the primary goal is to maximize the likelihood of the observed data, denoted $p(\boldsymbol{x})$. However, directly computing $p(\boldsymbol{x})$ can be infeasible because it involves either integrating out all latent variables $\boldsymbol{z}$ :
-\begin{equation} \int p(\boldsymbol{x},\boldsymbol{z}) \mathbb{d} \boldsymbol{z}, \end{equation}
+$$\int p(\boldsymbol{x},\boldsymbol{z}) \mathbb{d} \boldsymbol{z},$$
  
 or accessing the exact latent encoder $p(\boldsymbol{z}|\boldsymbol{x})$:
 $$\begin{equation} p(\boldsymbol{x})  =\frac{p(\boldsymbol{x},\boldsymbol{z}) }{p(\boldsymbol{z}|\boldsymbol{x}) }. \end{equation}$$
