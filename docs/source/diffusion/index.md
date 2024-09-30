@@ -541,7 +541,7 @@ $$
 which would solve the optimization
 
 $$
-\boldsymbol{x}^*=\argmax_{\boldsymbol{x}} \log p(\boldsymbol{x}).
+\boldsymbol{x}^*={\arg \max}_{\boldsymbol{x}} \log p(\boldsymbol{x}).
 $$
 
 
