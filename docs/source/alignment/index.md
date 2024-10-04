@@ -47,10 +47,10 @@ After applying the calculus of variations, we obtain the solution to the above o
 
 ```{math}
 :label: eq_solution
-p_{\lambda}(y \mid x) = \frac{1}{Z(x,\lambda)} p_{0}(y \mid x) e^{\beta^{-1} R(x,y)}
+p_{\beta}(y \mid x) = \frac{1}{Z(x,\beta)} p_{0}(y \mid x) e^{\beta^{-1} R(x,y)}
 ```
 
-where $Z(\lambda) \overset{\Delta}{=} \mathbb{E}_{x \sim \mathcal{D}, y \sim p_{0}(\cdot \mid x)} e^{\beta^{-1} R(x,y)}$. Here, a larger $\beta$ can reduce unnecessary deviations from the original model but could also diminish the to-be-aligned human values. 
+where $Z(\beta) \overset{\Delta}{=} \mathbb{E}_{x \sim \mathcal{D}, y \sim p_{0}(\cdot \mid x)} e^{\beta^{-1} R(x,y)}$. Here, a larger $\beta$ can reduce unnecessary deviations from the original model but could also diminish the to-be-aligned human values. 
 
 
 The Problem {eq}`eq_RLHF`  has deep conceptual roots in the Bayesian framework. Specifically, if we consider $x$ as observed data and $y$ as a parameter $\theta$, the problem can be expressed as 
@@ -133,6 +133,7 @@ Metrics such as coherence, diversity, and perplexity are used to construct rewar
 :::{admonition} Exercise
 :class: tip
 Discuss the potential limitations/risks of using an ''arbitrarily obtained'' reward function. 
+
 :::
 
 
@@ -265,7 +266,7 @@ python trainPPO.py --model_name="opt-1.3b" --data_name="Imdb" ...
 Recall that the probability distribution for generating a response $y$ given an input $x$ can be expressed as:
 
 $$
-p_{\lambda}(y \mid x) \propto p_{0}(y \mid x) e^{\beta^{-1} R(x,y)}
+p_{\beta}(y \mid x) \propto p_{0}(y \mid x) e^{\beta^{-1} R(x,y)}
 $$
 
 This formula suggests that we can implement a Monte Carlo sampling method to generate multiple candidate responses. We then use a multinomial distribution with weights proportional to $e^{\beta^{-1} R(x,y)}$ to select the most appropriate response. This approach is purely inferential, meaning it operates during the decoding phase without necessitating additional training. However, it typically results in higher latency during decoding due to the computational cost of generating and evaluating multiple candidates.
@@ -283,7 +284,7 @@ This formula suggests that we can implement a Monte Carlo sampling method to gen
 DPO is a recent approach to human value alignment that optimizes models based on explicit preferences derived from pairwise comparisons or rankings. Unlike RLHF, which involves fitting a reward model and employing reinforcement learning techniques to solve optimization problems, DPO simplifies the process by directly optimizing an empirical risk. This risk is calculated using the Bradley-Terry loss, where the reward score is defined as:
 
 $$
-    r(x,y) \overset{\Delta}{=} \log \frac{p(y \mid x)}{p_{0}(y \mid x)}.
+    R(x,y) \overset{\Delta}{=} \beta \log \frac{p(y \mid x)}{p_{0}(y \mid x)}.
 $$
 
 This definition leads to the DPO objective:
@@ -362,10 +363,10 @@ Ensuring that generative AI systems align with human values is essential but cha
 Linear scalarization is a widely utilized technique in multi-objective optimization, where different weight combinations are applied to various objectives to approximate optimal trade-offs. It solves
 
 $$
-\max_{w} \sum_{i=1}^m \rho_i f_i(w)
+\max_{w} \sum_{i=1}^m \lambda_i f_i(w)
 $$
 
-where $f_i(w)$ represents different objective functions and $\rho_i$ are the weights that specify the importance of each objective, constrained by $\sum_{i=1}^m \rho_i = 1$ and $\rho_i \geq 0$.
+where $f_i(w)$ represents different objective functions and $\lambda_i$ are the weights that specify the importance of each objective, constrained by $\sum_{i=1}^m \lambda_i = 1$ and $\lambda_i \geq 0$.
 
 ### Fast Training of Aligned Models under Linear Scalarization
 
@@ -374,10 +375,14 @@ Building on the scalarization formulation, recent advancements have led to the "
 To detail the process, consider the aligned model represented by $q_w$, where $w$ denotes the neural network weights. Assume we have a set of reward functions $r_i$, for $i=1, \ldots, m$. Let each $q_{w_i}$ be the solution to the single-value alignment problem with $r = r_i$. The Rewarded Soup method then constructs the composite model using the formula:
 
 $$
-\biggl\{ w \overset{\Delta}{=} \sum_{i=1}^m \rho_i w_i :  \, \bm \rho \in \mathbb{S}_m \biggr\},
+\biggl\{ w \overset{\Delta}{=} \sum_{i=1}^m \lambda_i w_i :  \, \bm \lambda \in \mathbb{S}_m \biggr\},
 $$
 
-where $\mathbb{S}_m \overset{\Delta}{=} \{\bm \rho:  \sum_{i=1}^m \rho_i =1, \rho_i \geq 0 \}$ is the $m$-dimensional simplex. This method allows us to approximate the set of fine-tuned models that would result from optimizing a single composite reward function formed by various linear combinations of the individual rewards, specifically $r \overset{\Delta}{=} \sum_{i=1}^m r_i$.
+where $\mathbb{S}_m \overset{\Delta}{=} \{\bm \lambda:  \sum_{i=1}^m \lambda_i =1, \lambda_i \geq 0 \}$ is the $m$-dimensional simplex. This method allows us to approximate the set of fine-tuned models that would result from optimizing a single composite reward function formed by various linear combinations of the individual rewards, specifically 
+
+$$
+R \overset{\Delta}{=} \sum_{i=1}^m \lambda_i r_i = \bm \lambda^T \bm r.
+$$
 
 This approach significantly reduces the computational overhead typically required for training models under multiple, complex reward scenarios by eliminating the need to repeatedly train from scratch for each possible combination of reward functions. Instead, it leverages the linear properties of neural network weights to explore different behavioral trade-offs effectively and efficiently.
 
@@ -388,12 +393,12 @@ Use Taylor expansion to argue that the Rewarded Soup approach is reasonable unde
 
 ### Multi-Human-Value Alignment Palette (MAP)
 
-The challenge of effectively choosing the parameter $\lambda$ can lead to inefficiencies, as illustrated in the following figure.
+The challenge of effectively choosing the parameter $\bm \lambda$ can lead to inefficiencies, as illustrated in the following figure.
 
 **Figure: Randomly sampled $\bm \lambda$ that represent all the possible $\bm \lambda$ whose $\ell_1$-norm is less than 6 and its subset of all the desirable $\bm \lambda$ in aligning the OPT-1.3B model towards (a) two values: Helpfulness and Harmlessness, (b) three values: adding Humor, and (c) the same three values visualized in 3D. A desirable $\bm \lambda$ means it produces Pareto improvement over all the values.**
 ![Sample Aug](../_static/img/fig_rand_lambda_MAP_region.png)
 
-Does there exist a first-principle approach that allows users to directly specify the improvements they want and ensures those improvements are achieved? This question motivates the development of the Multi-Human-Value Alignment Palette (MAP), a framework designed to directly optimize multiple human value preferences.
+Does there exist a first-principle approach that allows users to directly specify the improvements they want and ensures those improvements are achieved? This question motivates the recent development of the Multi-Human-Value Alignment Palette (MAP), a framework designed to directly optimize multiple human value preferences.
 
 The initial human value alignment problem can be interpreted as maximizing the expected reward while imposing a regularization to minimize unnecessary deviations from the reference model $p_0$. For aligning $m \geq 1$ value preferences, MAP considers the following problem formulation:
 
@@ -402,7 +407,7 @@ The initial human value alignment problem can be interpreted as maximizing the e
 :label: eq_MAP
 \textbf{MAP: }
 \min_{p \in \mathcal{P}} \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} \text{KL}[p(\cdot \mid x) \| p_0(\cdot \mid x)]\\
-\, \text{s.t.} \, \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} R_i(x,y) \geq c_i, \, \forall i =1,\ldots, m. 
+\, \text{s.t.} \, \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} r_i(x,y) \geq c_i, \, \forall i =1,\ldots, m. 
 ```
 
 In the specific single-value case, the constraint in {eq}`eq_MAP`  reduces to through a statistical functional constraint:
@@ -411,23 +416,29 @@ $$
 \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} R(x,y) \geq c,
 $$
 
-which is interpreted as ''the expected rewards, or realized levels, under a value preference must be at least $c$''. The $\bm c \overset{\Delta}{=} [c_1,\ldots,c_m]^T$ is called a **value palette**. With a solution $p$, its realized value levels are defined by $\mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} (\bm R(x,y) \overset{\Delta}{=} [R_1(x,y), \ldots, R_m(x,y)]^T)$.
+which is interpreted as ''the expected rewards, or realized levels, under a value preference must be at least $c$''. The $\bm c \overset{\Delta}{=} [c_1,\ldots,c_m]^T$ is called a **value palette**. With a solution $p$, its realized value levels are defined by 
+
+$$
+\mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} \biggl(\bm r(x,y) \overset{\Delta}{=} [r_1(x,y), \ldots, r_m(x,y)]^T \biggr).
+$$
 
 It can be proved that the solution to the MAP problem {eq}`eq_MAP` is
 
 $$
-p_{\bm \lambda}(y \mid x)=\frac{1}{Z(x,\lambda)} p_0(y \mid x) e^{\bm \lambda^T \bm R(x,y)},
+p_{\bm \lambda}(y \mid x)=\frac{1}{Z(x, \bm \lambda)} p_0(y \mid x) e^{\bm \lambda^T \bm r(x,y)},
 $$
 
-where $\bm \lambda^T \bm R(x,y) = \sum_{i=1}^m \lambda_i  R_i(x,y)$, for some $\bm \lambda \geq \bm 0$. 
+where $\bm \lambda^T \bm r(x,y) = \sum_{i=1}^m \lambda_i  r_i(x,y)$, for some $\bm \lambda \geq \bm 0$. 
 
-Moreover, assuming that $\bm R(x,y)$ is not trivially constant on the support set of $x, y$, the above $\bm \lambda$ is the unique solution to the problem:
+Moreover, assuming that $\bm r(x,y)$ is not trivially constant on the support set of $x, y$, it has been proved that the above $\bm \lambda$ is the unique solution to the problem:
 
 $$
 \max_{\bm \lambda \geq \bm 0} g(\bm \lambda) \overset{\Delta}{=} - \log Z(\bm \lambda) + \bm \lambda^T \bm c,
 $$
 
-where $Z(\bm \lambda) \overset{\Delta}{=} \mathbb{E}_{x \sim \mathcal{D}, y \sim p_0(\cdot \mid x)} e^{\bm \lambda^T \bm R(x,y)}$, and $g$ is strictly concave. As a result, we can treat $\bm \lambda$ as an implicit function of $\bm c$ and denote it as
+where $Z(\bm \lambda) \overset{\Delta}{=} \mathbb{E}_{x \sim \mathcal{D}, y \sim p_0(\cdot \mid x)} e^{\bm \lambda^T \bm r(x,y)}$, and $g$ is strictly concave. 
+
+As a result, we can treat $\bm \lambda$ as an implicit function of $\bm c$ and denote it as
 
 $$
 \bm \lambda = \bm \lambda(\bm c) \overset{\Delta}{=} \textrm{argmax}_{\bm \lambda \geq \bm 0} g(\bm \lambda).
@@ -435,7 +446,7 @@ $$
 
 The above establishes a one-to-one correspondence between the quantities $\bm c$ and $\bm \lambda$.
 
-How to interpret the $\bm \lambda$? From a decision-theoretic view, the decision of $\lambda$ is based on trading off the utility term $\bm \lambda^T \bm c$ and the "risk" term $-\log Z(\bm \lambda)$. The latter term can be seen as a form of risk aversion, because maximizing it would penalize decisions that place a disproportionate weight on less likely, albeit highly desirable, outcomes.
+How to interpret the $\bm \lambda$? From a decision-theoretic view, the decision of $\bm \lambda$ is based on trading off the utility term $\bm \lambda^T \bm c$ and the ''risk'' term $-\log Z(\bm \lambda)$. The latter term can be seen as a form of risk aversion, because maximizing it would penalize decisions that place a disproportionate weight on less likely, albeit highly desirable, outcomes.
 
 Practically, the expectation $\mathbb{E}_{x \sim \mathcal{D, y \sim p_0(\cdot \mid x)}}$ can be easily approximated using a sample average from a dataset generated under $p_0$, allowing the dual problem to be numerically solved. This provides easy computational benefits.
 
@@ -450,40 +461,48 @@ Practically, the expectation $\mathbb{E}_{x \sim \mathcal{D, y \sim p_0(\cdot \m
  
  ### The Pareto Frontier in Aligning Multiple Values
 
-The Multi-Human-Value Alignment Palette (MAP) and the original alignment problem share identical solutions in terms of realizable value levels but may differ in their specific parameterizations. This realization prompts the examination of whether MAP limits the breadth of realizable value levels compared to those achievable under Reinforcement Learning from Human Feedback (RLHF) with arbitrarily chosen rewards. Both methods aim to optimize:
+The Multi-Human-Value Alignment Palette (MAP) and the original alignment problem share identical solutions in terms of realizable value levels but may differ in their specific parameterizations. This realization prompts the following question:
+
+*Does MAP limit the breadth of realizable value levels compared to those achievable under Reinforcement Learning from Human Feedback (RLHF) with arbitrarily chosen rewards?*
+
+Both methods aim to optimize:
 
 $$
-R(x, y) \overset{\Delta}{=} \beta \cdot \lambda(\bm c)^T \bm R(x,y).
+R(x, y) \overset{\Delta}{=} \beta \cdot \bm \lambda(\bm c)^T \bm r(x,y).
 $$
 
 Given the reference distribution $p_0$ and any specific reward functions $R$, the solution $p$, if feasible, depends solely on $R$. To illustrate this dependency, we denote $p$ as $p_{R}$. Let $\mathfrak{F}_{\textrm{RLHF}}(p_0)$ represent the range of $R$ that admits feasible solutions to the RLHF problem, essentially those with valid probability densities. The realizable value levels under the RLHF problem are defined as:
 
 $$
-    \mathcal{V}_{\textrm{RLHF}}(p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{R}(\cdot \mid x)} \bm R(x,y) : \,  R \in \mathfrak{F}_{\textrm{RLHF}}(p_0) \biggr\}.
+    \mathcal{V}_{\textrm{RLHF}}(p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{R}(\cdot \mid x)} \bm r(x,y) : \,  R \in \mathfrak{F}_{\textrm{RLHF}}(p_0) \biggr\}.
 $$
 
-For multiple reward functions $R_1, \ldots, R_m$, we consider a specific class of $R$ comprising various non-negative linear combinations, and define their realizable value levels similarly:
+For multiple reward functions $r_1, \ldots, r_m$, we consider a specific class of $R$ comprising various non-negative linear combinations, and define their realizable value levels similarly:
 
 $$
-    \mathcal{V}_{\textrm{RLHF}}(R_1, \ldots, R_m; p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{R}(\cdot \mid x)} \bm R(x,y) : \, \\
-    R \overset{\Delta}{=} \sum_{i=1}^m \rho_i R_i \in \mathfrak{F}_{\textrm{RLHF}}(p_0) , \, \rho_i \geq 0 \biggr\}.
+    \mathcal{V}_{\textrm{RLHF}}(r_1, \ldots, r_m; p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{R}(\cdot \mid x)} \bm r(x,y) : \, \\
+    R \overset{\Delta}{=} \sum_{i=1}^m \lambda_i r_i \in \mathfrak{F}_{\textrm{RLHF}}(p_0) , \, \lambda_i \geq 0 \biggr\}.
 $$
 
-In the MAP problem, given $p_0$ and $\bm R$, the solution $p$, if feasible, depends only on the user-specified value palette $\bm c$. To emphasize this relationship, we denote $p$ as $p_{\bm c}$. Let $\mathcal{C}_{\textrm{MAP}}(R_1, \ldots, R_m; p_0)$ denote the range of $\bm c$ that admits feasible solutions to the MAP problem. We further consider the realized value levels of all feasible solutions under various $\bm c$, defined as:
+In the MAP problem, given $p_0$ and $\bm R$, the solution $p$, if feasible, depends only on the user-specified value palette $\bm c$. To emphasize this relationship, we denote $p$ as $p_{\bm c}$. Let $\mathcal{C}_{\textrm{MAP}}(r_1, \ldots, r_m; p_0)$ denote the range of $\bm c$ that admits feasible solutions to the MAP problem. We further consider the realized value levels of all feasible solutions under various $\bm c$, defined as:
 
 $$
-    \mathcal{V}_{\textrm{MAP}}(R_1, \ldots, R_m; p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{\bm c}(\cdot \mid x)} \bm R(x,y) : \, \bm c \in \mathcal{C}_{\textrm{MAP}}(R_1, \ldots, R_m; p_0) \biggr\}.
+    \mathcal{V}_{\textrm{MAP}}(r_1, \ldots, r_m; p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{\bm c}(\cdot \mid x)} \bm r(x,y) : \, \bm c \in \mathcal{C}_{\textrm{MAP}}(r_1, \ldots, r_m; p_0) \biggr\}.
 $$
 
 It has been demonstrated in the MAP framework that for any original generative model $p_0$, we have:
 
 $$
-        \mathcal{V}_{\textrm{MAP}}(R_1, \ldots, R_m; p_0)
+        \mathcal{V}_{\textrm{MAP}}(r_1, \ldots, r_m; p_0)
         = \mathcal{V}_{\textrm{RLHF}}(p_0)
-        = \mathcal{V}_{\textrm{RLHF}}(R_1, \ldots, R_m; p_0).
+        = \mathcal{V}_{\textrm{RLHF}}(r_1, \ldots, r_m; p_0).
 $$
 
-This equivalence confirms that the realizable value levels by MAP equate to those in the original alignment problem using a specific reward function — a linear combination of individual rewards. This proves that **linear combinations of individual reward functions can sufficiently capture the entire Pareto Frontier**. It is crucial to note that while the sets of solutions, namely $p$, are not identical for both problems, the key insight is that the set of realizable value levels, which resides within a finite $m$-dimensional space, is mapped from the infinitely dimensional set of solutions $p$ through a many-to-one mapping, as depicted in the following figure.
+This equivalence confirms that the realizable value levels by MAP equate to those in the original alignment problem using a specific reward function — a linear combination of individual rewards. 
+
+As a result, **linear combinations of individual reward functions can sufficiently capture the entire Pareto Frontier**. 
+
+The reason is that the set of realizable value levels, which resides within a finite $m$-dimensional space, is mapped from the infinitely dimensional set of solutions $p$ through a many-to-one mapping, as depicted in the following figure.
 
 
 **Figure: Illustration of the same set of realizable value levels under general reward and linearly combined reward.**
@@ -499,8 +518,7 @@ This equivalence confirms that the realizable value levels by MAP equate to thos
 ## Reference
 
 
-- A general framework for updating
-belief distributions. [paper](https://www.jstor.org/stable/44682909)
+- A general framework for updating belief distributions. [paper](https://www.jstor.org/stable/44682909)
 
 - Rank Analysis of Incomplete Block Designs: A Method of Paired Comparisons Employing Unequal Repetitions on Pairs. [paper](https://www.jstor.org/stable/2527550)
 
