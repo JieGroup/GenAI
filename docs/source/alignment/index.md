@@ -27,17 +27,11 @@ Recent advancements in AI have highlighted the critical need for aligning AI sys
 
 This alignment has traditionally been pursued by adjusting AI behavior to adhere to specific attributes via preference datasets or reward functions. While procedures can differ in using the data or prior knowledge, the alignment process involves adjusting the generative model according to the optimization problem:
 
-$$
-\label{eq_RLHF}
-    \max_{p \in \mathbb{P}} \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)}\biggl\{ R(x, y) -\beta \cdot \text{KL}(p(\cdot \mid x) \| p_{0}(\cdot \mid x)) \biggr\}.  
-$$
 
 ```{math}
 :label: eq_RLHF
 \max_{p \in \mathbb{P}} \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)}\biggl\{ R(x, y) -\beta \cdot \text{KL}(p(\cdot \mid x) \| p_{0}(\cdot \mid x)) \biggr\}.
 ```
-
-See {eq}`eq_RLHF` for enlightenment.
 
 - $\mathbb{P}$: the class of all distributions
 - $p_{0}$: is the distribution that represents the generative model to align
@@ -54,11 +48,13 @@ $$
 
 where $Z(\lambda) \overset{\Delta}{=} \mathbb{E}_{x \sim \mathcal{D}, y \sim p_{0}(\cdot \mid x)} e^{\beta^{-1} R(x,y)}$. Here, a larger $\beta$ can reduce unnecessary deviations from the original model but could also diminish the to-be-aligned human values. 
 
-This formulation has deep conceptual roots in the Bayesian framework. Specifically, if we consider $x$ as observed data and $y$ as a parameter $\theta$, the problem can be expressed as 
+The Problem {eq}`eq_RLHF`  has deep conceptual roots in the Bayesian framework. Specifically, if we consider $x$ as observed data and $y$ as a parameter $\theta$, the problem can be expressed as 
 
-$$
+
+```{math}
+:label: eq_Bayes
 \mathbb{E}_{\theta \sim p(\cdot)} \bigl\{ \log p(x \mid \theta) - \text{KL}[p(\cdot) \| p_{0}(\cdot)] \bigr\}
-$$ 
+```
 
 This formulation yields the solution 
 
@@ -70,7 +66,7 @@ which is precisely Bayes' Rule.
 
 :::{admonition} Exercise
 :class: tip
-Verify the solutions to the above two optimization problems.
+Verify the solutions to the above two problems {eq}`eq_RLHF` and {eq}`eq_Bayes`.
 :::
 
 
@@ -390,21 +386,23 @@ Does there exist a first-principle approach that allows users to directly specif
 
 The initial human value alignment problem can be interpreted as maximizing the expected reward while imposing a regularization to minimize unnecessary deviations from the reference model $p_0$. For aligning $m \geq 1$ value preferences, MAP considers the following problem formulation:
 
-$$
+
+```{math}
+:label: eq_MAP
 \textbf{MAP: }
 \min_{p \in \mathcal{P}} \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} \text{KL}[p(\cdot \mid x) \| p_0(\cdot \mid x)]\\
 \, \text{s.t.} \, \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} R_i(x,y) \geq c_i, \, \forall i =1,\ldots, m. 
-$$
+```
 
-In the specific single-value case, the constraint reduces to through a statistical functional constraint:
+In the specific single-value case, the constraint in {eq}`eq_MAP`  reduces to through a statistical functional constraint:
 
 $$
 \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} R(x,y) \geq c,
 $$
 
-which is interpreted as _the expected rewards, or realized levels, under a value preference must be at least $c$. We call $\bm c \overset{\Delta}{=} [c_1,\ldots,c_m]^T$ the **value palette**. With a solution $p$, we refer to $\mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} (\bm R(x,y) \overset{\Delta}{=} [R_1(x,y), \ldots, R_m(x,y)]^T)$ as the _realized value levels_.
+which is interpreted as ''the expected rewards, or realized levels, under a value preference must be at least $c$''. The $\bm c \overset{\Delta}{=} [c_1,\ldots,c_m]^T$ is called a **value palette**. With a solution $p$, its realized value levels are defined by $\mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} (\bm R(x,y) \overset{\Delta}{=} [R_1(x,y), \ldots, R_m(x,y)]^T)$.
 
-It can be proved that the solution to the MAP problem is
+It can be proved that the solution to the MAP problem {eq}`eq_MAP` is
 
 $$
 p_{\bm \lambda}(y \mid x)=\frac{1}{Z(x,\lambda)} p_0(y \mid x) e^{\bm \lambda^T \bm R(x,y)},
@@ -424,7 +422,7 @@ $$
 \bm \lambda = \bm \lambda(\bm c) \overset{\Delta}{=} \textrm{argmax}_{\bm \lambda \geq \bm 0} g(\bm \lambda).
 $$
 
-The above establishes a one-to-one correspondence between the vectors $\bm c$ and $\bm \lambda$.
+The above establishes a one-to-one correspondence between the quantities $\bm c$ and $\bm \lambda$.
 
 How to interpret the $\bm \lambda$? From a decision-theoretic view, the decision of $\lambda$ is based on trading off the utility term $\bm \lambda^T \bm c$ and the "risk" term $-\log Z(\bm \lambda)$. The latter term can be seen as a form of risk aversion, because maximizing it would penalize decisions that place a disproportionate weight on less likely, albeit highly desirable, outcomes.
 

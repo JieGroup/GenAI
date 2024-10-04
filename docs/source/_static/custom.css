@@ -102,6 +102,3 @@ div.math {
     font-size: 0.8em; /* Adjust the block equation font size to 80% of normal */
 }
 
-.math div:not(.math) {
-    text-align: right !important;
-}
