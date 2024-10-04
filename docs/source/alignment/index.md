@@ -1,4 +1,4 @@
-# 4. Human-value Alignment
+# 5. Human-value Alignment
 <!-- and Human Value Alignment -->
 
 
@@ -32,7 +32,12 @@ $$
     \max_{p \in \mathbb{P}} \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)}\biggl\{ R(x, y) -\beta \cdot \text{KL}(p(\cdot \mid x) \| p_{0}(\cdot \mid x)) \biggr\}.  
 $$
 
-See [](#eq_RLHF) for enlightenment
+```{math}
+:label: eq_RLHF
+\max_{p \in \mathbb{P}} \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)}\biggl\{ R(x, y) -\beta \cdot \text{KL}(p(\cdot \mid x) \| p_{0}(\cdot \mid x)) \biggr\}.
+```
+
+See {eq}`eq_RLHF` for enlightenment.
 
 - $\mathbb{P}$: the class of all distributions
 - $p_{0}$: is the distribution that represents the generative model to align
@@ -416,7 +421,7 @@ $$
 where $Z(\bm \lambda) \overset{\Delta}{=} \mathbb{E}_{x \sim \mathcal{D}, y \sim p_0(\cdot \mid x)} e^{\bm \lambda^T \bm R(x,y)}$, and $g$ is strictly concave. As a result, we can treat $\bm \lambda$ as an implicit function of $\bm c$ and denote it as
 
 $$
-\bm \lambda = \bm \lambda(\bm c) \overset{\Delta}{=} \argmax_{\bm \lambda \geq \bm 0} g(\bm \lambda).
+\bm \lambda = \bm \lambda(\bm c) \overset{\Delta}{=} \textrm{argmax}_{\bm \lambda \geq \bm 0} g(\bm \lambda).
 $$
 
 The above establishes a one-to-one correspondence between the vectors $\bm c$ and $\bm \lambda$.
@@ -442,31 +447,31 @@ $$
 R(x, y) \overset{\Delta}{=} \beta \cdot \lambda(\bm c)^T \bm R(x,y).
 $$
 
-Given the reference distribution $p_0$ and any specific reward functions $R$, the solution $p$, if feasible, depends solely on $R$. To illustrate this dependency, we denote $p$ as $p_{R}$. Let $\mathfrak{F}_{RLHF}(p_0)$ represent the range of $R$ that admits feasible solutions to the RLHF problem, essentially those with valid probability densities. The realizable value levels under the RLHF problem are defined as:
+Given the reference distribution $p_0$ and any specific reward functions $R$, the solution $p$, if feasible, depends solely on $R$. To illustrate this dependency, we denote $p$ as $p_{R}$. Let $\mathfrak{F}_{\textrm{RLHF}}(p_0)$ represent the range of $R$ that admits feasible solutions to the RLHF problem, essentially those with valid probability densities. The realizable value levels under the RLHF problem are defined as:
 
 $$
-    \mathcal{V}_{RLHF}(p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{R}(\cdot \mid x)} \bm R(x,y) : \,  R \in \mathfrak{F}_{RLHF}(p_0) \biggr\}.
+    \mathcal{V}_{\textrm{RLHF}}(p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{R}(\cdot \mid x)} \bm R(x,y) : \,  R \in \mathfrak{F}_{\textrm{RLHF}}(p_0) \biggr\}.
 $$
 
 For multiple reward functions $R_1, \ldots, R_m$, we consider a specific class of $R$ comprising various non-negative linear combinations, and define their realizable value levels similarly:
 
 $$
-    \mathcal{V}_{RLHF}(R_1, \ldots, R_m; p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{R}(\cdot \mid x)} \bm R(x,y) : \, \\
-    R \overset{\Delta}{=} \sum_{i=1}^m \rho_i R_i \in \mathfrak{F}_{RLHF}(p_0) , \, \rho_i \geq 0 \biggr\}.
+    \mathcal{V}_{\textrm{RLHF}}(R_1, \ldots, R_m; p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{R}(\cdot \mid x)} \bm R(x,y) : \, \\
+    R \overset{\Delta}{=} \sum_{i=1}^m \rho_i R_i \in \mathfrak{F}_{\textrm{RLHF}}(p_0) , \, \rho_i \geq 0 \biggr\}.
 $$
 
-In the MAP problem, given $p_0$ and $\bm R$, the solution $p$, if feasible, depends only on the user-specified value palette $\bm c$. To emphasize this relationship, we denote $p$ as $p_{\bm c}$. Let $\mathcal{C}_{MAP}(R_1, \ldots, R_m; p_0)$ denote the range of $\bm c$ that admits feasible solutions to the MAP problem. We further consider the realized value levels of all feasible solutions under various $\bm c$, defined as:
+In the MAP problem, given $p_0$ and $\bm R$, the solution $p$, if feasible, depends only on the user-specified value palette $\bm c$. To emphasize this relationship, we denote $p$ as $p_{\bm c}$. Let $\mathcal{C}_{\textrm{MAP}}(R_1, \ldots, R_m; p_0)$ denote the range of $\bm c$ that admits feasible solutions to the MAP problem. We further consider the realized value levels of all feasible solutions under various $\bm c$, defined as:
 
 $$
-    \mathcal{V}_{MAP}(R_1, \ldots, R_m; p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{\bm c}(\cdot \mid x)} \bm R(x,y) : \, \bm c \in \mathcal{C}_{MAP}(R_1, \ldots, R_m; p_0) \biggr\}.
+    \mathcal{V}_{\textrm{MAP}}(R_1, \ldots, R_m; p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{\bm c}(\cdot \mid x)} \bm R(x,y) : \, \bm c \in \mathcal{C}_{\textrm{MAP}}(R_1, \ldots, R_m; p_0) \biggr\}.
 $$
 
 It has been demonstrated in the MAP framework that for any original generative model $p_0$, we have:
 
 $$
-        \mathcal{V}_{MAP}(R_1, \ldots, R_m; p_0)
-        = \mathcal{V}_{RLHF}(p_0)
-        = \mathcal{V}_{RLHF}(R_1, \ldots, R_m; p_0).
+        \mathcal{V}_{\textrm{MAP}}(R_1, \ldots, R_m; p_0)
+        = \mathcal{V}_{\textrm{RLHF}}(p_0)
+        = \mathcal{V}_{\textrm{RLHF}}(R_1, \ldots, R_m; p_0).
 $$
 
 This equivalence confirms that the realizable value levels by MAP equate to those in the original alignment problem using a specific reward function — a linear combination of individual rewards. This proves that **linear combinations of individual reward functions can sufficiently capture the entire Pareto Frontier**. It is crucial to note that while the sets of solutions, namely $p$, are not identical for both problems, the key insight is that the set of realizable value levels, which resides within a finite $m$-dimensional space, is mapped from the infinitely dimensional set of solutions $p$ through a many-to-one mapping, as depicted in the following figure.
