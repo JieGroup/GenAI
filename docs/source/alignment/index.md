@@ -1,4 +1,4 @@
-# 5. Human-value Alignment
+# 5. Human Value Alignment
 <!-- and Human Value Alignment -->
 
 
@@ -13,15 +13,15 @@ graph LR
 ```
 ```{mermaid}
 graph LR
-    BaseModel[Base Model] --> FineTuning[Supervised Fine-tuning]
-	UseCase[Define Application Case] --> FineTuning[Supervised Fine-tuning]
+    BaseModel[Base Model] --> FineTuning[Supervised Finetuning]
+	UseCase[Define Application Case] --> FineTuning[Supervised Finetuning]
     FineTuning --> RLHF[Human Value Alignment]
 ```
 
 We will go through human value alignment problems in this chapter.
 
 
-## Human value alignment formulation  
+## Human Value Alignment Formulation  
 
 Recent advancements in AI have highlighted the critical need for aligning AI systems with human values, a concept known as human value alignment. The alignment can serve the purpose of generating outcomes that are better suited for human ethics, personalized needs, or reduced harmful content. 
 
@@ -74,7 +74,7 @@ Verify the solutions to the above two optimization problems.
 :::
 
 
-## Reward models
+## Reward Models
 
 This reward model effectively serves as a stand-in for human preferences, allowing the model to approximate the desirability of its outputs without continuous human intervention.
 We discuss common methods for obtaining reward functions $r_i$:
@@ -129,10 +129,10 @@ Discuss the potential limitations/risks of using an ``arbitrarily obtained'' rew
 :::
 
 
-## Implementation of model alignment
+## Implementation of Model Alignment
 
 
-### Fine-tuning-based approach: Using reinforcement learning for optimization
+### Finetuning-Based Approach: Using Reinforcement Learning for Optimization
 
 In this approach, the objective is to align model outputs with human values by optimizing a reward function derived from human feedback. The core concept involves developing a reward model that predicts the value of a model's outputs based on human judgments, as previously described. This process of using reinforcement learning to fine-tune models according to a reward function reflective of human values is traditionally known as Reinforcement Learning from Human Feedback (RLHF).
 
@@ -143,7 +143,7 @@ To fine-tune the model in accordance with the reward function, we typically use 
     <img src="../_static/img/PPO_overview.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
-### Sample code
+### Sample Code
 
 ```python
 import torch
@@ -253,7 +253,7 @@ Prepare a utils.py file that contains your customized functions `get_prompts_fro
 python trainPPO.py --model_name="opt-1.3b" --data_name="Imdb" ...
 ```
 
-### Decoding-based approach: Utilizing Monte Carlo sampling for content generation
+### Decoding-Based Approach: Utilizing Monte Carlo Sampling for Content Generation
 
 Recall that the probability distribution for generating a response $y$ given an input $x$ can be expressed as:
 
@@ -271,7 +271,7 @@ This formula suggests that we can implement a Monte Carlo sampling method to gen
 :::
 
 
-## Direct Preference Optimization (DPO): The Use of Implicit Reward Functions
+## Direct Preference Optimization (DPO): Using Implicit Reward Function
 
 DPO is a recent approach to human value alignment that optimizes models based on explicit preferences derived from pairwise comparisons or rankings. Unlike RLHF, which involves fitting a reward model and employing reinforcement learning techniques to solve optimization problems, DPO simplifies the process by directly optimizing an empirical risk. This risk is calculated using the Bradley-Terry loss, where the reward score is defined as:
 
@@ -338,7 +338,7 @@ python trainDPO.py --beta=0.5 ...
 ```
 
 
-## Multi-dimensional Human-Value Alignment
+## Multi-Dimensional Human Value Alignment
 
 While the earlier formulation provides an elegant interpretation of how AI models can be adjusted to reflect new information or preferences, it may not fully capture the complexity required when aligning AI systems to multiple, potentially conflicting human values. 
 
