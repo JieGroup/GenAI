@@ -1,0 +1,16 @@
+#!/bin/bash -l
+#SBATCH --time=23:59:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --gres=gpu:a100:1
+#SBATCH --partition=jd-4a100
+#SBATCH --mem=40gb
+#SBATCH --mail-type=ALL 
+#SBATCH --mail-user=dingj@umn.edu
+#SBATCH -o /users/2/dingj/GenAI-testcodes/finetuning/output/random_%j.out
+#SBATCH -e /users/2/dingj/GenAI-testcodes/finetuning/output/random_%j.err
+
+cd /users/2/dingj/GenAI-testcodes/finetuning
+export PATH=/users/2/dingj/.conda/envs/GenAI/bin:$PATH
+
+COMMAND_PLACEHOLDER
