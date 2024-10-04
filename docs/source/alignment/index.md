@@ -119,11 +119,7 @@ $$
 
 In this configuration, the generative model $p$ acts as a "controlled generator," producing text conditioned on specific human values. For more refined applications, the model may employ $p(v \mid x,y)^{\beta^{-1}}$, allowing for the adjustment of preferences through the tempering of likelihoods. The hyperparameter $\beta$ could reflect uncertainties regarding model specifications or hyperparameter choices.
 
-Similar interpretations can be extended to multi-value case, where the reward consists of a linear combination of individual reward functions:
-
-$$
-    R(x,y) = \sum_{i=1}^m r_i(x,y).
-$$
+Similar interpretations can be extended to multi-value case, where the reward consists of a linear combination of individual reward functions. We will elaborate on this scenario shortly.
 
 **From language processing metrics** 
 
@@ -413,10 +409,10 @@ The initial human value alignment problem can be interpreted as maximizing the e
 In the specific single-value case, the constraint in {eq}`eq_MAP`  reduces to through a statistical functional constraint:
 
 $$
-\mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} R(x,y) \geq c,
+\mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} R(x,y) \geq c.
 $$
 
-which is interpreted as ''the expected rewards, or realized levels, under a value preference must be at least $c$''. The $\bm c \overset{\Delta}{=} [c_1,\ldots,c_m]^T$ is called a **value palette**. With a solution $p$, its realized value levels are defined by 
+The interpretation ist that the expected rewards, or realized levels, under a value preference must be at least $c$. The $\bm c \overset{\Delta}{=} [c_1,\ldots,c_m]^T$ is called a **value palette**. With a solution $p$, its realized value levels are defined by 
 
 $$
 \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)} \biggl(\bm r(x,y) \overset{\Delta}{=} [r_1(x,y), \ldots, r_m(x,y)]^T \biggr).
@@ -448,7 +444,7 @@ The above establishes a one-to-one correspondence between the quantities $\bm c$
 
 How to interpret the $\bm \lambda$? From a decision-theoretic view, the decision of $\bm \lambda$ is based on trading off the utility term $\bm \lambda^T \bm c$ and the ''risk'' term $-\log Z(\bm \lambda)$. The latter term can be seen as a form of risk aversion, because maximizing it would penalize decisions that place a disproportionate weight on less likely, albeit highly desirable, outcomes.
 
-Practically, the expectation $\mathbb{E}_{x \sim \mathcal{D, y \sim p_0(\cdot \mid x)}}$ can be easily approximated using a sample average from a dataset generated under $p_0$, allowing the dual problem to be numerically solved. This provides easy computational benefits.
+Practically, the expectation $\mathbb{E}_{x \sim \mathcal{D}, y \sim p_0(\cdot \mid x)}$ can be easily approximated using a sample average from a dataset generated under $p_0$, allowing the dual problem to be numerically solved. This provides easy computational benefits.
 
 **Figure: Distribution of reward scores before and after aligning the Llama2-7B-chat model towards three values: Humor (left plot), Helpfulness (middle plot), and Harmlessness (right plot), using the proposed MAP. This alignment involves a user-specified palette designed to shift the expected rewards, also referred to as realized value levels, toward the 80\% quantile of the pre-alignment distributions.**
 ![Sample Aug](../_static/img/fig_hist_llama2chat_80.png)
