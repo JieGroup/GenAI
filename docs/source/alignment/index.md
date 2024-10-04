@@ -33,20 +33,25 @@ This alignment has traditionally been pursued by adjusting AI behavior to adhere
 \max_{p \in \mathbb{P}} \mathbb{E}_{x \sim \mathcal{D}, y \sim p(\cdot \mid x)}\biggl\{ R(x, y) -\beta \cdot \text{KL}(p(\cdot \mid x) \| p_{0}(\cdot \mid x)) \biggr\}.
 ```
 
-- $\mathbb{P}$: the class of all distributions
-- $p_{0}$: is the distribution that represents the generative model to align
+- $\mathbb{P}$: class of all distributions
+- $x$: prompt
+- $y$: generated content
+- $\mathcal{D}$: prompt set or prompt distribution
+- $p_{0}$: distribution that represents the generative model to align
 - $p$: distribution that represents the aligned model
 - $R$: reward function that quantifies the preference level of any given pair of prompt $x$ and generation $y$
 - $\text{KL}$: KL-divergence
 - $\beta > 0$: regularization hyperparameter
 
-After applying the calculus of variations, we obtain the solution to the above optimization to be in the form of 
+After applying the calculus of variations, we obtain the solution to the above optimization in the form of 
 
-$$
+```{math}
+:label: eq_solution
 p_{\lambda}(y \mid x) = \frac{1}{Z(x,\lambda)} p_{0}(y \mid x) e^{\beta^{-1} R(x,y)}
-$$
+```
 
 where $Z(\lambda) \overset{\Delta}{=} \mathbb{E}_{x \sim \mathcal{D}, y \sim p_{0}(\cdot \mid x)} e^{\beta^{-1} R(x,y)}$. Here, a larger $\beta$ can reduce unnecessary deviations from the original model but could also diminish the to-be-aligned human values. 
+
 
 The Problem {eq}`eq_RLHF`  has deep conceptual roots in the Bayesian framework. Specifically, if we consider $x$ as observed data and $y$ as a parameter $\theta$, the problem can be expressed as 
 
@@ -73,9 +78,9 @@ Verify the solutions to the above two problems {eq}`eq_RLHF` and {eq}`eq_Bayes`.
 ## Reward Models
 
 This reward model effectively serves as a stand-in for human preferences, allowing the model to approximate the desirability of its outputs without continuous human intervention.
-We discuss common methods for obtaining reward functions $r_i$:
+We introduce common methods for obtaining reward functions $R$.
 
-**From pairwise comparison datasets**
+**From A Pairwise Comparison Dataset**
 
 The reward function is typically learned explicitly through pairwise or ranking comparisons. One common method is using the Bradley-Terry model, which is particularly well-known for modeling preferences based on pairwise comparisons. In this model, the probability of preferring item $i$ over item $j$ is described by a logistic function:
 
@@ -98,21 +103,27 @@ $$
 This loss encourages the model to assign a higher score to the preferred outcome $y_{\text{win}}$ compared to the less preferred one $y_{\text{lose}}$. In the context of human value alignment, the Bradley-Terry model serves as a mechanism for learning reward functions from human comparisons, guiding the model towards generating outputs more aligned with human values.
 
 
-**From pretrained classifiers**
+**From A Pretrained Classifier**
 
-Each reward function associated with a preference class $v_i$ is defined as:
+A reward function associated with a preference class $v$ is defined as:
 
 $$
-    r_i(x,y) \overset{\Delta}{=} \log p(v_i \mid x,y) \in (-\infty, 0]
+    R(x,y) \overset{\Delta}{=} \log p(v \mid x,y) \in (-\infty, 0]
 $$ 
 
-Here, $p(v_i \mid x,y)$ denotes the probability that a sentence $(x,y)$ belongs to the preference class $v_i$. For example, if $v_i$ represents "harmlessness," $p(v_i \mid x,y)$ could be sourced from a classifier trained to detect if text is harmless. Assuming conditional independence of $v_i$ given $(x,y)$ and $\lambda_i = 1$ for all $i$, the solution for $q$ in an optimization framework can be expressed as:
+Here, $p(v \mid x,y)$ denotes the probability that a sentence $(x,y)$ belongs to the preference class $v$. For example, if $v$ represents "harmlessness," $p(v \mid x,y)$ could be sourced from a classifier trained to detect if text is harmless. Assuming $\beta = 1$, the solution for $p$ in {eq}`eq_solution` can be expressed as:
 
 $$
-    q(y \mid x) \propto p_{0}(y \mid x) \prod_{i=1}^m p(v_i \mid x,y) \propto p(y \mid x, v_1,\ldots,v_m).
+    p(y \mid x) \propto p_{0}(y \mid x) p(v \mid x,y) \propto p(y \mid x, v).
 $$
 
-In this configuration, the generative model $q$ acts as a "controlled generator," producing text conditioned on specific human values. For more refined applications, the model may employ $p(v_i \mid x,y)^{\lambda_i}$, allowing for the adjustment of preferences through the tempering of likelihoods. The weights $\lambda_i$ could reflect uncertainties regarding model specifications or hyperparameter choices.
+In this configuration, the generative model $p$ acts as a "controlled generator," producing text conditioned on specific human values. For more refined applications, the model may employ $p(v \mid x,y)^{\beta^{-1}}$, allowing for the adjustment of preferences through the tempering of likelihoods. The hyperparameter $\beta$ could reflect uncertainties regarding model specifications or hyperparameter choices.
+
+Similar interpretations can be extended to multi-value case, where the reward consists of a linear combination of individual reward functions:
+
+$$
+    R(x,y) = \sum_{i=1}^m r_i(x,y).
+$$
 
 **From language processing metrics** 
 
@@ -121,7 +132,7 @@ Metrics such as coherence, diversity, and perplexity are used to construct rewar
 
 :::{admonition} Exercise
 :class: tip
-Discuss the potential limitations/risks of using an ``arbitrarily obtained'' reward function. 
+Discuss the potential limitations/risks of using an ''arbitrarily obtained'' reward function. 
 :::
 
 
@@ -134,7 +145,7 @@ In this approach, the objective is to align model outputs with human values by o
 
 To fine-tune the model in accordance with the reward function, we typically use advanced reinforcement learning algorithms such as Proximal Policy Optimization (PPO), which we have briefly reviewed [here](https://genai-course.jding.org/en/latest/quickreview/index.html#proximal-policy-optimization-ppo). PPO helps in making more stable and effective updates by optimizing a special clipped objective, which ensures that the updates are significant enough to improve the model without deviating too much from the previous policy. This makes it particularly effective for applications where continuous adaptation to complex or subjective human preferences is crucial.
 
-**Figure: Overview of the RLHF based on PPO**
+**Figure: Overview of the RLHF based on PPO** ([image source](https://huggingface.co/datasets/trl-internal-testing/example-images/resolve/main/images/trl_overview.png))
 <div style="text-align:center;">
     <img src="../_static/img/PPO_overview.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
