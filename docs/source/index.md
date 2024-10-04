@@ -18,4 +18,5 @@ quickreview/index
 llm/index
 training/index
 finetuning/index
+alignment/index
 ```
