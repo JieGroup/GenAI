@@ -450,7 +450,7 @@ Practically, the expectation $\mathbb{E}_{x \sim \mathcal{D}, y \sim p_0(\cdot \
 ![Sample Aug](../_static/img/fig_hist_llama2chat_80.png)
 
 **Figure: Radar plots showing the alignment of OPT-1.3B with (a) multi-value palettes determined by 50\%, 60\%, and 70\% quantiles of the original model's reward distributions (numerically computed using generated data), and (b) single-value palettes at the 80\% quantile.**
-![Sample Aug](../_static/img/fig_radar_opt1_3b_conversation_MC.png)
+![Sample Aug](../_static/img/fig_radar_llama27b_conversation_MC.png)
 
 
 <!-- ### Connection between the hyperparameter $\beta$ and $\bm \lambda$ -->
