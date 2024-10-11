@@ -21,7 +21,7 @@ Maximizing MFU requires optimizing both computation and memory management across
 
 ## Infrastructure for Large Model Training
 <!-- ```{mermaid} -->
-```mermaid
+```{mermaid}
 graph TD
     INFRASTRUCTURE[Infrastructure]
     ACC[Accelerators]
@@ -83,8 +83,8 @@ Chip-to-chip communication is vital for efficient data transfer between AI accel
 - **2D/3D-Torus Topology:** Google's TPU systems use a torus network topology to connect chips, ensuring low-latency, high-bandwidth communication. For example, TPUv4 uses a 3D-torus topology, where chips are interconnected into cubes to boost communication efficiency for LLM training.
 
 **Figure: chip-to-chip communication topologies within a single server/node (the intra-node or internal physical layer)**
-<div style="text-align:center;">
-    <img src="../_static/img/fig_communication_network.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+<div style="text-align:center; margin-bottom: 50px;">
+    <img src="../_static/img/fig_communication_network.png" alt="Sample Aug" width="650" style="display:block; margin:auto;">
 </div>
 
 
@@ -104,8 +104,8 @@ The network topology in LLM training clusters is split into **frontend** and **b
 
 
 **Figure: Network topologies for node-to-node communication across multiple servers/nodes (the inter-node or external physical layer in the larger cluster**
-<div style="text-align:center;">
-    <img src="../_static/img/fig_node2node_network.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+<div style="text-align:center; margin-bottom: 50px;">
+    <img src="../_static/img/fig_node2node_network.png" alt="Sample Aug" width="650" style="display:block; margin:auto;">
 </div>
 
 
@@ -256,7 +256,7 @@ As LLMs are mostly based on the transformer architecture, recent works focus on 
 
 **Mixture-of-Experts (MoE)** is a popular sparse model used in LLMs that significantly increases the number of parameters without proportionally increasing computation costs. MoE consists of multiple expert networks and a gate network that assigns input tokens to specific experts. This allows large models with trillions of parameters to be trained efficiently. 
 
-```mermaid
+```{mermaid}
 graph TD
     A[Input Data] --> B{Router}
     B --> C1[Expert 1]
@@ -371,7 +371,7 @@ The ZeRO optimizer has three stages, each progressively offloading more data to 
 
 The video below shows how ZeRO (with all three stages) performs a training step including forward pass, backward pass, and parameter update: 
 <div style="text-align:center;">
-<video controls width="600" height="270">
+<video controls width="650" height="270">
   <source src="https://www.microsoft.com/en-us/research/uploads/prod/2020/02/Turing-Animation.mp4?_=1" type="video/mp4">
 </video>
 </div>
