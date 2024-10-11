@@ -166,7 +166,8 @@ For **networking**, recent methods aim to balance data flow across different sta
 | **Data Parallelization**     | Divide training data into shards                       |
 | **Tensor/Model Parallelization** | Divide single-layer operations or matrix multiplications |
 | **Pipeline Parallelization** | Distribute transformer layers                          |
-| **Model Parallelization**    | Distributes the model across GPUs                       |
+| **Sentence Parallelization**    | Divide long input sentences across GPUs                       |
+| **Expert Parallelization**    | Divide model architecture into submodels                     |
 
 
 ### Hybrid Parallelism
@@ -407,7 +408,7 @@ First, create a `zero2_config_accelerate.json` file:
 }
 ```
 
-To enable DeepSpeed ZeRO Stage-2 with above config, run  `accelerate config` and provide the config file path. For more details, refer to the [DeepSpeed Config File](https://huggingface.co/docs/accelerate/deepspeed#deepspeed-config-file).
+To enable DeepSpeed ZeRO Stage-2 with above config, run  `accelerate config` and provide the config file path. For more details, refer to the [DeepSpeed Config Tutorial](https://huggingface.co/docs/peft/main/en/accelerate/deepspeed-zero3-offload).
 
 
 Now, run below command to train using [run_seq2seq_no_trainer.py](https://github.com/pacman100/accelerate-deepspeed-test/blob/main/src/modeling/run_seq2seq_no_trainer.py).
