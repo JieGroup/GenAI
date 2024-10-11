@@ -1,4 +1,4 @@
-# 6. Computation- and Memory-Efficient Training of Large Language Models
+# 6. Efficient Training of Large Models
 
 We will explore efficient training strategies for Large Language Models like GPT and LLaMA. Training these models requires substantial computational resources and time. For instance, training a model like LLaMA-3 involves about 54 days on a 16K H100-80GB GPU cluster. This chapter introduces foundational concepts and practices in managing and optimizing these resources. We will cover the essentials of training infrastructure, including AI accelerators and system scheduling, and delve into strategies for enhancing computational efficiency across GPU clusters. 
 
