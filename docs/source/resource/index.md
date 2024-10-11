@@ -4,7 +4,7 @@ We will explore efficient training strategies for Large Language Models like GPT
 
 Recall the [transformer-based LLM architecture](https://genai-course.jding.org/en/latest/training/index.html#transformer-model-architecture): The input text is first tokenized into individual tokens, which are then converted into token vectors X via an embedding layer. The token vectors are embedded with positional information to capture sequential dependency. The resulting token vectors are then fed into the transformer layer, which consists of an Attention block and a Feed-Forward block. Recent LLMs often retain the basic transformer architecture but include enhancements to increase efficiency and performance. The traditional Multi-Head Attention mechanism faces challenges with high computational and memory demands. To mitigate this, newer variants like Multi-Query Attention (MQA), Group-Query Attention (GQA), and Multi-Latent Attention (MLA) have been developed. Additionally, the Feed-Forward component has evolved with the Mixture-of-Experts (MoE) architecture, which activates only a selected subset of FFN layers for each input to reduce computational load while preserving the model capacity.
 
-### Key Differences Between LLM Training and Traditional Deep Learning Training
+**Key differences between LLM training and traditional deep learning training include:**
 
 **Unified Architecture**: Unlike traditional models that may use various architectures like CNNs or LSTMs for specific tasks, LLMs consistently utilize the Transformer architecture. This uniformity allows for specialized optimizations that can enhance system performance specifically tailored for these models.
 
@@ -376,6 +376,7 @@ The video below shows how ZeRO (with all three stages) performs a training step 
 </video>
 </div>
 
+[video source](https://www.microsoft.com/en-us/research/blog/zero-deepspeed-new-system-optimizations-enable-training-models-with-over-100-billion-parameters/)
 
 
 ### Examples Using ZeRO implemented by DeepSpeed
