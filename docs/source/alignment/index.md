@@ -511,7 +511,7 @@ The reason is that the set of realizable value levels, which resides within a fi
 
 
 
-## Reference
+## References
 
 
 - A general framework for updating belief distributions. [paper](https://www.jstor.org/stable/44682909)
