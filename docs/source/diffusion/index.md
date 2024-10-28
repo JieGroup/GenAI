@@ -117,7 +117,7 @@ where $\boldsymbol{x}^{(\ell)}$ is the $\ell$-th sample in the training set, and
 Then the training loss of VAE is given by
 
 $$
-underset{\boldsymbol{\phi}, \boldsymbol{\theta}}{\mathrm{argmax}}\left\{\frac{1}{L} \sum_{\ell=1}^L \log p_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{(\ell)} | \boldsymbol{z}^{(\ell)}\right)-\mathbb{D}_{\mathrm{KL}}\left(q_{\boldsymbol{\phi}}\left(\boldsymbol{z} | \boldsymbol{x}^{(\ell)}\right) \| p(\boldsymbol{z})\right)\right\}.
+\underset{\boldsymbol{\phi}, \boldsymbol{\theta}}{\mathrm{argmax}}\left\{\frac{1}{L} \sum_{\ell=1}^L \log p_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{(\ell)} | \boldsymbol{z}^{(\ell)}\right)-\mathbb{D}_{\mathrm{KL}}\left(q_{\boldsymbol{\phi}}\left(\boldsymbol{z} | \boldsymbol{x}^{(\ell)}\right) \| p(\boldsymbol{z})\right)\right\}.
 $$ (vaeloss)
 
 You may verify that the KL divergence has an analytic expression
@@ -659,8 +659,8 @@ $$
 
 Then, a neural network $\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x}, t)$ is trained using score matching to learn the score function for all noise levels simultaneously:
 
-$$\
-underset{\boldsymbol{\theta}}{\arg \min } \sum_{t=1}^T \lambda(t) \mathbb{E}_{p_{\sigma_t}\left(\boldsymbol{x}_t\right)}\left[\left\|\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x}, t)-\nabla \log p_{\sigma_t}\left(\boldsymbol{x}_t\right)\right\|_2^2\right],
+$$
+\underset{\boldsymbol{\theta}}{\arg \min } \sum_{t=1}^T \lambda(t) \mathbb{E}_{p_{\sigma_t}\left(\boldsymbol{x}_t\right)}\left[\left\|\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x}, t)-\nabla \log p_{\sigma_t}\left(\boldsymbol{x}_t\right)\right\|_2^2\right],
 $$
 
 
