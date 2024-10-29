@@ -89,7 +89,7 @@ General HVAE has $T$ hierarchical levels and each latent is allowed to condition
 latents. We instead focus on a special case called Markovian HVAE (MHVAE). In a MHVAE,
 the generative process is a Markov chain, i.e., decoding each $\boldsymbol{z}_t$ only conditions on $\boldsymbol{z}_{t+1}$. See below for a MHVAE.
 
-![HVAE](img_diffusion/hvae.png)*Figure 2: A Markovian Hierarchical Variational Autoencoder with $T$ hierarchical latents. The generative process is modeled as a Markov chain, where each latent $\boldsymbol{z}_t$ is generated only from the previous latent $\boldsymbol{z}_{t+1}$.*
+![HVAE](img_diffusion/hvae.png)*Figure 1: A Markovian Hierarchical Variational Autoencoder with $T$ hierarchical latents. The generative process is modeled as a Markov chain, where each latent $\boldsymbol{z}_t$ is generated only from the previous latent $\boldsymbol{z}_{t+1}$.*
 
 The joint distribution and the posterior of a MHVAE is given by
 
@@ -113,15 +113,15 @@ $$
 
 ## 2. Denoising Diffusion Probabilisitc Model (DDPM) <a name="ddpm"></a>
 
-### 2.1 Variational Diffusion Models (VDM) <a name="variational-diffusion-models"></a>
+<!-- ### 2.1 Variational Diffusion Models (VDM) <a name="variational-diffusion-models"></a> -->
 
-A Variational Diffusion Model (VDM) is a MHVAE with below three restrictions:
+A Denoising Diffusion Probabilisitc Model (DDPM) is a MHVAE with below three restrictions:
 
 #### Restriction I: The latent dimention is equal to the data dimention
 
-Basically a VDM has a sequence of states $\{\boldsymbol{x}_t\}^T_{t=0}$, where $\boldsymbol{x}_0$ is the original image, $\boldsymbol{x}_1,\ldots, \boldsymbol{x}_T$ are the latent variables with the same dimension as $\boldsymbol{x}_0$.
+Basically a DDPM has a sequence of states $\{\boldsymbol{x}_t\}^T_{t=0}$, where $\boldsymbol{x}_0$ is the original image, $\boldsymbol{x}_1,\ldots, \boldsymbol{x}_T$ are the latent variables with the same dimension as $\boldsymbol{x}_0$.
 
-The VDM posterior can now be rewritten as
+The DDPM posterior can now be rewritten as
 
 $$
 q\left(\boldsymbol{x}_{1: T} | \boldsymbol{x}_0\right)=\prod_{t=1}^T q\left(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}\right)
@@ -147,13 +147,13 @@ $$
 
 
 where $\alpha_t$ is a (potentially learnable) coefficient that can vary per time $t$. This form of coefficients are chosen for being variance-preserving.
-Denoising Diffusion Probabilistic Model (DDPM) is a VDM that parameterized with some pre-defined $\alpha_t$ as in (16) and (17).
+
 
 #### Restriction III: The parameters of the Gaussian latent encoders are set to vary over time such that the distribution of the latent at the final timestep $T$ is a standard Gaussian
 
 $\alpha_t$ is set to evolve according to a schedule structured such that $\boldsymbol{x}_T \sim \mathcal{N}\left(\boldsymbol{0}, \mathbf{I}\right)$.
 
-Now the joint distribution for a VDM can be rewritten as
+Now the joint distribution for a DDPM can be rewritten as
 
 $$
 p\left(\boldsymbol{x}_{0: T}\right)=p\left(\boldsymbol{x}_T\right) \prod_{t=1}^T p_{\boldsymbol{\theta}}\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t\right), 
@@ -165,11 +165,9 @@ Note our encoders are no longer parameterized by $\boldsymbol{\phi}$, while our 
 
 The full process of the encoders $q(\boldsymbol{x}_t|\boldsymbol{x}_{t-1})$ (adding noises) and decoders $p(\boldsymbol{x}_t|\boldsymbol{x}_{t+1})$ (denoising) is shown below.
 
-![VDM](img_diffusion/vdm.png)*Figure 3: A visual representation of a Variational Diffusion Model; $\boldsymbol{x}_0$ represents true data observations such as natural images, $\boldsymbol{x}_T$ represents pure Gaussian noise, and $\boldsymbol{x}_t$ is an intermediate noisy version of $\boldsymbol{x}_0$. Each $q\left(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}\right)$ is modeled as a Gaussian distribution that uses the output of the previous state as its mean.*
+![VDM](img_diffusion/vdm.png)*Figure 2: A visual representation of a Variational Diffusion Model; $\boldsymbol{x}_0$ represents true data observations such as natural images, $\boldsymbol{x}_T$ represents pure Gaussian noise, and $\boldsymbol{x}_t$ is an intermediate noisy version of $\boldsymbol{x}_0$. Each $q\left(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}\right)$ is modeled as a Gaussian distribution that uses the output of the previous state as its mean.*
 
-From now on we use DDPM to term the VDM.
-
-### 2.2 ELBO of DDPM <a name="elbo-of-ddpm"></a>
+### 2.1 ELBO of DDPM <a name="elbo-of-ddpm"></a>
 
 There are two ways to understand the ELBO of DDPM.
 
@@ -180,30 +178,24 @@ $$
 $$
 
 
-#### Reconstruction Term $\mathbb{E}_{q\left(\boldsymbol{x}_1 | \boldsymbol{x}_0\right)}\left[\log p_\theta\left(\boldsymbol{x}_0 | \boldsymbol{x}_1\right)\right]$
+##### Reconstruction Term $\mathbb{E}_{q\left(\boldsymbol{x}_1 | \boldsymbol{x}_0\right)}\left[\log p_\theta\left(\boldsymbol{x}_0 | \boldsymbol{x}_1\right)\right]$
 The reconstruction term is derived from the expectation over the conditional distribution $q_{\boldsymbol{\phi}}(\boldsymbol{x}_1|\boldsymbol{x}_0)$.
 This term predicts the log probability of the original data sample $\boldsymbol{x}_0$ given the first-step latent $\boldsymbol{x}_1$. This is similar to the decoder phase in a standard VAE, where the model learns to regenerate the original input from its latent representation, enhancing the model's ability to capture and reconstruct the input data accurately.
 
-- **Role in Training:** Encourages the model to effectively regenerate the original data from its latent representation, ensuring that important features of the input data are captured.
-- **Implementation:** Trained by maximizing the likelihood of $\boldsymbol{x}_0$ given $\boldsymbol{x}_1$, similar to training a decoder in a standard autoencoder.
 
-#### Prior Matching Term $\mathbb{E}_{q\left(\boldsymbol{x}_{T-1} | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_T | \boldsymbol{x}_{T-1}\right) \| p\left(\boldsymbol{x}_T\right)\right)\right]$
+##### Prior Matching Term $\mathbb{E}_{q\left(\boldsymbol{x}_{T-1} | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_T | \boldsymbol{x}_{T-1}\right) \| p\left(\boldsymbol{x}_T\right)\right)\right]$
 
 The prior matching term involves the KL divergence between the final latent distribution and the Gaussian prior.
 This term is minimized when the distribution of the final latent variable $\boldsymbol{x}_T$ closely matches the Gaussian prior $\mathcal{N}(0, I)$. 
 
-- **Role in Training:** Ensures that the latent space distribution adheres to a predetermined prior, facilitating the generation process and improving sample diversity.
-- **Implementation:** No direct optimization is required as it involves no trainable parameters; becomes negligible when the assumption of Gaussian distribution at $T$ is satisfied.
 
-#### Consistency Term $\mathbb{E}_{q\left(\boldsymbol{x}_{t-1}, \boldsymbol{x}_{t+1} | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}\right) \| p_\theta\left(\boldsymbol{x}_t | \boldsymbol{x}_{t+1}\right)\right)\right]$
+##### Consistency Term $\mathbb{E}_{q\left(\boldsymbol{x}_{t-1}, \boldsymbol{x}_{t+1} | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}\right) \| p_\theta\left(\boldsymbol{x}_t | \boldsymbol{x}_{t+1}\right)\right)\right]$
 
 The consistency term checks for the consistency of the latent space transformation across all intermediate steps.
 It ensures that the forward transformation to a noisier image matches the reverse transformation from a cleaner image, making the distribution at $\boldsymbol{x}_t$ consistent.
 
-- **Role in Training:** Ensures that the latent space transitions are smooth and consistent, enhancing the model's stability and predictive performance.
-- **Implementation:** Minimized by training the model to align the forward-generated and the reverse-modeled distributions.
 
-Under this derivation, all terms of the ELBO are computed as expectations, and can therefore be approximated using Monte Carlo estimates. However, actually optimizing the ELBO using the terms we just derived might be suboptimal; because the consistency term is computed as an expectation over two random variables $\left\{\boldsymbol{x}_{t-1}, \boldsymbol{x}_{t+1}\right\}$ for every timestep, the variance of its Monte Carlo estimate could potentially be higher than a term that is estimated using only one random variable per timestep. As it is computed by summing up $T-1$ consistency terms, the final estimated value of the ELBO may have high variance for large $T$ values.
+Under this derivation, all terms of the ELBO are computed as expectations, and can therefore be approximated using Monte Carlo estimates. However, optimizing the ELBO using the terms we just derived might be suboptimal: because the consistency term is computed as an expectation over two random variables $\left\{\boldsymbol{x}_{t-1}, \boldsymbol{x}_{t+1}\right\}$ for every timestep, the variance of its Monte Carlo estimate could potentially be higher than a term that is estimated using only one random variable per timestep. As it is computed by summing up $T-1$ consistency terms, the final estimated value of the ELBO may have high variance for large $T$ values.
 
 The second way tries to compute expectation over only
 one random variable at a time:
@@ -240,7 +232,7 @@ It ensures that the model's denoising capability, from a noisier to a cleaner st
 
 The second interpretation of the ELBO offers a framework for understanding and implementing each component with reduced computational complexity and increased intuitive clarity. By focusing on one random variable at a time, we achieve lower variance in estimates, leading to more stable and reliable model training outcomes in variational inference frameworks like VAEs.
 
-### 2.3 Key conditional distributions for ELBO <a name="key-conditional-distributions-for-elbo"></a>
+### 2.2 ELBO Continued: a Key Quantity <a name="key-conditional-distributions-for-elbo"></a>
 
 For ELBO derived in the {eq}`felbo`, we need the explicit form of  $q\left(\boldsymbol{x}_t | \boldsymbol{x}_0\right)$ and $\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right)$ for sampling. 
 
@@ -275,9 +267,9 @@ $$
 \boldsymbol{\Sigma}_q(t) =\frac{\left(1-\alpha_t\right)\left(1-\bar{\alpha}_{t-1}\right)}{1-\bar{\alpha}_t} \mathbf{I} \stackrel{\text { def }}{=} \sigma_q^2(t) \mathbf{I} .
 $$
 
-### 2.4 Three equivalent way of derivation for training and inference <a name="three-equivalent-way-of-derivation-for-training-and-inference"></a>
+### 2.3 Three equivalent way of derivation for training and inference <a name="three-equivalent-way-of-derivation-for-training-and-inference"></a>
 
-From the ELBO {eq}`felbo` we know that we have to compute the KL divergence term. $p_\theta$ is what we can set for training, and from 2.3 we know $q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right)$ is Gaussian, so for convenience we also assume that $p_\theta$ is a Gaussian, with the same variance as $q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right)$ and a learnable mean:
+From the ELBO {eq}`felbo` we know that we have to compute the KL divergence term. $p_\theta$ is what we can set for training, and from 2.3 we know $q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right)$ is Gaussian, **so for convenience we formulate $p_\theta$ as a Gaussian**, with the same variance as $q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right)$ and a learnable mean:
 
 $$
 p_{\boldsymbol{\theta}}\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t\right)=\mathcal{N}\left(\boldsymbol{x}_{t-1} |\boldsymbol{\mu}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t,t\right), \sigma_q^2(t) \mathbf{I}\right),
@@ -328,7 +320,7 @@ $$
 $$
 
 
-#### Training a Denoising Diffusion Probabilistic Model. (Version: predict image) 
+<!-- #### Training a Denoising Diffusion Probabilistic Model. (Version: predict image) 
 
 For every image $\boldsymbol{x}_0$ in your training dataset:
 
@@ -349,18 +341,18 @@ $$
 
 
 #### Inference on a Denoising Diffusion Probabilistic Model. (Version: predict image)
-- You give us a white noise vector $\boldsymbol{x}_T \sim \mathcal{N}(0, \mathbf{I})$.
+- Given a white noise vector $\boldsymbol{x}_T \sim \mathcal{N}(0, \mathbf{I})$.
 - Repeat the following for $t=T, T-1, \ldots, 1$.
 - We calculate $\widehat{\boldsymbol{x}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t,t\right)$ using our trained denoiser.
 - Update according to
 
 $$
 \boldsymbol{x}_{t-1}=\frac{\left(1-\bar{\alpha}_{t-1}\right) \sqrt{\alpha_t}}{1-\bar{\alpha}_t} \boldsymbol{x}_t+\frac{\left(1-\alpha_t\right) \sqrt{\bar{\alpha}_{t-1}}}{1-\bar{\alpha}_t} \widehat{\boldsymbol{x}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t,t\right)+\sigma_q(t) \boldsymbol{z}, \quad \boldsymbol{z} \sim \mathcal{N}(0, \mathbf{I}) .
-$$
+$$ -->
 
 
 
-Note that we set our neural network ($\widehat{\boldsymbol{x}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t,t\right)$) for predicting the image . We can actually learn to predict the noise. To see that, from $\boldsymbol{x}_t=\sqrt{\bar{\alpha}_t} \boldsymbol{x}_0+\sqrt{\left(1-\bar{\alpha}_t\right)} \boldsymbol{\epsilon}_0$ we can obtain $\boldsymbol{x}_0=\frac{\boldsymbol{x}_t-\sqrt{\left(1-\bar{\alpha}_t\right)} \boldsymbol{\epsilon}_0}{\sqrt{\bar{\alpha}_t}}$ and put it in $\boldsymbol{\mu}_q\left(\boldsymbol{x}_t, \boldsymbol{x}_0\right)$, and then get 
+Note that we set our neural network ($\widehat{\boldsymbol{x}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t,t\right)$) for predicting the image. We can actually learn to predict the noise. To see that, from $\boldsymbol{x}_t=\sqrt{\bar{\alpha}_t} \boldsymbol{x}_0+\sqrt{\left(1-\bar{\alpha}_t\right)} \boldsymbol{\epsilon}_0$ we can obtain $\boldsymbol{x}_0=\frac{\boldsymbol{x}_t-\sqrt{\left(1-\bar{\alpha}_t\right)} \boldsymbol{\epsilon}_0}{\sqrt{\bar{\alpha}_t}}$ and put it in $\boldsymbol{\mu}_q\left(\boldsymbol{x}_t, \boldsymbol{x}_0\right)$, and then get 
 
 $$
 \boldsymbol{\mu}_q\left(\boldsymbol{x}_t, \boldsymbol{x}_0\right)=\frac{1}{{\sqrt{{\alpha}_t}}}\boldsymbol{x}_t-\frac{1-{\alpha}_t}{\sqrt{1-\bar{\alpha}_t}\sqrt{{\alpha}_t}} \boldsymbol{\epsilon}_0.
@@ -383,7 +375,7 @@ $$
 
 The training and inference process below is what you would see in the [DDPM paper](https://arxiv.org/abs/2006.11239).
 
-#### Training a Denoising Diffusion Probabilistic Model. (Version: Predict noise) 
+#### Training a Denoising Diffusion Probabilistic Model. 
 
 For every image $\boldsymbol{x}_0$ in your training dataset:
 - Repeat the following steps until convergence.
@@ -401,8 +393,8 @@ $$
 $$
 
 
-#### Inference on a Denoising Diffusion Probabilistic Model. (Version: Predict noise)
-- You give us a white noise vector $\boldsymbol{x}_T \sim \mathcal{N}(0, \mathbf{I})$.
+#### Inference on a Denoising Diffusion Probabilistic Model. 
+- Given a white noise vector $\boldsymbol{x}_T \sim \mathcal{N}(0, \mathbf{I})$.
 - Repeat the following for $t=T, T-1, \ldots, 1$.
 - We calculate $\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t,t\right)$ using our trained denoiser.
 - Update according to
