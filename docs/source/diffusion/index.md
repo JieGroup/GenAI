@@ -1,5 +1,5 @@
 
-# 6. Diffusion Models
+# 7. Diffusion Models
 
 This tutorial discusses main ideas of diffusion models behind many modern generative tools. These models are particularly powerful in applications like text-to-image and text-to-video generation. 
 
