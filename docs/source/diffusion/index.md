@@ -1,9 +1,9 @@
 
 # 6. Diffusion Models
 
-This tutorial discusses the essential ideas underlying diffusion models, which are the foundation of many modern generative tools. These models are particularly powerful in applications like text-to-image and text-to-video generation. The content is mostly based on two excellent tutorials from [Stanley](https://arxiv.org/abs/2403.18103) and [Calvin](https://arxiv.org/abs/2208.11970).
+This tutorial discusses main ideas of diffusion models behind many modern generative tools. These models are particularly powerful in applications like text-to-image and text-to-video generation. 
 
-## Contents
+<!-- ## Contents
 
 1. [The Basics: Variational Auto-Encoder (VAE)](#vae)
     - [VAE Setting](#vae-setting)
@@ -23,90 +23,25 @@ This tutorial discusses the essential ideas underlying diffusion models, which a
     - [Forward and Backward Iterations in SDE](#f-n-b-sde)
     - [SDE for DDPM](#sde-ddpm)
     - [SDE for SMLD](#sde-smld)
-5. [Conclusion](#conclusion)
+5. [Conclusion](#conclusion) -->
 
 
-## 1. The Basics: Variational Autoencoders (VAEs) <a name="vae"></a>
+## The Basics: Variational Autoencoders (VAEs) <a name="vae"></a>
 
-
-### 1.1 VAE Setting <a name="vae-setting"></a>
-
-Variational Autoencoder is a foundational concept in generative modeling. It aims to encode data into a latent space and then decode it to reconstruct the input.
-
-#### Probabilistic Framework
-
-In a VAE, both $\boldsymbol{x}$ and $\boldsymbol{z}$ are described using probability distributions, enhancing flexibility over deterministic transformations:
-- $p(\boldsymbol{x})$: The distribution of $\boldsymbol{x}$, typically unknown and complex.
-- $p(\boldsymbol{z})$: The distribution of $\boldsymbol{z}$, often assumed to be a standard Gaussian $\mathcal{N}(0, I)$. The dimension of the latent $\boldsymbol{z}$ is usually smaller than $p(\boldsymbol{x})$.
-- $p(\boldsymbol{z}|\boldsymbol{x})$: The conditional distribution associated with the encoder, which ideally aligns with how $\boldsymbol{z}$ relates to $\boldsymbol{x}$.
-- $p(\boldsymbol{x}|\boldsymbol{z})$: The conditional distribution associated with the decoder, defining the likelihood of $\boldsymbol{x}$ given $\boldsymbol{z}$.
-
-However, we have no access to either $p(\boldsymbol{z}|\boldsymbol{x})$ or $p(\boldsymbol{x}|\boldsymbol{z})$. Hence, we need to train our encoder and decoder to approach them:
-
-- $q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x})$ : The encoder, proxy for $p(\boldsymbol{z} | \boldsymbol{x})$. Usually $q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x})=\mathcal{N}\left(\boldsymbol{z} ; \boldsymbol{\mu}_{\boldsymbol{\phi}}(\boldsymbol{x}), \boldsymbol{\sigma}_{\boldsymbol{\phi}}^2(\boldsymbol{x}) \mathbf{I}\right).$
-- $p_{\boldsymbol{\theta}}(\boldsymbol{x} | \boldsymbol{z})$ : The decoder, proxy for $p(\boldsymbol{x} | \boldsymbol{z})$. $p_{\boldsymbol{\theta}}(\boldsymbol{x} | \boldsymbol{z})=\mathcal{N}\left(\boldsymbol{x} ; \boldsymbol{\mu}_{\boldsymbol{\theta}}(\boldsymbol{z}), \boldsymbol{\sigma}_{\text{dec}}^2 \mathbf{I}\right).$ 
-
-![VAE](img_diffusion/vae.png)
-
-*Figure 1: In a variational autoencoder, the variables $\boldsymbol{x}$ and $\boldsymbol{z}$ are connected by the conditional distributions $p(\boldsymbol{x} | \boldsymbol{z})$ and $p(\boldsymbol{z} | \boldsymbol{x})$. To make things work, we introduce two proxy distributions $p_{\boldsymbol{\theta}}(\boldsymbol{x} | \boldsymbol{z})$ and $q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x})$, respectively.*
-
-### 1.2 Evidence Lower Bound (ELBO) <a name="evidence-lower-bound"></a>
-
-The Evidence Lower Bound (ELBO) is a fundamental concept in generative modeling, particularly relevant to VAEs. It provides a lower bound to the log likelihood of observed data, effectively quantifying the evidence of the model's fit.
-
-#### Concept Overview
-
-In generative modeling, the primary goal is to maximize the likelihood of the observed data, denoted $p(\boldsymbol{x})$. However, directly computing $p(\boldsymbol{x})$ can be infeasible because it involves either integrating out all latent variables $\boldsymbol{z}$ :
-
-$$
-\int p(\boldsymbol{x},\boldsymbol{z}) \mathbb{d} \boldsymbol{z},
-$$
+Recall the following concept from our [Chapter 1](https://genai-course.jding.org/en/latest/quickreview/index.html#from-elbo-to-vae-loss):
  
-or accessing the exact latent encoder $p(\boldsymbol{z}|\boldsymbol{x})$:
+- $p(\boldsymbol{x})$: The distribution of $\boldsymbol{x}$, typically unknown and complex.
+- $p(\boldsymbol{z})$: The distribution of $\boldsymbol{z}$, often assumed to have standard Gaussian prior $\mathcal{N}(0, I)$ whose dimension is smaller than $\bm x$.
+- $q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x})$ : The encoder, proxy for $p(\boldsymbol{z} | \boldsymbol{x})$. 
+- $p_{\boldsymbol{\theta}}(\boldsymbol{x} | \boldsymbol{z})$ : The decoder, proxy for $p(\boldsymbol{x} | \boldsymbol{z})$. 
 
-$$
-p(\boldsymbol{x})  =\frac{p(\boldsymbol{x},\boldsymbol{z}) }{p(\boldsymbol{z}|\boldsymbol{x}) }.
-$$
-
-
-#### ELBO Derivation
-
-We can write
-
-$$
-\log p(\boldsymbol{x}) &= \mathbb{E}_{q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x})}\left[\log \frac{p(\boldsymbol{x}, \boldsymbol{z})}{q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x})}\right]+D_{\mathrm{KL}}\left(q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x}) \| p(\boldsymbol{z} | \boldsymbol{x})\right)\\&\geq \mathbb{E}_{q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x})}\left[\log \frac{p(\boldsymbol{x}, \boldsymbol{z})}{q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x})}\right],
-$$ (lb)
-
-where $q_{\boldsymbol{\phi}}(\boldsymbol{z}|\boldsymbol{x})$ represents an approximate variational distribution with parameters $\phi$, which we optimize to closely approximate the true posterior distribution $p(\boldsymbol{z}|\boldsymbol{x})$.
-
-The ELBO of $p(\boldsymbol{x})$ is then defined as the lower bound of $\log p(\boldsymbol{x})$ in {eq}`lb`:
-
-$$
-\text{ELBO} = \mathbb{E}_{q_{\boldsymbol{\phi}}(\boldsymbol{z}|\boldsymbol{x})}\left[\log \frac{p(\boldsymbol{x}, \boldsymbol{z})}{q_{\boldsymbol{\phi}}(\boldsymbol{z}|\boldsymbol{x})}\right].
-$$ (elbo)
-
-
-
-#### Importance of ELBO
-
-Optimizing the ELBO is advantageous for model training, acting as a proxy for maximizing the actual likelihood. By maximizing the ELBO, which involves minimizing $D_{\mathrm{KL}}\left(q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x}) \| p(\boldsymbol{z} | \boldsymbol{x})\right)$, the model learns the latent structure underlying the observed data. This process not only enhances the accuracy of the model but also ensures that its inference closely mirrors the true distribution of the data.
-
-
-### 1.3 Training VAE <a name="training-vae"></a>
-
-
-#### ELBO of VAE
-The objective function for VAEs is the maximization of the ELBO {eq}`elbo`, which can be rewritten as
+- The objective function for VAEs is the maximization of the Evidence Lower Bound (ELBO)
 
 $$
 \text{ELBO} = \mathbb{E}_{q_{\boldsymbol{\phi}}(\boldsymbol{z}|\boldsymbol{x})}[\log p_\theta(\boldsymbol{x}|\boldsymbol{z})] - D_{KL}(q_{\boldsymbol{\phi}}(\boldsymbol{z}|\boldsymbol{x}) \| p(\boldsymbol{z})).
-$$ (velbo)
+$$
 
-
-
-#### Loss Function
-
- We approximate the first term in {eq}`velbo` by Monte-Carlo simulation:
+- Loss Function: We approximate the first term by Monte-Carlo simulation:
 
 $$
 \mathbb{E}_{q_{\boldsymbol{\phi}}(\boldsymbol{z} | \boldsymbol{x})}\left[\log p_{\boldsymbol{\theta}}(\boldsymbol{x} | \boldsymbol{z})\right] \approx \frac{1}{L} \sum_{\ell=1}^L \log p_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{\ell} | \boldsymbol{z}^{(\ell)}\right), \quad \boldsymbol{z}^{(\ell)} \sim q_{\boldsymbol{\phi}}\left(\boldsymbol{z} | \boldsymbol{x}^{(\ell)}\right),
@@ -170,6 +105,7 @@ $$
 
 
 The ELBO of such model can be written as
+
 
 $$
 \text{ELBO}&=\mathbb{E}_{q_{\boldsymbol{\phi}}\left(\boldsymbol{z}_{1: T} | \boldsymbol{x}\right)}\left[\log \frac{p\left(\boldsymbol{x}, \boldsymbol{z}_{1: T}\right)}{q_{\boldsymbol{\phi}}\left(\boldsymbol{z}_{1: T} | \boldsymbol{x}\right)}\right]\\&=\mathbb{E}_{q_{\boldsymbol{\phi}}\left(\boldsymbol{z}_{1: T} | \boldsymbol{x}\right)}\left[\log \frac{p\left(\boldsymbol{z}_T\right) p_{\boldsymbol{\theta}}\left(\boldsymbol{x} | \boldsymbol{z}_1\right) \prod_{t=2}^T p_{\boldsymbol{\theta}}\left(\boldsymbol{z}_{t-1} | \boldsymbol{z}_t\right)}{q_{\boldsymbol{\phi}}\left(\boldsymbol{z}_1 | \boldsymbol{x}\right) \prod_{t=2}^T q_{\boldsymbol{\phi}}\left(\boldsymbol{z}_t | \boldsymbol{z}_{t-1}\right)}\right].

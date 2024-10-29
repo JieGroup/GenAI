@@ -393,6 +393,7 @@ The challenge of effectively choosing the parameter $\bm \lambda$ can lead to in
 
 **Figure: Randomly sampled $\bm \lambda$ that represent all the possible $\bm \lambda$ whose $\ell_1$-norm is less than 6 and its subset of all the desirable $\bm \lambda$ in aligning the OPT-1.3B model towards (a) two values: Helpfulness and Harmlessness, (b) three values: adding Humor, and (c) the same three values visualized in 3D. A desirable $\bm \lambda$ means it produces Pareto improvement over all the values.**
 ![Sample Aug](../_static/img/fig_rand_lambda_MAP_region.png)
+[Image source](https://arxiv.org/pdf/2410.19198v1)
 
 Does there exist a first-principle approach that allows users to directly specify the improvements they want and ensures those improvements are achieved? This question motivates the recent development of the Multi-Human-Value Alignment Palette (MAP), a framework designed to directly optimize multiple human value preferences.
 
@@ -486,7 +487,7 @@ $$
     \mathcal{V}_{\textrm{MAP}}(r_1, \ldots, r_m; p_0) \overset{\Delta}{=} \biggl\{ \mathbb{E}_{x \sim \mathcal{D} , y \sim p_{\bm c}(\cdot \mid x)} \bm r(x,y) : \, \bm c \in \mathcal{C}_{\textrm{MAP}}(r_1, \ldots, r_m; p_0) \biggr\}.
 $$
 
-It has been demonstrated in the MAP framework that for any original generative model $p_0$, we have:
+It has been proved in this [paper](https://arxiv.org/pdf/2410.19198v1) that for any original generative model $p_0$, we have:
 
 $$
         \mathcal{V}_{\textrm{MAP}}(r_1, \ldots, r_m; p_0)
@@ -496,7 +497,7 @@ $$
 
 This equivalence confirms that the realizable value levels by MAP equate to those in the original alignment problem using a specific reward function — a linear combination of individual rewards. 
 
-As a result, **linear combinations of individual reward functions can sufficiently capture the entire Pareto Frontier**. 
+As a result, it can be proved that **linear combinations of individual reward functions can sufficiently capture the entire Pareto Frontier**. 
 
 The reason is that the set of realizable value levels, which resides within a finite $m$-dimensional space, is mapped from the infinitely dimensional set of solutions $p$ through a many-to-one mapping, as depicted in the following figure.
 
@@ -530,7 +531,7 @@ The reason is that the set of realizable value levels, which resides within a fi
 
 - Rewarded soups: towards pareto-optimal alignment by interpolating weights fine-tuned on diverse rewards. [paper](https://openreview.net/pdf?id=lSbbC2VyCu)
 
-- MAP: Multi-Human-Value Alignment Palette. [paper]()
+- MAP: Multi-Human-Value Alignment Palette. [paper](https://arxiv.org/pdf/2410.19198v1)
 
 - Human preference data about helpfulness and harmlessness. Human-generated and annotated red teaming dialogues. [data](https://huggingface.co/datasets/Anthropic/hh-rlhf)
 
