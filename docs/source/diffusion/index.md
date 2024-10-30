@@ -390,7 +390,7 @@ $$
 - Take gradient descent step on
 
 $$
-\nabla_{\boldsymbol{\theta}}\sum^{M}_{m=1}\left\|\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{(m)}_{t^{(m)}},{t^{(m)}}\right)-\boldsymbol{\epsilon}_0\right\|^2
+\nabla_{\boldsymbol{\theta}}\frac{1}{M}\sum^{M}_{m=1}\left\|\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{(m)}_{t^{(m)}},{t^{(m)}}\right)-\boldsymbol{\epsilon}_0\right\|^2
 $$
 
 
@@ -404,6 +404,249 @@ $$
 \boldsymbol{x}_{t-1}=\frac{1}{{\sqrt{{\alpha}_t}}}\boldsymbol{x}_t-\frac{1-{\alpha}_t}{\sqrt{1-\bar{\alpha}_t}\sqrt{{\alpha}_t}}\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)+\sigma_q(t) \boldsymbol{z}_t, \quad \boldsymbol{z}_t \sim \mathcal{N}(0, \mathbf{I}) .
 $$
 
+### Training a DDPM in Practice
+
+``` bash
+pip install git+https://github.com/huggingface/diffusers.git#egg=diffusers[training]
+pip install accelerate
+pip install datasets
+```
+
+``` python
+from dataclasses import dataclass
+
+@dataclass
+class TrainingConfig:
+    image_size = 128  # the generated image resolution
+    train_batch_size = 16
+    eval_batch_size = 16  # how many images to sample during evaluation
+    num_epochs = 50
+    gradient_accumulation_steps = 1
+    learning_rate = 1e-4
+    lr_warmup_steps = 500
+    save_image_epochs = 10
+    save_model_epochs = 30
+    mixed_precision = 'fp16'  # `no` for float32, `fp16` for automatic mixed precision
+    seed = 0
+
+config = TrainingConfig()
+```
+
+The denoising neural network $\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_{t},{t}\right)$ is U-Net in practice. The input would be an RGB image $\boldsymbol{x}_{t}$ and the timestep $t$, while the output would also be an RGB image.
+
+```python
+from diffusers import UNet2DModel
+
+model = UNet2DModel(
+    sample_size=config.image_size,  # the target image resolution
+    in_channels=3,  # the number of input channels, 3 for RGB images
+    out_channels=3,  # the number of output channels
+    layers_per_block=2,  # how many ResNet layers to use per UNet block
+    block_out_channels=(128, 128, 256, 256, 512, 512),  # the number of output channes for each UNet block
+    down_block_types=( 
+        "DownBlock2D",  # a regular ResNet downsampling block
+        "DownBlock2D", 
+        "DownBlock2D", 
+        "DownBlock2D", 
+        "AttnDownBlock2D",  # a ResNet downsampling block with spatial self-attention
+        "DownBlock2D",
+    ), 
+    up_block_types=(
+        "UpBlock2D",  # a regular ResNet upsampling block
+        "AttnUpBlock2D",  # a ResNet upsampling block with spatial self-attention
+        "UpBlock2D", 
+        "UpBlock2D", 
+        "UpBlock2D", 
+        "UpBlock2D"  
+      ),
+)
+```
+
+This UNet2DModel
+
+### Input Convolution
+- `Conv2d(3, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))`
+  - Maps 3-channel images to 128 feature channels.
+
+### Time Embedding
+- `Timesteps()`: Generates embeddings for different time steps.
+- `TimestepEmbedding`
+  - `Linear(in_features=128, out_features=512, bias=True)`: Projects time embeddings to a higher dimension.
+  - `SiLU()`: Activation function for adding non-linearity.
+  - `Linear(in_features=512, out_features=512, bias=True)`: Further processing of the time embeddings.
+
+### Downsampling Blocks
+- Sequence of `DownBlock2D` modules, each containing:
+  - **Residual Blocks** (`ResnetBlock2D`)
+    - `GroupNorm(32, width, eps=1e-05, affine=True)`: Normalizes the features within each group.
+    - `Conv2d(width, width, kernel_size=(3, 3), padding=(1, 1))`: Maintains feature width.
+    - `Linear(in_features=512, out_features=width, bias=True)`: Projects time embeddings.
+    - `SiLU()`: Adds non-linearity between convolutional layers.
+    - `Dropout(p=0.0, inplace=False)`: Optional dropout (inactive here) for regularization.
+  - **Downsampling**
+    - `Conv2d(width, width, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))`: Reduces spatial dimensions.
+
+### Mid Block
+- `UNetMidBlock2D`
+  - **Attention**
+    - `GroupNorm(32, 512, eps=1e-05, affine=True)` and linear layers for queries, keys, and values.
+    - `Attention`: Captures global dependencies across features.
+  - **Residual Blocks** (`ResnetBlock2D`)
+    - Structured similarly to those in the downsampling stages, focused on bottleneck features.
+
+### Upsampling Blocks
+- Sequence of `UpBlock2D` modules, each containing:
+  - **Residual Blocks** (`ResnetBlock2D`)
+    - Structured similarly to downsampling but integrates lower-level features.
+  - **Upsampling**
+    - `Conv2d(width, width, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))`: Increases spatial dimensions.
+
+
+
+The dataset we use here is [Butterflies dataset](https://huggingface.co/datasets/huggan/smithsonian_butterflies_subset). We need to resize them for training.
+
+``` python
+from datasets import load_dataset
+import torch
+config.dataset = "huggan/smithsonian_butterflies_subset"
+dataset = load_dataset(config.dataset, split="train")
+
+from torchvision import transforms
+
+preprocess = transforms.Compose(
+    [
+        transforms.Resize((config.image_size, config.image_size)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.5], [0.5]),
+    ]
+)
+
+def transform(examples):
+    images = [preprocess(image.convert("RGB")) for image in examples["image"]]
+    return {"images": images}
+
+dataset.set_transform(transform)
+
+train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=config.train_batch_size, shuffle=True)
+```
+We use DDPMScheduler for noise scheduler:
+
+``` python
+from diffusers import DDPMScheduler
+
+noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
+```
+Then we can start training with the code below
+
+``` python
+optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
+from diffusers.optimization import get_cosine_schedule_with_warmup
+
+lr_scheduler = get_cosine_schedule_with_warmup(
+    optimizer=optimizer,
+    num_warmup_steps=config.lr_warmup_steps,
+    num_training_steps=(len(train_dataloader) * config.num_epochs),
+)
+from accelerate import Accelerator
+from tqdm.auto import tqdm
+import torch
+import torch.nn.functional as F
+
+
+def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler):
+    # Initialize accelerator
+    accelerator = Accelerator(
+        mixed_precision=config.mixed_precision,
+        gradient_accumulation_steps=config.gradient_accumulation_steps
+    )
+    
+    # Prepare everything
+    model, optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+        model, optimizer, train_dataloader, lr_scheduler
+    )
+    
+    global_step = 0
+
+    # Now you train the model
+    for epoch in range(config.num_epochs):
+        progress_bar = tqdm(total=len(train_dataloader), disable=not accelerator.is_local_main_process)
+        progress_bar.set_description(f"Epoch {epoch}")
+
+        for step, batch in enumerate(train_dataloader):
+            clean_images = batch['images']
+            # Sample noise to add to the images
+            noise = torch.randn(clean_images.shape).to(clean_images.device)
+            bs = clean_images.shape[0]
+
+            # Sample a random timestep for each image
+            timesteps = torch.randint(0, noise_scheduler.num_train_timesteps, (bs,), device=clean_images.device).long()
+
+            # Add noise to the clean images according to the noise magnitude at each timestep
+            noisy_images = noise_scheduler.add_noise(clean_images, noise, timesteps)
+            
+            with accelerator.accumulate(model):
+                # Predict the noise residual
+                noise_pred = model(noisy_images, timesteps)["sample"]
+                loss = F.mse_loss(noise_pred, noise)
+                accelerator.backward(loss)
+
+                optimizer.step()
+                lr_scheduler.step()
+                optimizer.zero_grad()
+            
+            progress_bar.update(1)
+            global_step += 1
+
+        # Save the model at the end of training
+        if accelerator.is_main_process and epoch == config.num_epochs - 1:
+            model.save_pretrained(config.output_dir)
+from accelerate import notebook_launcher
+args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
+
+notebook_launcher(train_loop, args, num_processes=1)
+```
+
+### Inference with DDPM in practice
+
+As an illustration for inference, we use a pretrained DDPM `google/ddpm-celebahq-25`.
+
+``` python
+from diffusers import DDPMPipeline
+image_pipe = DDPMPipeline.from_pretrained("google/ddpm-celebahq-256")
+image_pipe.to("cuda")
+repo_id = "google/ddpm-church-256"
+model = UNet2DModel.from_pretrained(repo_id)
+scheduler = DDPMScheduler.from_config(repo_id)
+import PIL.Image
+import numpy as np
+
+def display_sample(sample, i):
+    image_processed = sample.cpu().permute(0, 2, 3, 1)
+    image_processed = (image_processed + 1.0) * 127.5
+    image_processed = image_processed.numpy().astype(np.uint8)
+
+    image_pil = PIL.Image.fromarray(image_processed[0])
+    display(f"Image at step {i}")
+    display(image_pil)
+model.to("cuda")
+noisy_sample = noisy_sample.to("cuda")
+import tqdm
+
+sample = noisy_sample
+
+for i, t in enumerate(tqdm.tqdm(scheduler.timesteps)):
+  # 1. predict noise residual
+  with torch.no_grad():
+      residual = model(sample, t).sample
+
+  # 2. compute less noisy image and set x_t -> x_t-1
+  sample = scheduler.step(residual, t, sample).prev_sample
+
+  # 3. optionally look at image
+  if (i + 1) % 50 == 0:
+      display_sample(sample, i + 1)
+```
 
 Our third way of training and inference is based on gradient of $\boldsymbol{x}_t$ in data space, $\nabla_{\boldsymbol{x}_t}\log p(\boldsymbol{x}_t)$, which is also called (Stein's) score function.
 
@@ -438,7 +681,7 @@ $$
 and the corresponding loss function would be 
 
 $$
-\boldsymbol{\theta}^*=\underset{\boldsymbol{\theta}}{\arg \min } \frac{1}{2 \sigma_{\boldsymbol{q}}^2(t)} \frac{\left(1-\alpha_t\right)^2}{\alpha_t}\left[\left\|\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)-\nabla_{\boldsymbol{x}_t} \log p\left(\boldsymbol{x}_t\right)\right\|^2\right],
+\boldsymbol{\theta}^*=\underset{\boldsymbol{\theta}}{\arg \min } \frac{1}{2 \sigma_{\boldsymbol{q}}^2(t)} \frac{\left(1-\alpha_t\right)^2}{\alpha_t}\mathbb{E}_{q\left(\boldsymbol{x}_t | \boldsymbol{x}_0\right)}\left[\left\|\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)-\nabla_{\boldsymbol{x}_t} \log p\left(\boldsymbol{x}_t\right)\right\|^2\right],
 $$ (sobj)
 
 
@@ -449,6 +692,21 @@ We save the third way of training and inference for our next section.
 ## 3. Score-Matching Langevin Dynamics (SMLD) <a name="smld"></a>
 
 We have demonstrated that DDPM can be learned by optimizing a neural network $\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)$ to predict the score function $\nabla_{\boldsymbol{x}_t} \log p\left(\boldsymbol{x}_t\right)$, but no intuition is given on why score function is worth modeling. Luckily, Score-based Generative Models, another way to generate data from a desired distribution, can explain, and in this section we will talk about how it is related to diffusion models.
+
+Given $p(\boldsymbol{x})$, we aim to draw samples from a location where $p(\boldsymbol{x})$ has a high value, namely we want to find $\boldsymbol{x}^*$ such that
+
+$$
+\boldsymbol{x}^*={\arg \max}_{\boldsymbol{x}} \log p(\boldsymbol{x}).
+$$
+
+To do such optimization, a reasonable way is to do gradient descent
+
+$$
+\boldsymbol{x}_{t+1}=\boldsymbol{x}_t+\tau \nabla_{\boldsymbol{x}} \log p\left(\boldsymbol{x}_t\right),
+$$
+
+where $\tau$ is the step size.
+
 
 ### 3.1 Langevin Dynamics <a name="ld"></a>
 
@@ -469,9 +727,7 @@ $$
 
 which would solve the optimization
 
-$$
-\boldsymbol{x}^*={\arg \max}_{\boldsymbol{x}} \log p(\boldsymbol{x}).
-$$
+
 
 
 
@@ -521,23 +777,20 @@ The problem with explicit score matching is that KDE is poor estimation of the t
 A more popular score matching called Denoising Score Matching (DSM) is defined as follows:
 
 $$
-J_{\mathrm{DSM}}(\boldsymbol{\theta}) \stackrel{\text { def }}{=} \mathbb{E}_{q\left(\boldsymbol{x}, \boldsymbol{x}^{\prime}\right)}\left[\frac{1}{2}\left\|\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x})-\nabla_{\boldsymbol{x}} q\left(\boldsymbol{x} | \boldsymbol{x}^{\prime}\right)\right\|^2\right],
+J_{\mathrm{DSM}}(\boldsymbol{\theta}) \stackrel{\text { def }}{=} \mathbb{E}_{q\left(\boldsymbol{x}, \boldsymbol{x}^{\prime}\right)}\left[\frac{1}{2}\left\|\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x})-\nabla_{\boldsymbol{x}} q\left(\boldsymbol{x} | \boldsymbol{x}^{\prime}\right)\right\|^2\right].
 $$
 
 
-where $q\left(\boldsymbol{x} | \boldsymbol{x}^{\prime}\right)$ is usually set as $\mathcal{N}(\boldsymbol{x} | \boldsymbol{x}^{\prime},\sigma^2 \mathbf{I})$, or $\boldsymbol{x} = \boldsymbol{x}^{\prime}+\sigma \boldsymbol{z}$.
-
-(
-DSM makes sense because we have the following theorem that connects ESM and DSM:
+DSM makes sense because we have the following [theorem](https://www.iro.umontreal.ca/~vincentp/Publications/smdae_techreport.pdf) that connects ESM and DSM:
 
 $$
 J_{\mathrm{DSM}}(\boldsymbol{\theta}) = J_{\mathrm{ESM}}(\boldsymbol{\theta}) + C
 $$
 
 
-for up to a constant $C$ that is independent of the variable $\boldsymbol{\theta}$.)
+for up to a constant $C$ that is independent of the variable $\boldsymbol{\theta}$.
 
-Then the loss of DSM becomes
+Usually  $q\left(\boldsymbol{x} | \boldsymbol{x}^{\prime}\right)$ is set as $\mathcal{N}(\boldsymbol{x} | \boldsymbol{x}^{\prime},\sigma^2 \mathbf{I})$, or $\boldsymbol{x} = \boldsymbol{x}^{\prime}+\sigma \boldsymbol{z}$. The loss of DSM becomes
 
 $$
 J_{\mathrm{DSM}}(\boldsymbol{\theta}) =\mathbb{E}_{q\left(\boldsymbol{x}^{\prime}\right)}\left[\frac{1}{2}\left\|\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{\prime}+\sigma \boldsymbol{z}\right)+\frac{\boldsymbol{z}}{\sigma^2}\right\|^2\right]. 
@@ -554,58 +807,54 @@ Note the expectation taking over $p$ is approximated by sampling directly from t
 
 Now the loss function {eq}`dsm` is highly interpretable: the score function $\boldsymbol{s}_{\boldsymbol{\theta}}$ is trained to take the noisy image $\boldsymbol{x}+\sigma \boldsymbol{z}$ and predict the noise $\boldsymbol{z}/\sigma^2$.
 
-The training step is as follows: You give us a training dataset $\{\boldsymbol{x}^{(\ell)}\}_{\ell=1}^L$, we train a network $\boldsymbol{\theta}$ with the goal to
+The training step is as follows: given a training dataset $\{\boldsymbol{x}^{(\ell)}\}_{\ell=1}^L$, train a network $\boldsymbol{\theta}$ with the goal
 
 $$
 \boldsymbol{\theta}^*=\underset{\boldsymbol{\theta}}{\mathrm{argmin}} \frac{1}{L} \sum_{\ell=1}^L \frac{1}{2}\left\|\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{(\ell)}+\sigma \boldsymbol{z}^{(\ell)}\right)+\frac{\boldsymbol{z}^{(\ell)}}{\sigma^2}\right\|^2, \quad \text { where } \quad \boldsymbol{z}^{(\ell)} \sim \mathcal{N}(0, \mathbf{I}) .
 $$
 
 
-For inference,  to generate an image, we perform the following procedure for $t=1, \ldots, T$ with the trained score estimator $\boldsymbol{s}_{\boldsymbol{\theta}}$:
+For inference, to generate an image, we perform the following procedure for $t=1, \ldots, T$ with the trained score estimator $\boldsymbol{s}_{\boldsymbol{\theta}}$:
 
 $$
 \boldsymbol{x}_{t+1}=\boldsymbol{x}_t+\tau \boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t\right)+\sqrt{2 \tau} \boldsymbol{z}_t, \quad \text { where } \quad \boldsymbol{z}_t \sim \mathcal{N}(0, \mathbf{I}).
 $$ (LD)
 
+There are some problems with vanilla score matching
 
-We can go further by adding multiple levels of Gaussian noise to the data. This would 
+- The score function is ill-defined when $\boldsymbol{x}$ lies on a low-dimensional manifold in a high-dimensional space.
+- The estimated score function trained will not be accurate in low density regions.
+- Langevin dynamics sampling may not mix, even if it is performed using the ground truth scores.
 
-- Expands the support of data samples across the entire space, ensuring they are not confined to a low-dimensional manifold.
-- Increases the coverage of each mode within the data distribution by introducing large Gaussian noise, which provides a stronger training signal even in low-density regions.
-- Creates intermediate distributions that align with the ground truth mixing coefficients via utilizing Gaussian noise with progressively increasing variance.
-
-To be more specific, we can choose a positive sequence of noise levels $\{\sigma_t\}_{t=1}^T$ and define a sequence of progressively perturbed data distributions:
+To address the problems in vanilla score matching, as proposed in Noise
+Conditional Score Network (NCSN), multiple levels of Gaussian noise can be added to the data in the following way: choose a positive sequence of noise levels $\{\sigma_t\}_{t=1}^T$, $\sigma_{\text{min}}=\sigma_1<\ldots<\sigma_T = \sigma_{\text{max}}$, and define a sequence of progressively perturbed data distributions
 
 $$
 p_{\sigma_t}\left(\boldsymbol{x}_t\right)=\int p(\boldsymbol{x}) \mathcal{N}\left(\boldsymbol{x}_t ; \boldsymbol{x}, \sigma_t^2 \mathbf{I}\right) \mathrm{d} \boldsymbol{x}.
 $$
 
-
-
 Then, a neural network $\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x}, t)$ is trained using score matching to learn the score function for all noise levels simultaneously:
 
 $$
-\underset{\boldsymbol{\theta}}{\arg \min } \sum_{t=1}^T \lambda(t) \mathbb{E}_{p_{\sigma_t}\left(\boldsymbol{x}_t\right)}\left[\left\|\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x}, t)-\nabla \log p_{\sigma_t}\left(\boldsymbol{x}_t\right)\right\|_2^2\right],
+\boldsymbol{\theta}^*=\underset{\boldsymbol{\theta}}{\arg \min } \sum_{t=1}^T \lambda(t) \mathbb{E}_{p_{\sigma_t}\left(\boldsymbol{x}_t\right)}\left[\left\|\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x}, t)-\nabla \log p_{\sigma_t}\left(\boldsymbol{x}_t\right)\right\|_2^2\right],
 $$
 
 
-where $\lambda(t)$ is a positive weighting function that conditions on noise level $t$. Note that this objective almost exactly matches the objective derived in {eq}`sobj`, our third explanation on DDPM. 
+where $\lambda(t)$ is a positive weighting function that conditions on noise level $t$, and often chosen as $\lambda(t)=\sigma_t^2$. Note that this objective almost exactly matches the objective derived in {eq}`sobj`, our third explanation on DDPM. 
 
-The annealed Langevin dynamics sampling is applied as a generative procedure: samples are produced by running Langevin dynamics for each $t=T, T-1, \ldots, 2,1$ in sequence:
+The annealed Langevin dynamics sampling is applied as a sampling procedure: samples are produced by running Langevin dynamics for each $t=T, T-1, \ldots, 2,1$ in sequence:
 
 For each noise level $\sigma_t$, $M$ steps of Langevin MCMC are run sequentially for each $p_{\sigma_t}(\boldsymbol{x})$:
 
 $$
-\boldsymbol{x}_{m}^{(t)} = \boldsymbol{x}_{m-1}^{(t)} + \epsilon_t \boldsymbol{s}_{\theta^*}(\boldsymbol{x}_{m-1}^{(t)}, \sigma_t) + \sqrt{2 \epsilon_t} \boldsymbol{z}_m^{(t)},
+\boldsymbol{x}_{m}^{(t)} = \boldsymbol{x}_{m-1}^{(t)} + \frac{\alpha_t}{2} \boldsymbol{s}_{\boldsymbol{\theta}^*}(\boldsymbol{x}_{m-1}^{(t)}, \sigma_t) + \sqrt{\alpha_t} \boldsymbol{z}_m^{(t)},
 $$
 
-where $\epsilon_t > 0$ is the step size, and $\boldsymbol{z}_m^{(t)} $ is standard normal. 
+where $\alpha_t=\sigma^2_t/\sigma^2_T$ is the step size, and $\boldsymbol{z}_m^{(t)} $ is standard normal. 
 
-The sampling start with $\boldsymbol{x}_0^{(T)} \sim \mathcal{N}(\boldsymbol{0}, \sigma_{\text{max}}^2 \mathbf{I})$ and set $\boldsymbol{x}_0^{(t)} = \boldsymbol{x}_M^{(t+1)}$ for $t < T.$
-
-As $M \to \infty$ and $\epsilon_t \to 0$, $\boldsymbol{x}_M^{(1)}$ converges to a sample from $p(\boldsymbol{x}).$
+The sampling start with $\boldsymbol{x}_0^{(T)} \sim \mathcal{N}(\boldsymbol{0}, \sigma_{\text{max}}^2 \mathbf{I})$ and set $\boldsymbol{x}_0^{(t)} = \boldsymbol{x}_M^{(t+1)}$ for $t < T.$ As $M \to \infty$ and $\alpha_t \to 0$ for all $t$, $\boldsymbol{x}_M^{(1)}$ becomes an exact sample from $p_{\sigma_{\text{min}}}(\boldsymbol{x}) \approx p(\boldsymbol{x}).$
     
-This is directly analogous to the sampling procedure performed in the Markovian HVAE interpretation of a Variational Diffusion Model, where a randomly initialized data vector is iteratively refined over decreasing noise levels.
+This is directly analogous to the sampling procedure performed in DDPM, where a randomly initialized data vector is iteratively refined over decreasing noise levels.
 
 Therefore, we have established an explicit connection between DDPM and Score-based Generative Models, both in their training objectives and sampling procedures.
 
@@ -677,11 +926,9 @@ $$ (disddpm)
 for $i=1,2,\ldots,N.$ This forward sampling equation can be written as an SDE via
 
 $$
-\mathrm{d} \boldsymbol{x} = -\frac{\beta(t)}{2} \boldsymbol{x}\mathrm{d} t+\sqrt{\beta(t)}\mathrm{d} \boldsymbol{w},
+\mathrm{d} \boldsymbol{x} = -\frac{\beta(t)}{2} \boldsymbol{x}\mathrm{d} t+\sqrt{\beta(t)}\mathrm{d} \boldsymbol{w}.
 $$ (vpsde)
 
-
-which is called a variance-preserving (VP) SDE.
 
 We can say the DDPM iteration {eq}`disddpm` solves the SDE {eq}`vpsde`, but it may not be the best solver.
 
@@ -714,10 +961,8 @@ The (rough) argument is as follows: in SMLD we have $q_{\sigma_t}(\boldsymbol{x}
 The forward sampling equation of SMLD can be written as an SDE via
 
 $$
-\mathrm{d}\boldsymbol{x}=\sqrt{\frac{\mathrm{d}\left[\sigma(t)^2\right]}{\mathrm{d}t}} \mathrm{d}\boldsymbol{w},
+\mathrm{d}\boldsymbol{x}=\sqrt{\frac{\mathrm{d}\left[\sigma(t)^2\right]}{\mathrm{d}t}} \mathrm{d}\boldsymbol{w}.
 $$
-
-which is also called a variance-exploding (VE) SDE.
 
 
 The reverse sampling equation of SMLD can be written as an SDE via
@@ -782,5 +1027,6 @@ where both $\tau_\theta$ and $\epsilon_\theta$ are jointly optimized. This condi
 - [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
 - [Variational Diffusion Models](https://arxiv.org/abs/2107.00630)
 - [Score-Based Generative Modeling through Stochastic Differential Equations](https://arxiv.org/abs/2011.13456)
+- [Generative Modeling by Estimating Gradients of the Data Distribution](https://arxiv.org/abs/1907.05600)
 - [Tweedie's Formula and Selection Bias](https://efron.ckirby.su.domains/papers/2011TweediesFormula.pdf)
 - [High-Resolution Image Synthesis with Latent Diffusion Models](https://arxiv.org/abs/2112.10752)
