@@ -89,7 +89,7 @@ General HVAE has $T$ hierarchical levels and each latent is allowed to condition
 latents. We instead focus on a special case called Markovian HVAE (MHVAE). In a MHVAE,
 the generative process is a Markov chain, i.e., decoding each $\boldsymbol{z}_t$ only conditions on $\boldsymbol{z}_{t+1}$. See below for a MHVAE.
 
-![HVAE](img_diffusion/hvae.png)*Figure 1: A Markovian Hierarchical Variational Autoencoder with $T$ hierarchical latents. The generative process is modeled as a Markov chain, where each latent $\boldsymbol{z}_t$ is generated only from the previous latent $\boldsymbol{z}_{t+1}$.*
+![HVAE](img_diffusion/hvae.png)*Figure 1: A Markovian Hierarchical Variational Autoencoder with $T$ hierarchical latents. The generative process is modeled as a Markov chain, where each latent $\boldsymbol{z}_t$ is generated only from the previous latent $\boldsymbol{z}_{t+1}$.* ([image source](https://arxiv.org/abs/2208.11970))
 
 The joint distribution and the posterior of a MHVAE is given by
 
@@ -165,7 +165,7 @@ Note our encoders are no longer parameterized by $\boldsymbol{\phi}$, while our 
 
 The full process of the encoders $q(\boldsymbol{x}_t|\boldsymbol{x}_{t-1})$ (adding noises) and decoders $p(\boldsymbol{x}_t|\boldsymbol{x}_{t+1})$ (denoising) is shown below.
 
-![VDM](img_diffusion/vdm.png)*Figure 2: A visual representation of a Variational Diffusion Model; $\boldsymbol{x}_0$ represents true data observations such as natural images, $\boldsymbol{x}_T$ represents pure Gaussian noise, and $\boldsymbol{x}_t$ is an intermediate noisy version of $\boldsymbol{x}_0$. Each $q\left(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}\right)$ is modeled as a Gaussian distribution that uses the output of the previous state as its mean.*
+![VDM](img_diffusion/vdm.png)*Figure 2: A visual representation of DDPM* [image source](https://arxiv.org/abs/2208.11970)
 
 ### 2.1 ELBO of DDPM <a name="elbo-of-ddpm"></a>
 
@@ -267,7 +267,7 @@ $$
 \boldsymbol{\Sigma}_q(t) =\frac{\left(1-\alpha_t\right)\left(1-\bar{\alpha}_{t-1}\right)}{1-\bar{\alpha}_t} \mathbf{I} \stackrel{\text { def }}{=} \sigma_q^2(t) \mathbf{I} .
 $$
 
-### 2.3 Three equivalent way of derivation for training and inference <a name="three-equivalent-way-of-derivation-for-training-and-inference"></a>
+### 2.3 Three equivalent ways of derivation for training and inference <a name="three-equivalent-way-of-derivation-for-training-and-inference"></a>
 
 From the ELBO {eq}`felbo` we know that we have to compute the KL divergence term. $p_\theta$ is what we can set for training, and from 2.3 we know $q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right)$ is Gaussian, **so for convenience we formulate $p_\theta$ as a Gaussian**, with the same variance as $q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right)$ and a learnable mean:
 
@@ -300,7 +300,7 @@ $$
 
 where $\hat{\boldsymbol{x}}_{\boldsymbol{\theta}}(\boldsymbol{x}_t,t)$ is another neural network (still parameterized by $\boldsymbol{\theta}$) that predicts the clean image $\boldsymbol{x}_0 $ from the noisy image $\boldsymbol{x}_t$ and time $t$.
  
-Now the KL divergence {eq}`kl` can be further simplifies to 
+Now the KL divergence {eq}`kl` can be further simplified to 
 
 $$
 D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right) \| p_{\boldsymbol{\theta}}\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t\right)\right)=\frac{1}{2 \sigma_q^2(t)} \frac{\bar{\alpha}_{t-1}\left(1-\alpha_t\right)^2}{\left(1-\bar{\alpha}_t\right)^2}\left[\left\|\hat{\boldsymbol{x}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)-\boldsymbol{x}_0\right\|^2\right].
@@ -377,30 +377,31 @@ The training and inference process below is what you would see in the [DDPM pape
 
 #### Training a Denoising Diffusion Probabilistic Model. 
 
-For every image $\boldsymbol{x}_0$ in your training dataset:
+
 - Repeat the following steps until convergence.
-- Pick a random time stamp $t \sim \mathrm{Uniform}[1, T]$.
-- Draw a sample $\boldsymbol{x}_t \sim \mathcal{N}\left(\boldsymbol{x}_t | \sqrt{\bar{\alpha}_t} \boldsymbol{x}_0,\left(1-\bar{\alpha}_t\right) \mathbf{I}\right)$ by
+- For every image $\boldsymbol{x}^{(m)}_0, m=1,\ldots,M$ ($M$ is the batch size) in a batch for training: sample a random time stamp $t^{(m)} \sim \mathrm{Uniform}[1, T]$.
+- Draw a sample $\boldsymbol{\epsilon}^{(m)}_0 \sim \mathcal{N}(0, \mathbf{I})$ 
+- Draw a sample $\boldsymbol{x}^{(m)}_{t^{(m)}} \sim \mathcal{N}\left(\boldsymbol{x}^{(m)}_{t^{(m)}} | \sqrt{\bar{\alpha}_{t^{(m)}}} \boldsymbol{x}^{(m)}_0,\left(1-\bar{\alpha}_{t^{(m)}}\right) \mathbf{I}\right)$ by
 
 $$
-\boldsymbol{x}_t=\sqrt{\bar{\alpha}_t} \boldsymbol{x}_0+\sqrt{\left(1-\bar{\alpha}_t\right)} \boldsymbol{z}, \quad \boldsymbol{z} \sim \mathcal{N}(0, \mathbf{I}) .
+\boldsymbol{x}^{(m)}_t=\sqrt{\bar{\alpha}_{t^{(m)}}} \boldsymbol{x}^{(m)}_0+\sqrt{\left(1-\bar{\alpha}_{t^{(m)}}\right)} \boldsymbol{\epsilon}^{(m)}_0.
 $$
 
 - Take gradient descent step on
 
 $$
-\nabla_{\boldsymbol{\theta}}\left\|\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t,t\right)-\boldsymbol{\epsilon}_0\right\|^2
+\nabla_{\boldsymbol{\theta}}\sum^{M}_{m=1}\left\|\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{(m)}_{t^{(m)}},{t^{(m)}}\right)-\boldsymbol{\epsilon}_0\right\|^2
 $$
 
 
 #### Inference on a Denoising Diffusion Probabilistic Model. 
-- Given a white noise vector $\boldsymbol{x}_T \sim \mathcal{N}(0, \mathbf{I})$.
+- Sample an $\boldsymbol{x}_T \sim \mathcal{N}(0, \mathbf{I})$.
 - Repeat the following for $t=T, T-1, \ldots, 1$.
-- We calculate $\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t,t\right)$ using our trained denoiser.
+- Calculate $\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t,t\right)$.
 - Update according to
 
 $$
-\boldsymbol{x}_{t-1}=\frac{1}{{\sqrt{{\alpha}_t}}}\boldsymbol{x}_t-\frac{1-{\alpha}_t}{\sqrt{1-\bar{\alpha}_t}\sqrt{{\alpha}_t}}\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)+\sigma_q(t) \boldsymbol{z}, \quad \boldsymbol{z} \sim \mathcal{N}(0, \mathbf{I}) .
+\boldsymbol{x}_{t-1}=\frac{1}{{\sqrt{{\alpha}_t}}}\boldsymbol{x}_t-\frac{1-{\alpha}_t}{\sqrt{1-\bar{\alpha}_t}\sqrt{{\alpha}_t}}\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)+\sigma_q(t) \boldsymbol{z}_t, \quad \boldsymbol{z}_t \sim \mathcal{N}(0, \mathbf{I}) .
 $$
 
 
@@ -413,10 +414,10 @@ $$
 $$
 
 
-and thus 
+and replace the  $\mathbb{E}\left[\sqrt{\bar{\alpha}_t}\boldsymbol{x}_0 | \boldsymbol{x}_t\right]$ with $\sqrt{\bar{\alpha}_t}\boldsymbol{x}_0 $ as an approximation, we have
 
 $$
-\boldsymbol{x}_0=\frac{\boldsymbol{x}_t+\left(1-\bar{\alpha}_t\right) \nabla_{\boldsymbol{x}_t} \log p\left(\boldsymbol{x}_t\right)}{\sqrt{\bar{\alpha}_t}}.
+\boldsymbol{x}_0 \approx \frac{\boldsymbol{x}_t+\left(1-\bar{\alpha}_t\right) \nabla_{\boldsymbol{x}_t} \log p\left(\boldsymbol{x}_t\right)}{\sqrt{\bar{\alpha}_t}}.
 $$ (oi)
 
 
@@ -481,10 +482,6 @@ for diversity.
 - Furthermore, because the learned score function is deterministic, sampling with a noise term
 involved adds stochasticity to the generative process, allowing us to avoid deterministic trajectories. 
 
-See below for an example of three sampling trajectories generated with Langevin dynamics, all starting
-from the same initialization point, for a Mixture of Gaussians.
-
-![SMLD](img_diffusion/smld.png)*Figure 4: Visualization of three random sampling trajectories generated with Langevin dynamics, all starting from the same initialization point, for a Mixture of Gaussians. The left figure plots these sampling trajectories on a three-dimensional contour, while the right figure plots the sampling trajectories against the groundtruth score function. From the same initialization point, we are able to generate samples from different modes due to the stochastic noise term in the Langevin dynamics sampling procedure; without it, sampling from a fixed point would always deterministically follow the score to the same mode every trial.*
 
 ### 3.2 Score Matching Techniques <a name="sm-techniques"></a>
 
@@ -738,15 +735,44 @@ $$
 
 which matches {eq}`LD` the SMLD at inference.
 
-## 5. Conclusion <a name="conclusion"></a>
+## 5. Diffusion Model in Practice: Stable Diffusion
 
-Diffusion models, including VAEs, DDPMs, SMLD, and SDEs, provide powerful frameworks for generative tasks. Understanding these models involves grasping the principles of variational inference, score matching, and stochastic processes.
+Stable Diffusion (SD) is a popular text-to-image model based on diffusion. Stable Diffusion series before SD 3 is essencially a Latent Diffusion Model with three components: an autoencoder, a U-Net based conditional denoisng network, and a text encoder. The autoencodng model learns a low-dimentional  latent space that is perceptually equivalent to the image space. The denosing U-Net works on the latent space much more efficiently than denoising directly on the high-dimensional image space. The text encoder accepts text input and guides the diffusion process.
 
----
 
-This tutorial provides a foundation for understanding and applying diffusion models in various generative applications. For further reading and practical implementation, refer to the original research papers and online tutorials.
 
----
+### 5.1 The Autoencoder Model 
+
+Given an image $x \in \mathbb{R}^{H \times W \times 3}$ in RGB space, the encoder $\mathcal{E}$ encodes $x$ into a latent representation $z=\mathcal{E}(x)$, and the decoder $\mathcal{D}$ reconstructs the image from the latent, giving $\tilde{x}=\mathcal{D}(z)=\mathcal{D}(\mathcal{E}(x))$, where $z \in \mathbb{R}^{h \times w \times c}$. 
+
+
+### 5.2 The (Conditional) Denoising U-Net
+
+The Denoising U-Net in SD is similar to that in DDPM
+, a time-conditional U-Net, except that now it works on the low-dimensional latent space. Since the forward process is fixed, $z_t$ can be efficiently obtained from $\mathcal{E}$ during training, and samples from $p(z)$ can be decoded to image space with a single pass through $\mathcal{D}$.
+
+In SD, the U-Net is turned to a conditional image generator with the augmentation of ***cross-attention***.  It is effective for learning attention-based models of various input modalities. 
+
+In principle, diffusion models can model conditional distributions of the form $p(z \mid y)$. This can be implemented with a conditional denoising neural network $\epsilon_\theta\left(z_t, t, y\right)$ where inputs $y$ (such as text or image) would guide the diffusion process.
+
+To pre-process $y$ from various modalities (such as language prompts), a domain specific encoder $\tau_\theta$ is introduced to project $y$ to an intermediate representation $\tau_\theta(y) \in \mathbb{R}^{M \times d_\tau}$. $\tau_\theta(y)$ is then mapped to the intermediate layers of the U-Net via a cross-attention layer implementing $\operatorname{Attention}(Q, K, V)=\operatorname{softmax}\left(\frac{Q K^T}{\sqrt{d}}\right) \cdot V$, with
+
+$$
+Q=W_Q^{(i)} \cdot \varphi_i\left(z_t\right), K=W_K^{(i)} \cdot \tau_\theta(y), V=W_V^{(i)} \cdot \tau_\theta(y)
+$$
+
+
+Here, $\varphi_i\left(z_t\right) \in \mathbb{R}^{N \times d_\epsilon^i}$ denotes a (flattened) intermediate representation of the U-Net implementing $\epsilon_\theta$. $W_V^{(i)} \in\mathbb{R}^{d \times d_\epsilon^i}, W_Q^{(i)} \in \mathbb{R}^{d \times d_\tau}$ and $W_K^{(i)} \in \mathbb{R}^{d \times d_\tau}$ are learnable projection matrices. This is shown in Figure 3.
+
+![LDM](img_diffusion/ldm.png)*Figure 3: Overview of LDM* ([image source](https://arxiv.org/abs/2112.10752))
+
+Based on image-conditioning pairs, the conditional LDM is learned via
+
+$$
+L_{L D M}:=\mathbb{E}_{\mathcal{E}(x), y, \epsilon \sim \mathcal{N}(0,1), t}\left[\left\|\epsilon-\epsilon_\theta\left(z_t, t, \tau_\theta(y)\right)\right\|_2^2\right]
+$$
+
+where both $\tau_\theta$ and $\epsilon_\theta$ are jointly optimized. This conditioning mechanism is flexible as $\tau_\theta$ can be parameterized with domain-specific experts, e.g. (unmasked) transformers when $y$ are text prompts.
 
 ### References
 
@@ -757,4 +783,4 @@ This tutorial provides a foundation for understanding and applying diffusion mod
 - [Variational Diffusion Models](https://arxiv.org/abs/2107.00630)
 - [Score-Based Generative Modeling through Stochastic Differential Equations](https://arxiv.org/abs/2011.13456)
 - [Tweedie's Formula and Selection Bias](https://efron.ckirby.su.domains/papers/2011TweediesFormula.pdf)
-
+- [High-Resolution Image Synthesis with Latent Diffusion Models](https://arxiv.org/abs/2112.10752)
