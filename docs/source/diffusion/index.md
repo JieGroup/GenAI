@@ -178,18 +178,19 @@ $$
 $$
 
 
-##### Reconstruction Term $\mathbb{E}_{q\left(\boldsymbol{x}_1 | \boldsymbol{x}_0\right)}\left[\log p_\theta\left(\boldsymbol{x}_0 | \boldsymbol{x}_1\right)\right]$
+***Reconstruction Term $\mathbb{E}_{q\left(\boldsymbol{x}_1 | \boldsymbol{x}_0\right)}\left[\log p_\theta\left(\boldsymbol{x}_0 | \boldsymbol{x}_1\right)\right]$***
+
 The reconstruction term is derived from the expectation over the conditional distribution $q_{\boldsymbol{\phi}}(\boldsymbol{x}_1|\boldsymbol{x}_0)$.
 This term predicts the log probability of the original data sample $\boldsymbol{x}_0$ given the first-step latent $\boldsymbol{x}_1$. This is similar to the decoder phase in a standard VAE, where the model learns to regenerate the original input from its latent representation, enhancing the model's ability to capture and reconstruct the input data accurately.
 
 
-##### Prior Matching Term $\mathbb{E}_{q\left(\boldsymbol{x}_{T-1} | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_T | \boldsymbol{x}_{T-1}\right) \| p\left(\boldsymbol{x}_T\right)\right)\right]$
+***Prior Matching Term $\mathbb{E}_{q\left(\boldsymbol{x}_{T-1} | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_T | \boldsymbol{x}_{T-1}\right) \| p\left(\boldsymbol{x}_T\right)\right)\right]$***
 
 The prior matching term involves the KL divergence between the final latent distribution and the Gaussian prior.
 This term is minimized when the distribution of the final latent variable $\boldsymbol{x}_T$ closely matches the Gaussian prior $\mathcal{N}(0, I)$. 
 
 
-##### Consistency Term $\mathbb{E}_{q\left(\boldsymbol{x}_{t-1}, \boldsymbol{x}_{t+1} | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}\right) \| p_\theta\left(\boldsymbol{x}_t | \boldsymbol{x}_{t+1}\right)\right)\right]$
+***Consistency Term $\mathbb{E}_{q\left(\boldsymbol{x}_{t-1}, \boldsymbol{x}_{t+1} | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_t | \boldsymbol{x}_{t-1}\right) \| p_\theta\left(\boldsymbol{x}_t | \boldsymbol{x}_{t+1}\right)\right)\right]$***
 
 The consistency term checks for the consistency of the latent space transformation across all intermediate steps.
 It ensures that the forward transformation to a noisier image matches the reverse transformation from a cleaner image, making the distribution at $\boldsymbol{x}_t$ consistent.
@@ -205,32 +206,22 @@ $$
 $$ (felbo)
 
 
-#### Reconstruction Term $\mathbb{E}_{q\left(\boldsymbol{x}_1 | \boldsymbol{x}_0\right)}\left[\log p_{\boldsymbol{\theta}}\left(\boldsymbol{x}_0 | \boldsymbol{x}_1\right)\right]$
+***Reconstruction Term $\mathbb{E}_{q\left(\boldsymbol{x}_1 | \boldsymbol{x}_0\right)}\left[\log p_{\boldsymbol{\theta}}\left(\boldsymbol{x}_0 | \boldsymbol{x}_1\right)\right]$***
 
-The reconstruction term in the ELBO remains similar to its standard use in vanilla VAEs
-It represents the log-likelihood of reconstructing the original data sample $x_0$ from the latent variable $x_1$. The use of a Monte Carlo estimate allows for an efficient approximation and optimization of this term, reflecting the model's ability to accurately reconstruct input data from its compressed latent form.
+The reconstruction term is the same as in the first derivation.
 
-- **Role in Training:** Maximizes data reconstruction fidelity, crucial for learning representative latent features.
-- **Implementation:** Optimized by sampling from $q_{\boldsymbol{\phi}}(x_1|x_0)$ and evaluating the log-likelihood under the model's current parameters.
+***Prior Matching Term $D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_T | \boldsymbol{x}_0\right) \| p\left(\boldsymbol{x}_T\right)\right)$***
 
-#### Prior Matching Term $D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_T | \boldsymbol{x}_0\right) \| p\left(\boldsymbol{x}_T\right)\right)$
+This term involves the KL divergence between the final latent distribution and a Gaussian prior. Under assumptions that the final latent distribution approximates a Gaussian, this term often evaluates to zero. This simplification reflects the model's adherence to the prior distribution without requiring trainable parameters.
 
-This term involves the KL divergence between the final latent distribution and a Gaussian prior
-Under assumptions that the final latent distribution approximates a Gaussian, this term often evaluates to zero. This simplification reflects the model's adherence to the prior distribution without requiring trainable parameters.
 
-- **Role in Training:** Aligns the final latent state with a Gaussian prior, standardizing the latent space to improve generative consistency.
-- **Implementation:** Requires no optimization, simplifies to zero when the Gaussian assumption holds.
-
-#### Denoising Matching (Consistency) Term $\mathbb{E}_{q\left(\boldsymbol{x}_t | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right) \| p_{\boldsymbol{\theta}}\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t\right)\right)\right]$
+***Denoising Matching (Consistency) Term $\mathbb{E}_{q\left(\boldsymbol{x}_t | \boldsymbol{x}_0\right)}\left[D_{\mathrm{KL}}\left(q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right) \| p_{\boldsymbol{\theta}}\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t\right)\right)\right]$***
 
 
 The consistency term measures the fidelity of the denoising transitions
 It ensures that the model's denoising capability, from a noisier to a cleaner state, matches the theoretical ground-truth denoising transition defined by $q(x_{t-1}|x_t, x_0)$. This term is minimized when the model's predicted denoising steps closely align with these ground-truth transitions.
 
-- **Role in Training:** Enhances the model's denoising accuracy and stability across different stages of the latent transformation.
-- **Implementation:** Optimized by training the model to mimic ground-truth denoising transitions, improving the fidelity of generated samples.
-
-The second interpretation of the ELBO offers a framework for understanding and implementing each component with reduced computational complexity and increased intuitive clarity. By focusing on one random variable at a time, we achieve lower variance in estimates, leading to more stable and reliable model training outcomes in variational inference frameworks like VAEs.
+This second interpretation of the ELBO offers a framework for understanding and implementing each component with reduced computational complexity and increased intuitive clarity. By focusing on one random variable at a time, we achieve lower variance in estimates, leading to more stable and reliable model training outcomes in variational inference frameworks like VAEs.
 
 ### 2.2 ELBO Continued: a Key Quantity <a name="key-conditional-distributions-for-elbo"></a>
 
@@ -427,6 +418,7 @@ class TrainingConfig:
     save_image_epochs = 10
     save_model_epochs = 30
     mixed_precision = 'fp16'  # `no` for float32, `fp16` for automatic mixed precision
+    output_dir = 'ddpm-butterflies-128'  # the model namy locally and on the HF Hub
     seed = 0
 
 config = TrainingConfig()
@@ -607,17 +599,19 @@ args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_schedule
 notebook_launcher(train_loop, args, num_processes=1)
 ```
 
-### Inference with DDPM in practice
+### Inference with a pretrained DDPM
 
-As an illustration for inference, we use a pretrained DDPM `google/ddpm-celebahq-25`.
+As an illustration for inference, we use a pretrained DDPM `google/ddpm-celebahq-25`. The code below shows how to load this model and do the denoising process for one image. The sampling may take a few minutes for only one image.
 
 ``` python
 from diffusers import DDPMPipeline
+
 image_pipe = DDPMPipeline.from_pretrained("google/ddpm-celebahq-256")
 image_pipe.to("cuda")
 repo_id = "google/ddpm-church-256"
 model = UNet2DModel.from_pretrained(repo_id)
 scheduler = DDPMScheduler.from_config(repo_id)
+
 import PIL.Image
 import numpy as np
 
@@ -631,6 +625,7 @@ def display_sample(sample, i):
     display(image_pil)
 model.to("cuda")
 noisy_sample = noisy_sample.to("cuda")
+
 import tqdm
 
 sample = noisy_sample
@@ -719,24 +714,14 @@ $$
 
 where $\tau$ is the step size that users can control, and $\boldsymbol{x}_0$ is white noise.
 
-Without the noise term, Langevin dynamics is gradient descent:
+<!-- Without the noise term, Langevin dynamics is gradient descent:
 
 $$
 \boldsymbol{x}_{t+1}=\boldsymbol{x}_t+\tau \nabla_{\boldsymbol{x}} \log p\left(\boldsymbol{x}_t\right), 
 $$
 
-which would solve the optimization
-
-
-
-
-
- Langevin dynamics itself is stochastic gradient descent: 
- - Adding the noise ensures that the generated samples do not always collapse onto a mode, but hover around it
-for diversity. 
-
-- Furthermore, because the learned score function is deterministic, sampling with a noise term
-involved adds stochasticity to the generative process, allowing us to avoid deterministic trajectories. 
+which would solve the optimization -->
+Langevin dynamics add the noise in gradient descent. This ensures that the diversity of generated samples, and avoid deterministic trajectories in the generative process.
 
 
 ### 3.2 Score Matching Techniques <a name="sm-techniques"></a>
@@ -947,7 +932,7 @@ $$ -->
 
 ### 4.3 SDE for SMLD <a name="sde-smld"></a>
 
-The score-matching Langevin Dynamics model can also be described by an SDE. To start with, we notice that in the SMLD setting, there isn't really a "forward diffusion step". However, we can roughly argue that if we divide the noise scale in the SMLD training into $N$ levels, then the recursion should follow a Markov chain
+The score-matching Langevin Dynamics model can also be described by an SDE. We can roughly argue that if we divide the noise scale in the SMLD training into $N$ levels, then the recursion should follow a Markov chain
 
 $$
 \boldsymbol{x}_i=\boldsymbol{x}_{i-1}+\sqrt{\sigma_i^2-\sigma_{i-1}^2} \boldsymbol{z}_{i-1}, \quad i=1,2, \ldots, N.
@@ -982,11 +967,11 @@ which matches {eq}`LD` the SMLD at inference.
 
 ## 5. Diffusion Model in Practice: Stable Diffusion
 
-Stable Diffusion (SD) is a popular text-to-image model based on diffusion. Stable Diffusion series before SD 3 is essencially a Latent Diffusion Model with three components: an autoencoder, a U-Net based conditional denoisng network, and a text encoder. The autoencodng model learns a low-dimentional  latent space that is perceptually equivalent to the image space. The denosing U-Net works on the latent space much more efficiently than denoising directly on the high-dimensional image space. The text encoder accepts text input and guides the diffusion process.
+Stable Diffusion (SD) is a popular text-to-image model based on diffusion. Stable Diffusion series before SD 3 is essencially a Latent Diffusion Model (LDM) with three components: an autoencoder, a U-Net based conditional denoisng network, and a text encoder. The autoencodng model learns a low-dimentional  latent space that is perceptually equivalent to the image space. The denosing U-Net works on the latent space much more efficiently than denoising directly on the high-dimensional image space. The text encoder accepts text input and guides the diffusion process. We will introduce the implementation in detail as described in the [LDM paper](https://arxiv.org/abs/2112.10752).
 
 
 
-### 5.1 The Autoencoder Model 
+### 5.1 The Autoencoder 
 
 Given an image $x \in \mathbb{R}^{H \times W \times 3}$ in RGB space, the encoder $\mathcal{E}$ encodes $x$ into a latent representation $z=\mathcal{E}(x)$, and the decoder $\mathcal{D}$ reconstructs the image from the latent, giving $\tilde{x}=\mathcal{D}(z)=\mathcal{D}(\mathcal{E}(x))$, where $z \in \mathbb{R}^{h \times w \times c}$. 
 
@@ -1018,6 +1003,16 @@ L_{L D M}:=\mathbb{E}_{\mathcal{E}(x), y, \epsilon \sim \mathcal{N}(0,1), t}\lef
 $$
 
 where both $\tau_\theta$ and $\epsilon_\theta$ are jointly optimized. This conditioning mechanism is flexible as $\tau_\theta$ can be parameterized with domain-specific experts, e.g. (unmasked) transformers when $y$ are text prompts.
+
+-For the text-to-image model, the $\tau_{\theta}$ is a tokenizer and a transformer.
+
+-The layout-to-image model discretizes the spatial locations of the bounding boxes and encodes each box as a $(l, b, c)$-tuple, where $l$ denotes the (discrete) top-left and $b$ the bottom-right position. Class information is contained in $c$. The $\tau_theta$ is also implemented as a transformer.
+
+-For the class-conditional model, $\tau_\theta$ is a single learnable embedding layer with a dimensionality of 512, mapping classes $y$ to $\tau_\theta (y) \in \mathbb{R}^{1 \times 512}$.
+
+-For tasks like super resolution, inpainting and semantic-map-to-image, the conditioning is realized by concatenation.
+
+
 
 ### References
 
