@@ -84,7 +84,10 @@ General HVAE has $T$ hierarchical levels and each latent is allowed to condition
 latents. We instead focus on a special case called Markovian HVAE (MHVAE). In a MHVAE,
 the generative process is a Markov chain, i.e., decoding each $\boldsymbol{z}_t$ only conditions on $\boldsymbol{z}_{t+1}$. See below for a MHVAE.
 
-![HVAE](img_diffusion/hvae.png)*Figure 1: A Markovian Hierarchical Variational Autoencoder with $T$ hierarchical latents. The generative process is modeled as a Markov chain, where each latent $\boldsymbol{z}_t$ is generated only from the previous latent $\boldsymbol{z}_{t+1}$.* ([image source](https://arxiv.org/abs/2208.11970))
+**Figure: A Markovian HVAE** ([image source](https://arxiv.org/abs/2208.11970))
+<div style="text-align:center;">
+    <img src="img_diffusion/hvae.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+</div>
 
 The joint distribution and the posterior of a MHVAE is given by
 
@@ -146,7 +149,7 @@ where $\alpha_t$ is a (potentially learnable) coefficient that can vary per time
 
 - **Restriction 3: The parameters of the Gaussian latent encoders are set to vary over time such that the distribution of the latent at the final timestep $T$ is a standard Gaussian**
 
-$\alpha_t$ is set to evolve according to a schedule structured such that $\boldsymbol{x}_T \sim \mathcal{N}\left(\boldsymbol{0}, \mathbf{I}\right)$. In [DDPM paper](https://arxiv.org/abs/2006.11239) the noise schedule is set for $\beta_t = 1- \alpha_t$ and $\beta_t$ linearly increasing from $\beta_1= 10^{-4}$ to $\beta_T=0.02$, $T=1000$.
+$\alpha_t$ is set to evolve such that $\boldsymbol{x}_T \sim \mathcal{N}\left(\boldsymbol{0}, \mathbf{I}\right)$. In [DDPM paper](https://arxiv.org/abs/2006.11239) the noise schedule is set for $\beta_t = 1- \alpha_t$ and $\beta_t$ linearly increasing from $\beta_1= 10^{-4}$ to $\beta_T=0.02$, $T=1000$.
 
 Now the joint distribution for a DDPM can be rewritten as
 
@@ -396,7 +399,14 @@ class TrainingConfig:
 config = TrainingConfig()
 ```
 
-The denoising neural network $\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_{t},{t}\right)$ is often a U-Net in practice. The input would be an RGB image $\boldsymbol{x}_{t}$ and the timestep $t$, and the output would also be an RGB image.
+The denoising neural network $\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_{t},{t}\right)$ is often a U-Net in practice. The input would be an RGB image $\boldsymbol{x}_{t}$ and the timestep $t$, and the output would also be an RGB image. 
+
+**Figure: A U-Net architecture used in DDPM** ([image source](https://learnopencv.com/denoising-diffusion-probabilistic-models/))
+<div style="text-align:center;">
+    <img src="img_diffusion/unet.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+</div>
+
+
 
 ```python
 from diffusers import UNet2DModel
@@ -426,7 +436,7 @@ model = UNet2DModel(
 )
 ```
 
-This `UNet2DModel` consists of the following blocks 
+This `UNet2DModel` consists of the following blocks
 
 **Input Convolution**
 - `Conv2d(3, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))`
@@ -465,7 +475,7 @@ This `UNet2DModel` consists of the following blocks
   - **Upsampling**
     - `Conv2d(width, width, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))`: Increases spatial dimensions.
 
-The dataset we use here is [Butterflies dataset](https://huggingface.co/datasets/huggan/smithsonian_butterflies_subset). We need to resize them for training.
+The dataset we use here is [Butterflies dataset](https://huggingface.co/datasets/huggan/smithsonian_butterflies_subset). It consists of 1000 images for butterflies from different species. We need to resize them for training.
 
 ``` python
 from datasets import load_dataset
@@ -492,7 +502,26 @@ dataset.set_transform(transform)
 
 train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=config.train_batch_size, shuffle=True)
 ```
-We use `DDPMScheduler` for noise scheduler:
+
+To inspect what the images look like, you can use the code below
+
+``` python
+import matplotlib.pyplot as plt
+fig, axs = plt.subplots(1, 4, figsize=(16, 4))
+for i, image in enumerate(dataset[:4]["images"]):
+    axs[i].imshow(image.permute(1, 2, 0).numpy() / 2 + 0.5)
+    axs[i].set_axis_off()
+fig.show()
+```
+
+And you will see figures like this
+
+**Figure: Some examples of resized images from Butterflies** 
+<div style="text-align:center;">
+    <img src="img_diffusion/bf_example.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+</div>
+
+The scheduler function here can basically do two things according to the specific diffusion process: 1. add noise to the image for training. 2. remove the noise based on the model output for inference. We use `DDPMScheduler` for noise scheduler, which means that we will do the above two things according to the linear schduler from $\beta_1=10^{-5}$ to $\beta_T=0.02$ by default, with $T=1000$. 
 
 ``` python
 from diffusers import DDPMScheduler
@@ -567,6 +596,78 @@ train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_sched
 ```
 
 **Inference with the above trained DDPM**
+
+To use a trained DDPM like above, we need the utility function `download_and_unzip` from [utils.py](https://drive.google.com/file/d/1tKQCXmrT4whJr1V33nBVRhaNzniRT5KE/view?usp=sharing) to load files for the trained model shared through Google Drive. 
+
+```python
+trained_ddpm_id = '1h675AhteNxXd752FCqqcRMu0TSkuupCY'
+output_dir= # e.g., "models/"
+checkpoint = download_and_unzip(trained_ddpm_id, output_dir) 
+
+import os
+from diffusers import UNet2DModel
+from diffusers import DDPMScheduler
+
+def load_model(output_dir):
+    # Load the model weights and configuration
+    model = UNet2DModel.from_pretrained(output_dir)
+    
+    return model
+
+model = load_model(config.output_dir)
+scheduler = DDPMScheduler(num_train_timesteps=1000)
+```
+
+Then we can do sampling in this way. It would show the final output together with the intermideate samples.
+
+``` python
+import torch
+import PIL.Image
+from IPython.display import display
+import numpy as np
+import tqdm
+
+def display_sample(sample, i):
+    # Convert tensor to image for visualization
+    image_processed = sample.cpu().permute(0, 2, 3, 1)
+    image_processed = (image_processed + 1.0) * 127.5
+    image_processed = image_processed.numpy().astype(np.uint8)
+
+    # Create PIL Image and display it with step info
+    image_pil = PIL.Image.fromarray(image_processed[0])
+    display(f"Image at step {i}")
+    display(image_pil)
+
+# Assuming 'model' and 'scheduler' are already configured and loaded
+model.to("cuda")
+
+# Initialize the noise sample
+torch.manual_seed(0)
+noisy_sample = torch.randn(
+    1, 3, config.image_size, config.image_size  # Ensure this matches your model's expected input
+).to("cuda")
+sample = noisy_sample
+
+# Inference loop through the timesteps
+for i, t in enumerate(tqdm.tqdm(scheduler.timesteps)):
+    # Predict the noise residual
+    with torch.no_grad():
+        residual = model(sample, torch.tensor([t]).to(sample.device)).sample  # Ensure your model call is correct
+
+    # Compute denoised image and update sample
+    sample = scheduler.step(residual, torch.tensor([t]).to(sample.device), sample).prev_sample
+
+    # Display image at specified timestep
+    if (i + 1) % 50 == 0:
+        display_sample(sample, i + 1)
+```
+
+The final output will look like this
+
+**Figure: An example of the output from the trained DDPM** 
+<div style="text-align:center;">
+    <img src="img_diffusion/bf_inference.png" alt="Sample Aug" width="150" style="display:block; margin:auto;">
+</div>
 
 
 **Inference with others' pretrained DDPM**
@@ -983,15 +1084,14 @@ $$
 
 where both $\tau_\theta$ and $\epsilon_\theta$ are jointly optimized. This conditioning mechanism is flexible as $\tau_\theta$ can be parameterized with domain-specific experts, e.g. (unmasked) transformers when $y$ are text prompts.
 
--For the text-to-image model, the $\tau_{\theta}$ is a tokenizer and a transformer.
+- For the text-to-image model, the $\tau_{\theta}$ is a tokenizer and a transformer.
 
--The layout-to-image model discretizes the spatial locations of the bounding boxes and encodes each box as a $(l, b, c)$-tuple, where $l$ denotes the (discrete) top-left and $b$ the bottom-right position. Class information is contained in $c$. The $\tau_theta$ is also implemented as a transformer.
+- The layout-to-image model discretizes the spatial locations of the bounding boxes and encodes each box as a $(l, b, c)$-tuple, where $l$ denotes the (discrete) top-left and $b$ the bottom-right position. Class information is contained in $c$. The $\tau_theta$ is also implemented as a transformer.
 
--For the class-conditional model, $\tau_\theta$ is a single learnable embedding layer with a dimensionality of 512, mapping classes $y$ to $\tau_\theta (y) \in \mathbb{R}^{1 \times 512}$.
+- For the class-conditional model, $\tau_\theta$ is a single learnable embedding layer with a dimensionality of 512, mapping classes $y$ to $\tau_\theta (y) \in \mathbb{R}^{1 \times 512}$.
 
--For tasks like super resolution, inpainting and semantic-map-to-image, the conditioning is realized by concatenation.
+- For tasks like super resolution, inpainting and semantic-map-to-image, the conditioning is realized by concatenation.
 
-### 5.3 ControlNet: another conditional mechanism
 
 
 ### References
