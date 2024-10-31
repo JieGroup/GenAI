@@ -762,46 +762,35 @@ $$ (sobj)
 
 where $\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)$ is a neural network that learns to predict the score function $\nabla_{\boldsymbol{x}_t} \log p\left(\boldsymbol{x}_t\right)$.
 
-We save the third way of training and inference for our next section.  
+We will revisit the third way of training and inference from another perspective in the next section.  
 
 ## 3. Score-Matching Langevin Dynamics (SMLD) <a name="smld"></a>
 
-We have demonstrated that DDPM can be learned by optimizing a neural network $\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)$ to predict the score function $\nabla_{\boldsymbol{x}_t} \log p\left(\boldsymbol{x}_t\right)$, but no intuition is given on why score function is worth modeling. Luckily, Score-based Generative Models, another way to generate data from a desired distribution, can explain, and in this section we will talk about how it is related to diffusion models.
-
-Given $p(\boldsymbol{x})$, we aim to draw samples from a location where $p(\boldsymbol{x})$ has a high value, namely we want to find $\boldsymbol{x}^*$ such that
-
-$$
-\boldsymbol{x}^*={\arg \max}_{\boldsymbol{x}} \log p(\boldsymbol{x}).
-$$
-
-To do such optimization, a reasonable way is to do gradient descent
-
-$$
-\boldsymbol{x}_{t+1}=\boldsymbol{x}_t+\tau \nabla_{\boldsymbol{x}} \log p\left(\boldsymbol{x}_t\right),
-$$
-
-where $\tau$ is the step size.
-
-
 ### 3.1 Langevin Dynamics <a name="ld"></a>
 
-The Langevin dynamics for sampling from a known distribution $p(\boldsymbol{x})$ is an iterative procedure for $t=1, \ldots, T$ :
+Langevin dynamics is a stochastic process described by a differential equation that models the evolution of a system under the influence of both deterministic and random forces. The continuous-time Langevin dynamics is given by the following stochastic differential equation (SDE):
+
+$$
+d\boldsymbol{x}_t = \nabla_{\boldsymbol{x}} \log p(\boldsymbol{x}_t) dt + \sqrt{2} d\boldsymbol{W}_t,
+$$
+
+
+where $p(\boldsymbol{x})$ is the target probability distribution, and $\boldsymbol{W}_t$ is a standard Wiener process (Brownian motion).
+
+A key property of this SDE is that its stationary distribution coincides with $p(\boldsymbol{x})$. In other words, as $t \to \infty$, the distribution of $\boldsymbol{x}_t$ converges to $p(\boldsymbol{x})$. This convergence property makes Langevin dynamics a powerful tool for sampling from complex probability distributions.
+
+To generate samples from $p(\boldsymbol{x})$, one can simulate the Langevin dynamics for a sufficiently long time. The resulting trajectory will explore the state space according to the target distribution, with the gradient term guiding the process towards high-probability regions and the stochastic term ensuring exploration of the entire space.
+
+In practice, simulating the continuous-time process is often infeasible, so a discrete-time approximation is used. The discrete Langevin dynamics for sampling from $p(\boldsymbol{x})$ is an iterative procedure for $t=1, \ldots, T$:
 
 $$
 \boldsymbol{x}_{t+1}=\boldsymbol{x}_t+\tau \nabla_{\boldsymbol{x}} \log p\left(\boldsymbol{x}_t\right)+\sqrt{2 \tau} \boldsymbol{z}, \quad \boldsymbol{z} \sim \mathcal{N}(0, \mathbf{I}),
 $$
 
 
-where $\tau$ is the step size that users can control, and $\boldsymbol{x}_0$ is white noise.
+where $\tau$ is the step size that users can control, and $\boldsymbol{x}_0$ is typically initialized as white noise.
 
-<!-- Without the noise term, Langevin dynamics is gradient descent:
-
-$$
-\boldsymbol{x}_{t+1}=\boldsymbol{x}_t+\tau \nabla_{\boldsymbol{x}} \log p\left(\boldsymbol{x}_t\right), 
-$$
-
-which would solve the optimization -->
-Langevin dynamics add the noise in gradient descent. This ensures that the diversity of generated samples, and avoid deterministic trajectories in the generative process.
+This discrete approximation converges to samples from the target distribution $p(\boldsymbol{x})$ as $\tau \to 0$ and $T \to \infty$. In practice, a small but finite step size is used. Metropolis-adjusted Langevin algorithm is often used to correct approximation biases. 
 
 
 ### 3.2 Score Matching Techniques <a name="sm-techniques"></a>
@@ -839,37 +828,22 @@ The problem with explicit score matching is that KDE is poor estimation of the t
 
 #### Denoising Score Matching
 
-A more popular score matching called Denoising Score Matching (DSM) is defined as follows:
-
-$$
-J_{\mathrm{DSM}}(\boldsymbol{\theta}) \stackrel{\text { def }}{=} \mathbb{E}_{q\left(\boldsymbol{x}, \boldsymbol{x}^{\prime}\right)}\left[\frac{1}{2}\left\|\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x})-\nabla_{\boldsymbol{x}} q\left(\boldsymbol{x} | \boldsymbol{x}^{\prime}\right)\right\|^2\right].
-$$
-
-
-DSM makes sense because we have the following [theorem](https://www.iro.umontreal.ca/~vincentp/Publications/smdae_techreport.pdf) that connects ESM and DSM:
-
-$$
-J_{\mathrm{DSM}}(\boldsymbol{\theta}) = J_{\mathrm{ESM}}(\boldsymbol{\theta}) + C
-$$
-
-
-for up to a constant $C$ that is independent of the variable $\boldsymbol{\theta}$.
-
-Usually  $q\left(\boldsymbol{x} | \boldsymbol{x}^{\prime}\right)$ is set as $\mathcal{N}(\boldsymbol{x} | \boldsymbol{x}^{\prime},\sigma^2 \mathbf{I})$, or $\boldsymbol{x} = \boldsymbol{x}^{\prime}+\sigma \boldsymbol{z}$. The loss of DSM becomes
-
-$$
-J_{\mathrm{DSM}}(\boldsymbol{\theta}) =\mathbb{E}_{q\left(\boldsymbol{x}^{\prime}\right)}\left[\frac{1}{2}\left\|\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{\prime}+\sigma \boldsymbol{z}\right)+\frac{\boldsymbol{z}}{\sigma^2}\right\|^2\right]. 
-$$
-
-
-Now we replace $\boldsymbol{x}^{\prime}$ with $\boldsymbol{x}$, and sampling from $q$ can be replaced by sampling from $p$ when given training dataset. Then
+It can be shown that the following loss, also known as  Denoising Score Matching (DSM), 
 
 $$
 J_{\mathrm{DSM}}(\boldsymbol{\theta}) =\mathbb{E}_{p\left(\boldsymbol{x}\right)}\left[\frac{1}{2}\left\|\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}+\sigma \boldsymbol{z}\right)+\frac{\boldsymbol{z}}{\sigma^2}\right\|^2\right].
 $$ (dsm)
 
-Note the expectation taking over $p$ is approximated by sampling directly from the training set. 
+satisfies
 
+$$
+J_{\mathrm{DSM}}(\boldsymbol{\theta}) = J_{\mathrm{ESM}}(\boldsymbol{\theta}) + C
+$$
+
+where $C$ is a term that does not depend on $\boldsymbol{\theta}$. Refer to this [paper](https://www.iro.umontreal.ca/~vincentp/Publications/smdae_techreport.pdf) that connects ESM and DSM.
+
+
+ 
 Now the loss function {eq}`dsm` is highly interpretable: the score function $\boldsymbol{s}_{\boldsymbol{\theta}}$ is trained to take the noisy image $\boldsymbol{x}+\sigma \boldsymbol{z}$ and predict the noise $\boldsymbol{z}/\sigma^2$.
 
 The training step is as follows: given a training dataset $\{\boldsymbol{x}^{(\ell)}\}_{\ell=1}^L$, train a network $\boldsymbol{\theta}$ with the goal
@@ -877,7 +851,6 @@ The training step is as follows: given a training dataset $\{\boldsymbol{x}^{(\e
 $$
 \boldsymbol{\theta}^*=\underset{\boldsymbol{\theta}}{\mathrm{argmin}} \frac{1}{L} \sum_{\ell=1}^L \frac{1}{2}\left\|\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{(\ell)}+\sigma \boldsymbol{z}^{(\ell)}\right)+\frac{\boldsymbol{z}^{(\ell)}}{\sigma^2}\right\|^2, \quad \text { where } \quad \boldsymbol{z}^{(\ell)} \sim \mathcal{N}(0, \mathbf{I}) .
 $$
-
 
 For inference, to generate an image, we perform the following procedure for $t=1, \ldots, T$ with the trained score estimator $\boldsymbol{s}_{\boldsymbol{\theta}}$:
 
@@ -905,7 +878,7 @@ $$
 $$
 
 
-where $\lambda(t)$ is a positive weighting function that conditions on noise level $t$, and often chosen as $\lambda(t)=\sigma_t^2$. Note that this objective almost exactly matches the objective derived in {eq}`sobj`, our third explanation on DDPM. 
+where $\lambda(t)$ is a positive weighting function that conditions on noise level $t$, and often chosen as $\lambda(t)=\sigma_t^2$. Note that this objective almost matches the objective derived in {eq}`sobj`, our third explanation on DDPM. 
 
 The annealed Langevin dynamics sampling is applied as a sampling procedure: samples are produced by running Langevin dynamics for each $t=T, T-1, \ldots, 2,1$ in sequence:
 
@@ -1047,7 +1020,10 @@ which matches {eq}`LD` the SMLD at inference.
 
 ## 5. Diffusion Model in Practice: Stable Diffusion
 
-Stable Diffusion (SD) is a popular text-to-image model based on diffusion. Stable Diffusion series before SD 3 is essencially a Latent Diffusion Model (LDM) with three components: an autoencoder, a U-Net based conditional denoisng network, and a text encoder. The autoencodng model learns a low-dimentional  latent space that is perceptually equivalent to the image space. The denosing U-Net works on the latent space much more efficiently than denoising directly on the high-dimensional image space. The text encoder accepts text input and guides the diffusion process. We will introduce the implementation in detail as described in the [LDM paper](https://arxiv.org/abs/2112.10752).
+**Overview**
+Stable Diffusion (SD) is a popular text-to-image model based on diffusion. Stable Diffusion series before SD 3 is essencially a Latent Diffusion Model (LDM) with three components: an autoencoder, a U-Net based conditional denoisng network, and a text encoder. 
+
+The autoencodng model learns a low-dimentional  latent space that is perceptually equivalent to the image space. It was empirically that the denosing U-Net works on the latent space much more efficiently than denoising directly on the high-dimensional image space. The text encoder accepts text input and guides the diffusion process.  
 
 
 
@@ -1065,32 +1041,34 @@ In SD, the U-Net is turned to a conditional image generator with the augmentatio
 
 In principle, diffusion models can model conditional distributions of the form $p(z \mid y)$. This can be implemented with a conditional denoising neural network $\epsilon_\theta\left(z_t, t, y\right)$ where inputs $y$ (such as text or image) would guide the diffusion process.
 
-To pre-process $y$ from various modalities (such as language prompts), a domain specific encoder $\tau_\theta$ is introduced to project $y$ to an intermediate representation $\tau_\theta(y) \in \mathbb{R}^{M \times d_\tau}$. $\tau_\theta(y)$ is then mapped to the intermediate layers of the U-Net via a cross-attention layer implementing $\operatorname{Attention}(Q, K, V)=\operatorname{softmax}\left(\frac{Q K^T}{\sqrt{d}}\right) \cdot V$, with
+To pre-process $y$ from various modalities (such as language prompts), a domain specific encoder $\tau_\theta$ is introduced to project $y$ to an intermediate representation $\tau_\theta(y)$. It is then mapped to the intermediate layers of the U-Net via a cross-attention layer implementing $\operatorname{Attention}(Q, K, V)=\operatorname{softmax}\left(\frac{Q K^T}{\sqrt{d}}\right) \cdot V$, with
 
 $$
 Q=W_Q^{(i)} \cdot \varphi_i\left(z_t\right), K=W_K^{(i)} \cdot \tau_\theta(y), V=W_V^{(i)} \cdot \tau_\theta(y)
 $$
 
 
-Here, $\varphi_i\left(z_t\right) \in \mathbb{R}^{N \times d_\epsilon^i}$ denotes a (flattened) intermediate representation of the U-Net implementing $\epsilon_\theta$. $W_V^{(i)} \in\mathbb{R}^{d \times d_\epsilon^i}, W_Q^{(i)} \in \mathbb{R}^{d \times d_\tau}$ and $W_K^{(i)} \in \mathbb{R}^{d \times d_\tau}$ are learnable projection matrices. This is shown in Figure 3.
+Here, $\varphi_i\left(z_t\right) \in \mathbb{R}^{N \times d_\epsilon^i}$ denotes a (flattened) intermediate representation of the U-Net that models $\epsilon_\theta$. $W_Q^{(i)} \in\mathbb{R}^{d \times d_\epsilon^i}, W_K^{(i)} \in \mathbb{R}^{d \times d_\tau}$ and $W_V^{(i)} \in \mathbb{R}^{d \times d_\tau}$ are learnable projection matrices. This is shown in Figure 3.
 
 ![LDM](img_diffusion/ldm.png)*Figure 3: Overview of LDM* ([image source](https://arxiv.org/abs/2112.10752))
 
 Based on image-conditioning pairs, the conditional LDM is learned via
 
 $$
-L_{L D M}:=\mathbb{E}_{\mathcal{E}(x), y, \epsilon \sim \mathcal{N}(0,1), t}\left[\left\|\epsilon-\epsilon_\theta\left(z_t, t, \tau_\theta(y)\right)\right\|_2^2\right]
+L_{L D M}:=\mathbb{E}_{\mathcal{E}(x), y, \epsilon \sim \mathcal{N}(\bm 0, I), t}\left[\left\|\epsilon-\epsilon_\theta\left(z_t, t, \tau_\theta(y)\right)\right\|_2^2\right]
 $$
 
 where both $\tau_\theta$ and $\epsilon_\theta$ are jointly optimized. This conditioning mechanism is flexible as $\tau_\theta$ can be parameterized with domain-specific experts, e.g. (unmasked) transformers when $y$ are text prompts.
 
-- For the text-to-image model, the $\tau_{\theta}$ is a tokenizer and a transformer.
+We list some common cases of conditional generation.
 
-- The layout-to-image model discretizes the spatial locations of the bounding boxes and encodes each box as a $(l, b, c)$-tuple, where $l$ denotes the (discrete) top-left and $b$ the bottom-right position. Class information is contained in $c$. The $\tau_theta$ is also implemented as a transformer.
+- For text-to-image generation, the $\tau_{\theta}$ is often a transformer architecture.
 
-- For the class-conditional model, $\tau_\theta$ is a single learnable embedding layer with a dimensionality of 512, mapping classes $y$ to $\tau_\theta (y) \in \mathbb{R}^{1 \times 512}$.
+- For layout-to-image generation, we discretize the spatial locations of the bounding boxes and encode each box as a $(l, b, c)$-tuple, treated as the above $y$. Here, $l$ denotes the (discrete) top-left and $b$ the bottom-right position. Class information is represented by $c$. The $\tau_theta$ is also often implemented as a transformer.
 
-- For tasks like super resolution, inpainting and semantic-map-to-image, the conditioning is realized by concatenation.
+- For the class-conditional generation, $\tau_\theta$ is a single learnable embedding layer with a dimension (e.g.,  512), mapping a class $y$ to a vector $\tau_\theta (y)$.
+
+- For super resolution, inpainting, and semantic-map-to-image, the conditioning is realized by concatenation.
 
 
 
