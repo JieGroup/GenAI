@@ -6,11 +6,11 @@
 #SBATCH --partition=jd-4a100
 #SBATCH --mem=40gb
 #SBATCH --mail-type=ALL 
-#SBATCH --mail-user=dingj@umn.edu
-#SBATCH -o /users/2/dingj/GenAI-testcodes/finetuning/output/random_%j.out
-#SBATCH -e /users/2/dingj/GenAI-testcodes/finetuning/output/random_%j.err
+#SBATCH --mail-user=[email]
+#SBATCH -o project_dir/random_%j.out
+#SBATCH -e project_dir/random_%j.err
 
-cd /users/2/dingj/GenAI-testcodes/finetuning
-export PATH=/users/2/dingj/.conda/envs/GenAI/bin:$PATH
+cd project_dir
+export PATH=Python_env_path/bin:$PATH
 
 COMMAND_PLACEHOLDER
