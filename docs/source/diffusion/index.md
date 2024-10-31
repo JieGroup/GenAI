@@ -86,7 +86,7 @@ the generative process is a Markov chain, i.e., decoding each $\boldsymbol{z}_t$
 
 **Figure: A Markovian HVAE** ([image source](https://arxiv.org/abs/2208.11970))
 <div style="text-align:center;">
-    <img src="img_diffusion/hvae.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+    <img src="../_static/img/diffusion_hvae.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
 The joint distribution and the posterior of a MHVAE is given by
@@ -165,7 +165,7 @@ The full process of the encoders $q(\boldsymbol{x}_t|\boldsymbol{x}_{t-1})$ (add
 
 **Figure: A visual representation of DDPM** ([image source](https://arxiv.org/abs/2208.11970))
 <div style="text-align:center;">
-    <img src="img_diffusion/vdm.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+    <img src="../_static/img/diffusion_vdm.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
 
@@ -403,7 +403,7 @@ The denoising neural network $\widehat{\boldsymbol{\epsilon}}_{\boldsymbol{\thet
 
 **Figure: A U-Net architecture used in DDPM** ([image source](https://learnopencv.com/denoising-diffusion-probabilistic-models/))
 <div style="text-align:center;">
-    <img src="img_diffusion/unet.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+    <img src="../_static/img/diffusion_unet.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
 
@@ -518,7 +518,7 @@ And you will see figures like this
 
 **Figure: Some examples of resized images from Butterflies** 
 <div style="text-align:center;">
-    <img src="img_diffusion/bf_example.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+    <img src="../_static/img/diffusion_bf_example.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
 The scheduler function here can basically do two things according to the specific diffusion process: 1. add noise to the image for training. 2. remove the noise based on the model output for inference. We use `DDPMScheduler` for noise scheduler, which means that we will do the above two things according to the linear schduler from $\beta_1=10^{-5}$ to $\beta_T=0.02$ by default, with $T=1000$. 
@@ -666,7 +666,7 @@ The final output will look like this
 
 **Figure: An example of the output from the trained DDPM** 
 <div style="text-align:center;">
-    <img src="img_diffusion/bf_inference.png" alt="Sample Aug" width="150" style="display:block; margin:auto;">
+    <img src="../_static/img/diffusion_bf_inference.png" alt="Sample Aug" width="150" style="display:block; margin:auto;">
 </div>
 
 
@@ -1048,9 +1048,13 @@ Q=W_Q^{(i)} \cdot \varphi_i\left(z_t\right), K=W_K^{(i)} \cdot \tau_\theta(y), V
 $$
 
 
-Here, $\varphi_i\left(z_t\right) \in \mathbb{R}^{N \times d_\epsilon^i}$ denotes a (flattened) intermediate representation of the U-Net that models $\epsilon_\theta$. $W_Q^{(i)} \in\mathbb{R}^{d \times d_\epsilon^i}, W_K^{(i)} \in \mathbb{R}^{d \times d_\tau}$ and $W_V^{(i)} \in \mathbb{R}^{d \times d_\tau}$ are learnable projection matrices. This is shown in Figure 3.
+Here, $\varphi_i\left(z_t\right) \in \mathbb{R}^{N \times d_\epsilon^i}$ denotes a (flattened) intermediate representation of the U-Net that models $\epsilon_\theta$. $W_Q^{(i)} \in\mathbb{R}^{d \times d_\epsilon^i}, W_K^{(i)} \in \mathbb{R}^{d \times d_\tau}$ and $W_V^{(i)} \in \mathbb{R}^{d \times d_\tau}$ are learnable projection matrices. This is shown in below.
 
-![LDM](img_diffusion/ldm.png)*Figure 3: Overview of LDM* ([image source](https://arxiv.org/abs/2112.10752))
+
+**Figure: Overview of LDM** ([image source](https://arxiv.org/abs/2112.10752))
+<div style="text-align:center;">
+    <img src="../_static/img/diffusion_ldm.png" alt="Sample Aug" width="150" style="display:block; margin:auto;">
+</div>
 
 Based on image-conditioning pairs, the conditional LDM is learned via
 
