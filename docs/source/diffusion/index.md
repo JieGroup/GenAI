@@ -151,7 +151,7 @@ where $\alpha_t$ is a (potentially learnable) coefficient that can vary per time
 
 #### Restriction III: The parameters of the Gaussian latent encoders are set to vary over time such that the distribution of the latent at the final timestep $T$ is a standard Gaussian
 
-$\alpha_t$ is set to evolve according to a schedule structured such that $\boldsymbol{x}_T \sim \mathcal{N}\left(\boldsymbol{0}, \mathbf{I}\right)$.
+$\alpha_t$ is set to evolve according to a schedule structured such that $\boldsymbol{x}_T \sim \mathcal{N}\left(\boldsymbol{0}, \mathbf{I}\right)$. In [DDPM paper](https://arxiv.org/abs/2006.11239) the noise schedule is set for $\beta_t = 1- \alpha_t$ and $\beta_t$ linearly increasing from $\beta_1= 10^{-4}$ to $\beta_T=0.02$, $T=1000$.
 
 Now the joint distribution for a DDPM can be rewritten as
 
@@ -454,7 +454,7 @@ model = UNet2DModel(
 )
 ```
 
-This UNet2DModel
+This `UNet2DModel` consists of the following blocks 
 
 ### Input Convolution
 - `Conv2d(3, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))`
@@ -493,17 +493,15 @@ This UNet2DModel
   - **Upsampling**
     - `Conv2d(width, width, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))`: Increases spatial dimensions.
 
-
-
 The dataset we use here is [Butterflies dataset](https://huggingface.co/datasets/huggan/smithsonian_butterflies_subset). We need to resize them for training.
 
 ``` python
 from datasets import load_dataset
 import torch
+from torchvision import transforms
+
 config.dataset = "huggan/smithsonian_butterflies_subset"
 dataset = load_dataset(config.dataset, split="train")
-
-from torchvision import transforms
 
 preprocess = transforms.Compose(
     [
@@ -522,7 +520,7 @@ dataset.set_transform(transform)
 
 train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=config.train_batch_size, shuffle=True)
 ```
-We use DDPMScheduler for noise scheduler:
+We use `DDPMScheduler` for noise scheduler, as in [DDPM paper](https://arxiv.org/abs/2006.11239):
 
 ``` python
 from diffusers import DDPMScheduler
@@ -532,19 +530,17 @@ noise_scheduler = DDPMScheduler(num_train_timesteps=1000)
 Then we can start training with the code below
 
 ``` python
-optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 from diffusers.optimization import get_cosine_schedule_with_warmup
-
+from accelerate import Accelerator
+from tqdm.auto import tqdm
+import torch
+import torch.nn.functional as F
+optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 lr_scheduler = get_cosine_schedule_with_warmup(
     optimizer=optimizer,
     num_warmup_steps=config.lr_warmup_steps,
     num_training_steps=(len(train_dataloader) * config.num_epochs),
 )
-from accelerate import Accelerator
-from tqdm.auto import tqdm
-import torch
-import torch.nn.functional as F
-
 
 def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler):
     # Initialize accelerator
@@ -560,7 +556,7 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
     
     global_step = 0
 
-    # Now you train the model
+    # train the model
     for epoch in range(config.num_epochs):
         progress_bar = tqdm(total=len(train_dataloader), disable=not accelerator.is_local_main_process)
         progress_bar.set_description(f"Epoch {epoch}")
@@ -593,10 +589,8 @@ def train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_s
         # Save the model at the end of training
         if accelerator.is_main_process and epoch == config.num_epochs - 1:
             model.save_pretrained(config.output_dir)
-from accelerate import notebook_launcher
-args = (config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
-
-notebook_launcher(train_loop, args, num_processes=1)
+# Directly call the train loop with the arguments
+train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_scheduler)
 ```
 
 ### Inference with a pretrained DDPM
@@ -604,17 +598,20 @@ notebook_launcher(train_loop, args, num_processes=1)
 As an illustration for inference, we use a pretrained DDPM `google/ddpm-celebahq-25`. The code below shows how to load this model and do the denoising process for one image. The sampling may take a few minutes for only one image.
 
 ``` python
-from diffusers import DDPMPipeline
+from diffusers import DDPMPipeline, UNet2DModel, DDPMScheduler
+import PIL.Image
+import numpy as np
+import torch
+import tqdm
 
+# load the pretrained DDPM
 image_pipe = DDPMPipeline.from_pretrained("google/ddpm-celebahq-256")
 image_pipe.to("cuda")
 repo_id = "google/ddpm-church-256"
 model = UNet2DModel.from_pretrained(repo_id)
 scheduler = DDPMScheduler.from_config(repo_id)
 
-import PIL.Image
-import numpy as np
-
+# display the image for intermediate steps
 def display_sample(sample, i):
     image_processed = sample.cpu().permute(0, 2, 3, 1)
     image_processed = (image_processed + 1.0) * 127.5
@@ -624,21 +621,25 @@ def display_sample(sample, i):
     display(f"Image at step {i}")
     display(image_pil)
 model.to("cuda")
+
+# sample the initial noise
+torch.manual_seed(0)
+noisy_sample = torch.randn(
+    1, model.config.in_channels, model.config.sample_size, model.config.sample_size
+)
 noisy_sample = noisy_sample.to("cuda")
-
-import tqdm
-
 sample = noisy_sample
 
+# do inference
 for i, t in enumerate(tqdm.tqdm(scheduler.timesteps)):
-  # 1. predict noise residual
+  # predict noise residual
   with torch.no_grad():
       residual = model(sample, t).sample
 
-  # 2. compute less noisy image and set x_t -> x_t-1
+  # compute denoised image and set x_t -> x_t-1
   sample = scheduler.step(residual, t, sample).prev_sample
 
-  # 3. optionally look at image
+  # optionally look at image
   if (i + 1) % 50 == 0:
       display_sample(sample, i + 1)
 ```
@@ -1012,6 +1013,7 @@ where both $\tau_\theta$ and $\epsilon_\theta$ are jointly optimized. This condi
 
 -For tasks like super resolution, inpainting and semantic-map-to-image, the conditioning is realized by concatenation.
 
+### 5.3 ControlNet: another conditional mechanism
 
 
 ### References
