@@ -260,7 +260,7 @@ $$
 \boldsymbol{\Sigma}_q(t) =\frac{\left(1-\alpha_t\right)\left(1-\bar{\alpha}_{t-1}\right)}{1-\bar{\alpha}_t} \mathbf{I} \stackrel{\text { def }}{=} \sigma_q^2(t) \mathbf{I} .
 $$
 
-### 2.3 Three equivalent ways of modeling <a name="three-equivalent-way-of-derivation-for-training-and-inference"></a>
+### 2.3 Two equivalent ways of modeling <a name="three-equivalent-way-of-derivation-for-training-and-inference"></a>
 
 #### 2.3.1 First Way of Modeling
 From the ELBO {eq}`felbo` we know that we have to compute the KL divergence term. $p_\theta$ is what we can set for training, and from 2.3 we know $q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right)$ is Gaussian, **so for convenience we formulate $p_\theta$ as a Gaussian**, with the same variance as $q\left(\boldsymbol{x}_{t-1} | \boldsymbol{x}_t, \boldsymbol{x}_0\right)$ and a learnable mean:
@@ -385,7 +385,6 @@ from dataclasses import dataclass
 class TrainingConfig:
     image_size = 128  # the generated image resolution
     train_batch_size = 16
-    eval_batch_size = 16  # how many images to sample during evaluation
     num_epochs = 50
     gradient_accumulation_steps = 1
     learning_rate = 1e-4
@@ -393,7 +392,7 @@ class TrainingConfig:
     save_image_epochs = 10
     save_model_epochs = 30
     mixed_precision = 'fp16'  # `no` for float32, `fp16` for automatic mixed precision
-    output_dir = 'ddpm-butterflies-128'  # the model namy locally and on the HF Hub
+    output_dir = 'ddpm-butterflies-128'  
     seed = 0
 
 config = TrainingConfig()
@@ -721,7 +720,7 @@ for i, t in enumerate(tqdm.tqdm(scheduler.timesteps)):
       display_sample(sample, i + 1)
 ```
 
-#### Third Way of Modeling
+<!-- #### Third Way of Modeling
 
 The third way of training and inference is based on gradient of $\boldsymbol{x}_t$ in data space, $\nabla_{\boldsymbol{x}_t}\log p(\boldsymbol{x}_t)$, which is also called (Stein's) score function.
 
@@ -762,7 +761,7 @@ $$ (sobj)
 
 where $\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t, t\right)$ is a neural network that learns to predict the score function $\nabla_{\boldsymbol{x}_t} \log p\left(\boldsymbol{x}_t\right)$.
 
-We will revisit the third way of training and inference from another perspective in the next section.  
+We will revisit the third way of training and inference from another perspective in the next section.   -->
 
 ## 3. Score-Matching Langevin Dynamics (SMLD) <a name="smld"></a>
 
@@ -771,11 +770,11 @@ We will revisit the third way of training and inference from another perspective
 Langevin dynamics is a stochastic process described by a differential equation that models the evolution of a system under the influence of both deterministic and random forces. The continuous-time Langevin dynamics is given by the following stochastic differential equation (SDE):
 
 $$
-d\boldsymbol{x}_t = \nabla_{\boldsymbol{x}} \log p(\boldsymbol{x}_t) dt + \sqrt{2} d\boldsymbol{W}_t,
+d\boldsymbol{x}_t = \nabla_{\boldsymbol{x}} \log p(\boldsymbol{x}_t) dt + \sqrt{2} d\boldsymbol{w}_t,
 $$
 
 
-where $p(\boldsymbol{x})$ is the target probability distribution, and $\boldsymbol{W}_t$ is a standard Wiener process (Brownian motion).
+where $p(\boldsymbol{x})$ is the target probability distribution, and $\boldsymbol{w}_t$ is a standard Wiener process (Brownian motion).
 
 A key property of this SDE is that its stationary distribution coincides with $p(\boldsymbol{x})$. In other words, as $t \to \infty$, the distribution of $\boldsymbol{x}_t$ converges to $p(\boldsymbol{x})$. This convergence property makes Langevin dynamics a powerful tool for sampling from complex probability distributions.
 
@@ -852,105 +851,116 @@ $$
 \boldsymbol{\theta}^*=\underset{\boldsymbol{\theta}}{\mathrm{argmin}} \frac{1}{L} \sum_{\ell=1}^L \frac{1}{2}\left\|\boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}^{(\ell)}+\sigma \boldsymbol{z}^{(\ell)}\right)+\frac{\boldsymbol{z}^{(\ell)}}{\sigma^2}\right\|^2, \quad \text { where } \quad \boldsymbol{z}^{(\ell)} \sim \mathcal{N}(0, \mathbf{I}) .
 $$
 
-For inference, to generate an image, we perform the following procedure for $t=1, \ldots, T$ with the trained score estimator $\boldsymbol{s}_{\boldsymbol{\theta}}$:
+<!-- For inference, to generate an image, we perform the following procedure for $t=1, \ldots, T$ with the trained score estimator $\boldsymbol{s}_{\boldsymbol{\theta}}$:
 
 $$
 \boldsymbol{x}_{t+1}=\boldsymbol{x}_t+\tau \boldsymbol{s}_{\boldsymbol{\theta}}\left(\boldsymbol{x}_t\right)+\sqrt{2 \tau} \boldsymbol{z}_t, \quad \text { where } \quad \boldsymbol{z}_t \sim \mathcal{N}(0, \mathbf{I}).
-$$ (LD)
+$$ (LD) -->
 
-There are some problems with vanilla score matching
+There are some [empirical problems](https://arxiv.org/abs/1907.05600) found with above score matching:
 
 - The score function is ill-defined when $\boldsymbol{x}$ lies on a low-dimensional manifold in a high-dimensional space.
 - The estimated score function trained will not be accurate in low density regions.
 - Langevin dynamics sampling may not mix, even if it is performed using the ground truth scores.
 
-To address the problems in vanilla score matching, as proposed in Noise
-Conditional Score Network (NCSN), multiple levels of Gaussian noise can be added to the data in the following way: choose a positive sequence of noise levels $\{\sigma_t\}_{t=1}^T$, $\sigma_{\text{min}}=\sigma_1<\ldots<\sigma_T = \sigma_{\text{max}}$, and define a sequence of progressively perturbed data distributions
+To address the problems in such vanilla score matching, an empirical solution is proposed:  Add multiple levels of Gaussian noise to the data. Specifically, choose a positive sequence of noise levels $\{\sigma_t\}_{t=1}^T$, $\sigma_{\text{min}}=\sigma_1<\ldots<\sigma_T = \sigma_{\text{max}}$, and define a sequence of progressively perturbed data distributions
 
 $$
-p_{\sigma_t}\left(\boldsymbol{x}_t\right)=\int p(\boldsymbol{x}) \mathcal{N}\left(\boldsymbol{x}_t ; \boldsymbol{x}, \sigma_t^2 \mathbf{I}\right) \mathrm{d} \boldsymbol{x}.
+p_{\sigma_t}\left(\boldsymbol{x}_t | \boldsymbol{x}\right)=\mathcal{N}(\boldsymbol{x}_t; \boldsymbol{x},\sigma_t^2 \boldsymbol{I}),
 $$
+such that $p_{\sigma_1}\left(\boldsymbol{x}_1\right) \approx p(\boldsymbol{x})$ and $p_{\sigma_T}\left(\boldsymbol{x}_T\right) \approx \mathcal{N}(\boldsymbol{x}; \boldsymbol{0},\sigma_T^2 \boldsymbol{I})$.
 
 Then, a neural network $\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x}, t)$ is trained using score matching to learn the score function for all noise levels simultaneously:
 
 $$
-\boldsymbol{\theta}^*=\underset{\boldsymbol{\theta}}{\arg \min } \sum_{t=1}^T \lambda(t) \mathbb{E}_{p_{\sigma_t}\left(\boldsymbol{x}_t\right)}\left[\left\|\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x}, t)-\nabla \log p_{\sigma_t}\left(\boldsymbol{x}_t\right)\right\|_2^2\right],
+\boldsymbol{\theta}^*=\underset{\boldsymbol{\theta}}{\arg \min } \sum_{t=1}^T \lambda(t) \mathbb{E}_{p(\boldsymbol{x})}\mathbb{E}_{p_{\sigma_t}\left(\boldsymbol{x}_t|\boldsymbol{x}\right)}\left[\left\|\boldsymbol{s}_{\boldsymbol{\theta}}(\boldsymbol{x}_t, t)-\nabla_{\boldsymbol{x}_t} \log p_{\sigma_t}\left(\boldsymbol{x}_t| \boldsymbol{x}\right)\right\|_2^2\right],
 $$
 
 
-where $\lambda(t)$ is a positive weighting function that conditions on noise level $t$, and often chosen as $\lambda(t)=\sigma_t^2$. Note that this objective almost matches the objective derived in {eq}`sobj`, our third explanation on DDPM. 
+where $\lambda(t)$ is a positive weighting function that conditions on noise level $t$, and often chosen as $\lambda(t)=\sigma_t^2$ based on [empirical findings](https://arxiv.org/abs/1907.05600). 
 
-The annealed Langevin dynamics sampling is applied as a sampling procedure: samples are produced by running Langevin dynamics for each $t=T, T-1, \ldots, 2,1$ in sequence:
+Empirically, the annealed Langevin dynamics sampling is applied as a sampling procedure: samples are produced by running Langevin dynamics for each $t=T, T-1, \ldots, 2,1$ in sequence:
 
 For each noise level $\sigma_t$, $M$ steps of Langevin MCMC are run sequentially for each $p_{\sigma_t}(\boldsymbol{x})$:
 
 $$
-\boldsymbol{x}_{m}^{(t)} = \boldsymbol{x}_{m-1}^{(t)} + \frac{\alpha_t}{2} \boldsymbol{s}_{\boldsymbol{\theta}^*}(\boldsymbol{x}_{m-1}^{(t)}, \sigma_t) + \sqrt{\alpha_t} \boldsymbol{z}_m^{(t)},
+\boldsymbol{x}_{m}^{(t)} = \boldsymbol{x}_{m-1}^{(t)} + \frac{\alpha_t}{2} \boldsymbol{s}_{\boldsymbol{\theta}^*}(\boldsymbol{x}_{m-1}^{(t)}, t) + \sqrt{\alpha_t} \boldsymbol{z}_m^{(t)},
 $$
 
 where $\alpha_t=\sigma^2_t/\sigma^2_T$ is the step size, and $\boldsymbol{z}_m^{(t)} $ is standard normal. 
 
 The sampling start with $\boldsymbol{x}_0^{(T)} \sim \mathcal{N}(\boldsymbol{0}, \sigma_{\text{max}}^2 \mathbf{I})$ and set $\boldsymbol{x}_0^{(t)} = \boldsymbol{x}_M^{(t+1)}$ for $t < T.$ As $M \to \infty$ and $\alpha_t \to 0$ for all $t$, $\boldsymbol{x}_M^{(1)}$ becomes an exact sample from $p_{\sigma_{\text{min}}}(\boldsymbol{x}) \approx p(\boldsymbol{x}).$
     
-This is directly analogous to the sampling procedure performed in DDPM, where a randomly initialized data vector is iteratively refined over decreasing noise levels.
+This is analogous to the sampling procedure performed in DDPM, where a randomly initialized data vector is iteratively refined over decreasing noise levels.
 
-Therefore, we have established an explicit connection between DDPM and Score-based Generative Models, both in their training objectives and sampling procedures.
+## 4. Stochastic Differential Equations (SDE)
 
-## 4. Stochastic Differential Equations (SDE) <a name="sde"></a>
+Diffusion models implement a discrete-time formulation with a finite number of noise scales. A natural question arises: how can we extend this framework to continuous time, effectively allowing for an infinite number of noise scales?
 
-One question is how to naturally generalize diffusion models to an infinite number of timesteps. Under the Markovian HVAE view, this can be interpreted as extending the number of hierarchies to infinity $T \rightarrow \infty$. It is clearer to represent this from the equivalent score-based generative model perspective: under an infinite number of noise scales, the perturbation of an image over continuous time can be represented as a stochastic process, and therefore described by a stochastic differential equation (SDE). 
+This extension not only provides a more flexible modeling approach but also establishes a deeper connection between diffusion models and continuous-time stochastic processes. To understand this connection, we need to introduce the concept of Stochastic Differential Equations (SDEs).
 
-<!-- Sampling is then performed by reversing the SDE, which naturally requires [estimating the score function at each continuous-valued noise level](https://arxiv.org/abs/2011.13456). Different parameterizations of the SDE essentially describe different perturbation schemes over time, enabling flexible modeling of the noising procedure. -->
+### 4.1 A Gentle Introduction of SDE
 
+#### 4.1.1 From Discrete to Continuous: Introducing Brownian Motion
 
-
-### 4.1 Forward and Backward Iterations in SDE <a name="f-n-b-sde"></a>
-
-We start from discretizing a continuous interval. Suppose $\boldsymbol{x}(t)$ is a continous function for $t \in [0,1]$, and there are $N$ steps in $[0,1]$ such that it can be devided into a sequence $\{i/N\}^{N-1}_{i=0}.$ The interval step is $\Delta t =1/N$ and now $t \in \{0,1/N,\ldots,(N-1)/N \}.$ Set $\boldsymbol{x}_i=\boldsymbol{x}(i/N)$.
-
-Suppose now the sampling goes like this:
+Let's start by considering a discrete-time diffusion process and then extend it to continuous time. In discrete time, we might have a process like:
 
 $$
-\boldsymbol{x}_{i}= \boldsymbol{x}_{i-1}-\tau \nabla f\left(\boldsymbol{x}_{i-1},i-1\right)+ \boldsymbol{z}_{i-1}, \quad \boldsymbol{z}_{i-1} \sim \mathcal{N}(0, \mathbf{I}).
+\boldsymbol{x}_{i+1} = \boldsymbol{x}_i + \boldsymbol{f}(\boldsymbol{x}_i, i\Delta t)\Delta t + \sqrt{\Delta t}\boldsymbol{z}_i, \quad \boldsymbol{z}_i \sim \mathcal{N}(0, \mathbf{I})
 $$
 
 
-Use our discretization we have
+where $\Delta t$ is the time step, $\boldsymbol{f}$ is a drift function, and $\boldsymbol{z}_i$ represents Gaussian noise.
+
+To move to continuous time, we introduce Brownian motion (also known as a Wiener process), denoted as $\boldsymbol{w}(t)$. Brownian motion has the following key properties:
+
+1. $\boldsymbol{w}(0) = 0$ almost surely
+2. For $0 \leq s < t$, the increment $\boldsymbol{w}(t) - \boldsymbol{w}(s)$ is normally distributed with mean 0 and variance $t-s$
+3. The increments are independent for non-overlapping time intervals
+
+#### 4.1.2 Formulating SDE
+
+Using Brownian motion, we can now write our continuous-time diffusion process as an SDE:
 
 $$
-\boldsymbol{x}(t+\Delta t)= \boldsymbol{x}(t)-\tau \nabla f\left(\boldsymbol{x}(t),t\right)+ \boldsymbol{z}(t).
-$$
-
-
-Now we define a random process $\boldsymbol{w}(t)$ (called Wiener process, or Brownian motion) such that
-
-$$
-\boldsymbol{z}(t) = \boldsymbol{w}(t+\Delta t)-\boldsymbol{w}(t) \approx \frac{\mathrm{d}\boldsymbol{w}(t) }{\mathrm{d} t}\Delta t
-$$
-
-for a very small $\Delta t$.
-
-With $\boldsymbol{w}(t)$ we have
-
-$$
-\boldsymbol{x}(t+\Delta t)-\boldsymbol{x}(t) &=-\tau \nabla f(\boldsymbol{x}(t),t)+\boldsymbol{w}(t+\Delta t)-\boldsymbol{w}(t) \\\Longrightarrow  \mathrm{d} \boldsymbol{x} &=-\tau \nabla f(\boldsymbol{x},t) \mathrm{d} t+\mathrm{d} \boldsymbol{w},
-$$
-
-which reveals a generic form of SDE, called Forward Diffusion:
-
-$$
-\mathrm{d} \boldsymbol{x} = \underbrace{\boldsymbol{f}(\boldsymbol{x},t)}_{\text{drift}} \mathrm{d} t+\underbrace{g(t)}_{\text{diffusion}}\mathrm{d} \boldsymbol{w}.
-$$ (fsde)
-
-
-The reverse direction of the diffusion equation {eq}`fsde` is to move backward in time. The reverse-time SDE is given as follows: 
-
-$$
-\mathrm{d} \boldsymbol{x}=[\underbrace{\boldsymbol{f}(\boldsymbol{x}, t)}_{\text {drift }}-g(t)^2 \underbrace{\nabla_{\boldsymbol{x}} \log p_t(\boldsymbol{x})}_{\text {score function }}] \mathrm{d} t+\underbrace{g(t) \mathrm{d} \overline{\boldsymbol{w}}}_{\text {reverse-time diffusion }} ,
+d\boldsymbol{x}(t) = \boldsymbol{f}(\boldsymbol{x}(t), t)dt + g(t)d\boldsymbol{w}(t)
 $$
 
 
-where $p_t(\boldsymbol{x})$ is the probability density function of $\boldsymbol{x}$ at time $t$, and $\overline{\boldsymbol{w}}$ is the Wiener process when time flows backwards. 
+Here:
+- $\boldsymbol{f}(\boldsymbol{x}(t), t)dt$ is the drift term, representing the deterministic part of the process
+- $g(t)d\boldsymbol{w}(t)$ is the diffusion term, representing the random fluctuations
+- $g(t)$ is a time-dependent diffusion coefficient
+
+This SDE can be interpreted as the limit of our discrete process as $\Delta t \to 0$:
+
+$$
+\lim_{\Delta t \to 0} \frac{\boldsymbol{x}(t + \Delta t) - \boldsymbol{x}(t)}{\Delta t} = \boldsymbol{f}(\boldsymbol{x}(t), t) + g(t)\frac{d\boldsymbol{w}(t)}{dt}
+$$
+
+
+Note that $\frac{d\boldsymbol{w}(t)}{dt}$ doesn't exist in the classical sense, but it can be understood as "white noise" in a distributional sense.
+
+#### 4.1.3 Forward and Reverse SDEs
+
+In the context of diffusion models, we are particularly interested in two types of SDEs:
+
+1. **Forward SDE**: This describes the process of gradually adding noise to the data:
+
+   $$
+   d\boldsymbol{x} = \boldsymbol{f}(\boldsymbol{x}, t)dt + g(t)d\boldsymbol{w}
+   $$
+
+2. **Reverse SDE**: As an [important result](https://www.sciencedirect.com/science/article/pii/0304414982900515), this describes the reverse process of removing noise to generate samples:
+
+   $$
+   d\boldsymbol{x} = [\boldsymbol{f}(\boldsymbol{x}, t) - g(t)^2\nabla_{\boldsymbol{x}} \log p_t(\boldsymbol{x})]dt + g(t)d\bar{\boldsymbol{w}}
+   $$
+
+   where $p_t(\boldsymbol{x})$ is the probability density of $\boldsymbol{x}$ at time $t$, and $\bar{\boldsymbol{w}}$ is a Brownian motion in reversed time.
+
+The reverse SDE is crucial for generative modeling, as it allows us to start from pure noise and gradually refine it into a sample from the data distribution. The term $\nabla_{\boldsymbol{x}} \log p_t(\boldsymbol{x})$ is the score function, which needs to be estimated to solve the reverse SDE. Next we will present the [result](https://arxiv.org/abs/2403.18103) of discretizing reverse SDE as a sampling method for DDPM and SMLD respectively.
+
 
 ### 4.2 SDE for DDPM <a name="sde-ddpm"></a>
 
@@ -970,74 +980,70 @@ $$ (vpsde)
 
 We can say the DDPM iteration {eq}`disddpm` solves the SDE {eq}`vpsde`, but it may not be the best solver.
 
-The corresponding reverse diffusion is then given by
+The corresponding reverse-time SDE is then given by
 
 $$
 \mathrm{d} \boldsymbol{x}=-\beta(t)\left[\frac{\boldsymbol{x}}{2}+ \nabla_{\boldsymbol{x}} \log p_t(\boldsymbol{x})\right] \mathrm{d} t+\sqrt{\beta(t)} \mathrm{d} \overline{\boldsymbol{w}}.
 $$
 
 
-<!-- We can recover the DDPM iteration by discretization: consider $\mathrm{d} \boldsymbol{x} = \boldsymbol{x}(t-\Delta t) - \boldsymbol{x}(t)$, $\mathrm{d} \overline{\boldsymbol{w}} = \boldsymbol{w}(t-\Delta t)-\boldsymbol{w}(t)= \sqrt{\Delta t}\boldsymbol{z}$, and $\mathrm{d} t = -\Delta t$, we have
+Discretization of the reverse SDE above gives us a way to sample with DDPM: 
 
-$$
-\boldsymbol{x}(t-\Delta t) = \boldsymbol{x}(t) +\beta(t)\Delta t\left[\frac{\boldsymbol{x}(t)}{2}+ \nabla_{\boldsymbol{x}} \log p_t(\boldsymbol{x}(t))\right]+\sqrt{\beta(t)\Delta t} \boldsymbol{z}
-$$ -->
+$$\boldsymbol{x}_{i-1}= \frac{1}{\sqrt{1-\beta_i}}\left[\boldsymbol{x}_i+\frac{\beta_i}{2} \nabla_{\boldsymbol{x}} \log p_i\left(\boldsymbol{x}_i\right)\right]+\sqrt{\beta_i} \boldsymbol{z}_i$$
 
 ### 4.3 SDE for SMLD <a name="sde-smld"></a>
 
-The score-matching Langevin Dynamics model can also be described by an SDE. We can roughly argue that if we divide the noise scale in the SMLD training into $N$ levels, then the recursion should follow a Markov chain
+The perturbed data distribution $p_{\sigma_t}\left(\boldsymbol{x}_t | \boldsymbol{x}\right)=\mathcal{N}(\boldsymbol{x}_t; \boldsymbol{x},\sigma_t^2 \boldsymbol{I})$ used in SMLD can be derived by induction from the following Markov chain
 
 $$
-\boldsymbol{x}_i=\boldsymbol{x}_{i-1}+\sqrt{\sigma_i^2-\sigma_{i-1}^2} \boldsymbol{z}_{i-1}, \quad i=1,2, \ldots, N.
+\boldsymbol{x}_i=\boldsymbol{x}_{i-1}+\sqrt{\sigma_i^2-\sigma_{i-1}^2} \boldsymbol{z}_{i-1}, \quad i=1,2, \ldots, N,
 $$
+ assuming $\sigma_0=0$, $\boldsymbol{z}_{i-1}\sim \mathcal{N}(\boldsymbol{0}, \mathbf{I})$, and $\boldsymbol{x}_0 \sim p$.
 
 
-
-The (rough) argument is as follows: in SMLD we have $q_{\sigma_t}(\boldsymbol{x}|\boldsymbol{x}_0)= \mathcal{N}\left(\boldsymbol{x} ; \boldsymbol{x}_0, \sigma_t^2 \mathbf{I}\right)$, and thus $\boldsymbol{x}_i=\boldsymbol{x}_0+\sigma_i \boldsymbol{z} =\boldsymbol{x}_{i-1}-\sigma_{i-1} \boldsymbol{z}^{\prime}+\sigma_i \boldsymbol{z} = \sqrt{\sigma_i^2-\sigma_{i-1}^2} \boldsymbol{z}_{i-1}$.   
-
-
-The forward sampling equation of SMLD can be written as an SDE via
+The forward SDE of SMLD can then be written as 
 
 $$
 \mathrm{d}\boldsymbol{x}=\sqrt{\frac{\mathrm{d}\left[\sigma(t)^2\right]}{\mathrm{d}t}} \mathrm{d}\boldsymbol{w}.
 $$
 
 
-The reverse sampling equation of SMLD can be written as an SDE via
+The reverse-time SDE for this would be
 
 $$
 \mathrm{d} \boldsymbol{x}=-\left(\frac{\mathrm{d}\left[\sigma(t)^2\right]}{\mathrm{d}t} \nabla_{\boldsymbol{x}} \log p_t(\boldsymbol{x}(t))\right) \mathrm{d}t+\sqrt{\frac{d\left[\sigma(t)^2\right]}{\mathrm{d}t}} \mathrm{d}\overline{\boldsymbol{w}}.
 $$
 
 
-Similar to DDPM case we have the following discretization:
+Similar to DDPM case we have the following discretization for sampling:
 
 $$
-\boldsymbol{x}_{i-1}=\boldsymbol{x}_i+\left(\sigma_i^2-\sigma_{i-1}^2\right) \nabla_{\boldsymbol{x}} \log p_i\left(\boldsymbol{x}_i\right)+\sqrt{\left(\sigma_i^2-\sigma_{i-1}^2\right)} \boldsymbol{z}_i, $$
+\boldsymbol{x}_{i-1}=\boldsymbol{x}_i+\left(\sigma_i^2-\sigma_{i-1}^2\right) \nabla_{\boldsymbol{x}} \log p_i\left(\boldsymbol{x}_i\right)+\sqrt{\left(\sigma_i^2-\sigma_{i-1}^2\right)} \boldsymbol{z}_i.$$
 
-
-which matches {eq}`LD` the SMLD at inference.
 
 ## 5. Diffusion Model in Practice: Stable Diffusion
 
-**Overview**
+### 5.1 Overview
+
 Stable Diffusion (SD) is a popular text-to-image model based on diffusion. Stable Diffusion series before SD 3 is essencially a Latent Diffusion Model (LDM) with three components: an autoencoder, a U-Net based conditional denoisng network, and a text encoder. 
 
-The autoencodng model learns a low-dimentional  latent space that is perceptually equivalent to the image space. It was empirically that the denosing U-Net works on the latent space much more efficiently than denoising directly on the high-dimensional image space. The text encoder accepts text input and guides the diffusion process.  
+The autoencodng model learns a low-dimentional latent space that is perceptually equivalent to the image space. It was [empirically shown](https://arxiv.org/abs/2112.10752) that the denosing U-Net works on the latent space much more efficiently than denoising directly on the high-dimensional image space. The text encoder accepts text input and guides the diffusion process.  
+
+### 5.2 Details of Architecture
+
+#### 5.2.1 The Autoencoder 
+
+Given an image $x \in \mathbb{R}^{H \times W \times 3}$ in RGB space, the encoder $\mathcal{E}$ encodes $x$ into a latent representation $z=\mathcal{E}(x)$, and the decoder $\mathcal{D}$ reconstructs the image from the latent, giving $\tilde{x}=\mathcal{D}(z)=\mathcal{D}(\mathcal{E}(x))$, where $z \in \mathbb{R}^{h \times w \times c}$. Trained similarly as VAE.
 
 
-
-### 5.1 The Autoencoder 
-
-Given an image $x \in \mathbb{R}^{H \times W \times 3}$ in RGB space, the encoder $\mathcal{E}$ encodes $x$ into a latent representation $z=\mathcal{E}(x)$, and the decoder $\mathcal{D}$ reconstructs the image from the latent, giving $\tilde{x}=\mathcal{D}(z)=\mathcal{D}(\mathcal{E}(x))$, where $z \in \mathbb{R}^{h \times w \times c}$. 
-
-
-### 5.2 The (Conditional) Denoising U-Net
+#### 5.2.2 The (Conditional) Denoising U-Net
 
 The Denoising U-Net in SD is similar to that in DDPM
 , a time-conditional U-Net, except that now it works on the low-dimensional latent space. Since the forward process is fixed, $z_t$ can be efficiently obtained from $\mathcal{E}$ during training, and samples from $p(z)$ can be decoded to image space with a single pass through $\mathcal{D}$.
 
 In SD, the U-Net is turned to a conditional image generator with the augmentation of ***cross-attention***.  It is effective for learning attention-based models of various input modalities. 
+
+### 5.2.3 Conditioning Mechanisms
 
 In principle, diffusion models can model conditional distributions of the form $p(z \mid y)$. This can be implemented with a conditional denoising neural network $\epsilon_\theta\left(z_t, t, y\right)$ where inputs $y$ (such as text or image) would guide the diffusion process.
 
@@ -1048,18 +1054,18 @@ Q=W_Q^{(i)} \cdot \varphi_i\left(z_t\right), K=W_K^{(i)} \cdot \tau_\theta(y), V
 $$
 
 
-Here, $\varphi_i\left(z_t\right) \in \mathbb{R}^{N \times d_\epsilon^i}$ denotes a (flattened) intermediate representation of the U-Net that models $\epsilon_\theta$. $W_Q^{(i)} \in\mathbb{R}^{d \times d_\epsilon^i}, W_K^{(i)} \in \mathbb{R}^{d \times d_\tau}$ and $W_V^{(i)} \in \mathbb{R}^{d \times d_\tau}$ are learnable projection matrices. This is shown in below.
+Here, $\varphi_i\left(z_t\right) \in \mathbb{R}^{N \times d_\epsilon^i}$ denotes a (flattened) intermediate representation of the U-Net that models $\epsilon_\theta$. $W_Q^{(i)} \in\mathbb{R}^{d \times d_\epsilon^i}, W_K^{(i)} \in \mathbb{R}^{d \times d_\tau}$ and $W_V^{(i)} \in \mathbb{R}^{d \times d_\tau}$ are learnable projection matrices. This is shown below.
 
 
 **Figure: Overview of LDM** ([image source](https://arxiv.org/abs/2112.10752))
 <div style="text-align:center;">
-    <img src="../_static/img/diffusion_ldm.png" alt="Sample Aug" width="150" style="display:block; margin:auto;">
+    <img src="../_static/img/diffusion_ldm.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
 Based on image-conditioning pairs, the conditional LDM is learned via
 
 $$
-L_{L D M}:=\mathbb{E}_{\mathcal{E}(x), y, \epsilon \sim \mathcal{N}(\bm 0, I), t}\left[\left\|\epsilon-\epsilon_\theta\left(z_t, t, \tau_\theta(y)\right)\right\|_2^2\right]
+L_{L D M}:=\mathbb{E}_{z_t, y, \epsilon \sim \mathcal{N}(\boldsymbol{0}, \mathbf{I}), t}\left[\left\|\epsilon-\epsilon_\theta\left(z_t, t, \tau_\theta(y)\right)\right\|_2^2\right]
 $$
 
 where both $\tau_\theta$ and $\epsilon_\theta$ are jointly optimized. This conditioning mechanism is flexible as $\tau_\theta$ can be parameterized with domain-specific experts, e.g. (unmasked) transformers when $y$ are text prompts.
@@ -1068,11 +1074,15 @@ We list some common cases of conditional generation.
 
 - For text-to-image generation, the $\tau_{\theta}$ is often a transformer architecture.
 
-- For layout-to-image generation, we discretize the spatial locations of the bounding boxes and encode each box as a $(l, b, c)$-tuple, treated as the above $y$. Here, $l$ denotes the (discrete) top-left and $b$ the bottom-right position. Class information is represented by $c$. The $\tau_theta$ is also often implemented as a transformer.
+- For layout-to-image generation, we discretize the spatial locations of the bounding boxes and encode each box as a $(l, b, c)$-tuple, treated as the above $y$. Here, $l$ denotes the (discrete) top-left and $b$ the bottom-right position. Class information is represented by $c$. The $\tau_\theta$ is also often implemented as a transformer.
 
-- For the class-conditional generation, $\tau_\theta$ is a single learnable embedding layer with a dimension (e.g.,  512), mapping a class $y$ to a vector $\tau_\theta (y)$.
+**Figure: Examples of Layout-to-Image Generation with LDM** ([image source](https://arxiv.org/abs/2112.10752))
+<div style="text-align:center;">
+    <img src="../_static/img/diffusion_layout.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+</div>
 
-- For super resolution, inpainting, and semantic-map-to-image, the conditioning is realized by concatenation.
+- For the class-conditional generation, $\tau_\theta$ is a single learnable embedding layer with a dimension (e.g., 512), mapping a class $y$ to a vector $\tau_\theta (y)$.
+
 
 
 
@@ -1084,6 +1094,6 @@ We list some common cases of conditional generation.
 - [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239)
 - [Variational Diffusion Models](https://arxiv.org/abs/2107.00630)
 - [Score-Based Generative Modeling through Stochastic Differential Equations](https://arxiv.org/abs/2011.13456)
+- [Reverse-Time Diffusion Equation Models](https://www.sciencedirect.com/science/article/pii/0304414982900515)
 - [Generative Modeling by Estimating Gradients of the Data Distribution](https://arxiv.org/abs/1907.05600)
-- [Tweedie's Formula and Selection Bias](https://efron.ckirby.su.domains/papers/2011TweediesFormula.pdf)
 - [High-Resolution Image Synthesis with Latent Diffusion Models](https://arxiv.org/abs/2112.10752)
