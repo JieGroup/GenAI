@@ -599,6 +599,7 @@ train_loop(config, model, noise_scheduler, optimizer, train_dataloader, lr_sched
 To use a trained DDPM like above, we need the utility function `download_and_unzip` from [utils.py](https://drive.google.com/file/d/1tKQCXmrT4whJr1V33nBVRhaNzniRT5KE/view?usp=sharing) to load files for the trained model shared through Google Drive. 
 
 ```python
+from utils import download_and_unzip
 trained_ddpm_id = '1h675AhteNxXd752FCqqcRMu0TSkuupCY'
 output_dir= # e.g., "models/"
 checkpoint = download_and_unzip(trained_ddpm_id, output_dir) 
@@ -607,13 +608,7 @@ import os
 from diffusers import UNet2DModel
 from diffusers import DDPMScheduler
 
-def load_model(output_dir):
-    # Load the model weights and configuration
-    model = UNet2DModel.from_pretrained(output_dir)
-    
-    return model
-
-model = load_model(config.output_dir)
+model = UNet2DModel.from_pretrained(checkpoint)
 scheduler = DDPMScheduler(num_train_timesteps=1000)
 ```
 
@@ -637,13 +632,13 @@ def display_sample(sample, i):
     display(f"Image at step {i}")
     display(image_pil)
 
-# Assuming 'model' and 'scheduler' are already configured and loaded
 model.to("cuda")
-
+scheduler.alphas_cumprod = scheduler.alphas_cumprod.to("cuda")
+image_size = 128
 # Initialize the noise sample
 torch.manual_seed(0)
 noisy_sample = torch.randn(
-    1, 3, config.image_size, config.image_size  # Ensure this matches your model's expected input
+    1, 3, image_size, image_size  # Ensure this matches your model's expected input
 ).to("cuda")
 sample = noisy_sample
 
@@ -903,7 +898,7 @@ This extension not only provides a more flexible modeling approach but also esta
 
 #### 4.1.1 From Discrete to Continuous: Introducing Brownian Motion
 
-Let's start by considering a discrete-time diffusion process and then extend it to continuous time. In discrete time, we might have a process like:
+Consider a discrete-time diffusion process and then extend it to continuous time. In discrete time, we assume a general diffusion process:
 
 $$
 \boldsymbol{x}_{i+1} = \boldsymbol{x}_i + \boldsymbol{f}(\boldsymbol{x}_i, i\Delta t)\Delta t + \sqrt{\Delta t}\boldsymbol{z}_i, \quad \boldsymbol{z}_i \sim \mathcal{N}(0, \mathbf{I})
