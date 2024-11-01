@@ -898,14 +898,14 @@ This extension not only provides a more flexible modeling approach but also esta
 
 #### 4.1.1 From Discrete to Continuous: Introducing Brownian Motion
 
-Consider a discrete-time diffusion process and then extend it to continuous time. In discrete time, we assume a general diffusion process:
+Consider a discrete-time diffusion process and then extend it to continuous time. We start by discretizing the continuous time interval $[0,1]$ into $N$ equal steps. Let $i \in {0, 1, ..., N}$ be the index of these discrete time steps, so that $t_i = i\Delta t$, where $\Delta t = 1/N$ is the time step size. In discrete time, we assume a general diffusion process:
 
 $$
 \boldsymbol{x}_{i+1} = \boldsymbol{x}_i + \boldsymbol{f}(\boldsymbol{x}_i, i\Delta t)\Delta t + \sqrt{\Delta t}\boldsymbol{z}_i, \quad \boldsymbol{z}_i \sim \mathcal{N}(0, \mathbf{I})
 $$
 
 
-where $\Delta t$ is the time step, $\boldsymbol{f}$ is a drift function, and $\boldsymbol{z}_i$ represents Gaussian noise.
+where $\boldsymbol{f}$ is a drift function, and $\boldsymbol{z}_i$ represents Gaussian noise.
 
 To move to continuous time, we introduce Brownian motion (also known as a Wiener process), denoted as $\boldsymbol{w}(t)$. Brownian motion has the following key properties:
 
