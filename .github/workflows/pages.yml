@@ -26,10 +26,10 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install LaTeX (for image-based math rendering)
+      - name: Install LaTeX and missing packages (for image-based math rendering)
         run: |
           sudo apt-get update
-          sudo apt-get install -y texlive-latex-base dvipng
+          sudo apt-get install -y texlive-latex-base dvipng texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
 
       - name: Install dependencies
         run: |
