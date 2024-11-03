@@ -35,6 +35,8 @@ extensions = [
 imgmath_image_format = 'svg'
 imgmath_font_size = 13  # Adjust font size here (in pt)
 
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+
 templates_path = ['_templates']
 exclude_patterns = []
 
@@ -55,8 +57,6 @@ myst_enable_extensions = [
     "substitution",
     "tasklist",
 ]
-
-mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 
 
 # -- Options for HTML output -------------------------------------------------

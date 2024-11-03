@@ -26,6 +26,11 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install LaTeX (for image-based math rendering)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-base dvipng
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
