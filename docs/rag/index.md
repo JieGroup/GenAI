@@ -181,7 +181,7 @@ for index, chunk in enumerate(sliding_chunks, start=1):
 
 ## Retrieval 
 
-For the following section, we will use the fixed-length chunking method to divide the text into chunks. Next, we discuss the retrieval process in the context of RAG, which involves retrieving relevant documents from the KB based on semantic similarity to the question. Roughly, there are three types of retrieval methods: 
+For the following section, we will use the semantic chunking method to divide the text into chunks. Next, we discuss the retrieval process in the context of RAG, which involves retrieving relevant documents from the KB based on semantic similarity to the question. Roughly, there are three types of retrieval methods: 
 1. traditional information retrieval methods: including sparse retrieval (e.g., BM25) and dense retrieval (e.g., DPR, Contriever),
 2. generative retrieval methods: such as Differentiable Search Index (DSI).
 
@@ -318,14 +318,15 @@ DPR uses a **two-tower** architecture to encode queries and passages into dense 
 Let us check the top 3 most relevant documents for each query with DPR:
 
 ```python
-from datasets import load_dataset
 import torch
 from transformers import DPRContextEncoder, DPRContextEncoderTokenizer, DPRQuestionEncoder, DPRQuestionEncoderTokenizer
-import numpy as np
 
 
 # Aggregate the answers into a single list
 knowledge_base = aggregate_answers(dataset)
+
+# chunking
+knowledge_base = semantic_chunking(knowledge_base)
 
 # Initialize the DPR tokenizer and models
 question_tokenizer = DPRQuestionEncoderTokenizer.from_pretrained("facebook/dpr-question_encoder-single-nq-base")
@@ -520,13 +521,11 @@ The Differentiable Search Index (DSI) is a popular generative retrieval framewor
 In the example below, we'll simulate a simple DSI approach where the model generates relevant document IDs based on a query. Since we're focusing on the DSI concept, we won't rely on an external model for this demonstration; rather, we'll mock the behavior of DSI.
 
 ```python
-from datasets import load_dataset
-import numpy as np
-import random
-
-
 # Aggregate the answers into a single list
 knowledge_base = aggregate_answers(dataset)
+
+# chunking
+knowledge_base = semantic_chunking(knowledge_base)
 
 # Function to simulate the DSI process
 def generate_relevant_ids(query, knowledge_base):
@@ -554,7 +553,9 @@ for query in queries:
     for idx in relevant_ids:
         print(f"Document: {knowledge_base[idx]}\n")
     print("-" * 40)  # Separator for clarity
+
 ```
+
 
 
 
@@ -625,6 +626,13 @@ Table: Efficiency Comparison of Quantization Methods. [Source from HuggingFace](
 
 
 ```python
+import random
+# Aggregate the answers into a single list
+knowledge_base = aggregate_answers(dataset)
+
+# chunking
+knowledge_base = semantic_chunking(knowledge_base)
+
 # Initialize the model and tokenizer for Contriever
 model_name = "facebook/contriever"  # Contriever model
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -678,25 +686,33 @@ query_inputs = tokenizer(query, return_tensors="pt", padding=True, truncation=Tr
 with torch.no_grad():
     query_embedding = model(**query_inputs).last_hidden_state.mean(dim=1)
 
+# Quantize the query embedding for binary retrieval
+quantized_query_binary = binary_quantization(query_embedding)
+
 # Retrieve top 3 documents based on binary embeddings
 print("Top 3 Documents using Binary Quantized Embeddings:")
 binary_scores = []
 for i in range(binary_embeddings.size(0)):
-    score = hamming_distance(query_embedding > 0, binary_embeddings[i])
+    score = hamming_distance(quantized_query_binary > 0, binary_embeddings[i])
     binary_scores.append((i, score))
 
 # Sort by score
 binary_scores.sort(key=lambda x: x[1])
-for idx, score in binary_scores[:5]:
+for idx, score in binary_scores[:3]:
     print(f"Document: {knowledge_base[idx]}\nHamming Score: {score}\n")
 
+# Quantize the query embedding for 8-bit retrieval
+quantized_query_8bit = eight_bit_quantization(query_embedding)
+
 # Retrieve top 3 documents based on 8-bit embeddings
-print("Top 5 Documents using 8-Bit Quantized Embeddings:")
-eight_bit_scores = cosine_similarity(query_embedding, eight_bit_embeddings.float())  # Convert embeddings to float
-top_indices = np.argsort(eight_bit_scores.flatten())[-5:][::-1]  # Get top 5 indices
+print("Top 3 Documents using 8-Bit Quantized Embeddings:")
+eight_bit_scores = cosine_similarity(quantized_query_8bit.float(), eight_bit_embeddings.float())  # Compare quantized query with document embeddings
+top_indices = np.argsort(eight_bit_scores.flatten())[-3:][::-1]  # Get top 3 indices
 
 for idx in top_indices:
     print(f"Document: {knowledge_base[idx]}\nCosine Similarity Score: {eight_bit_scores[0][idx]}\n")
+
+
 
 ```
 
@@ -723,12 +739,6 @@ Retrieval-and-Read is a straightforward approach where the model retrieves relev
 Here’s a basic example demonstrating the Retrieval-and-Read approach:
 
 ```python
-import numpy as np
-from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModel, AutoModelForCausalLM
-import torch
-
-
 # Initialize the Contriever model and tokenizer for embeddings
 model_name = "facebook/contriever"  # Contriever model for embedding
 tokenizer = AutoTokenizer.from_pretrained(model_name)
