@@ -21,4 +21,5 @@ finetuning/index
 alignment/index
 resource/index
 diffusion/index
+rag/index
 ```

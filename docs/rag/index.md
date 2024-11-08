@@ -471,11 +471,13 @@ While both Contriever and DPR aim to enhance dense retrieval through effective d
 ### II. Generative Retrieval
 
 Two limitations of traditional information retrieval: 
+
 - During training, the heterogeneous components in the traditional pipeline are difficult to jointly optimize in an end-to-end way towards a global objective. It also leads to errors accumulating and propagating among the sequential components.
+
 - At the inference stage, it requires a large document index to search over the corpus, leading to significant memory consumption. This memory footprint further increases linearly with the corpus size.
 
 
-Generative Retrieval is fundamentally different from the long-standing “index-retrieve” paradigm. This model-based Information Retrieval system consolidates the indexing, retrieval, and ranking components into a single model, such as a large language model (LLM). The model directly generates relevant document identifiers based on a given query, bypassing the need for an explicit retrieval step. This approach has the potential to address the limitations of traditional retrieval methods by leveraging the generative capabilities of modern language models.
+Generative Retrieval is different from the “index-retrieve” paradigm. This model-based Information Retrieval system consolidates the indexing, retrieval, and ranking components into a single model, such as a large language model (LLM). The model directly generates relevant document identifiers based on a given query, bypassing the need for an explicit retrieval step. This approach has the potential to address the limitations of traditional retrieval methods by leveraging the generative capabilities of modern language models.
 
 The Differentiable Search Index (DSI) is a popular generative retrieval framework that reflects its approach in the context of generative retrieval through a specific formulation of the objective function. In the DSI model, the focus is on directly generating relevant document identifiers based on a given query.
 
@@ -513,7 +515,7 @@ The Differentiable Search Index (DSI) is a popular generative retrieval framewor
    $
    where $ N $ is the number of samples in the training set.
 
-In the example below, we'll simulate a simple DSI approach where the model generates relevant document IDs based on a query. Since we're focusing on the DSI concept, we won't rely on an external model for this demonstration; rather, we'll mock the behavior of DSI.
+In the example below, we simulate a simple DSI approach where the model generates relevant document IDs based on a query. Since we are focusing on the DSI concept, we do rely on an external model for this demonstration.
 
 ```python
 # Aggregate the answers into a single list
@@ -560,9 +562,11 @@ for query in queries:
 
 When the size of the knowledge base is large, e.g., millions or billions of entries, dense retrieval will suffer from 
 - high memory consumption,
--  high latency,
+- high latency,
 - high computational cost,
-because it needs to iterate through all the documents to calculate similarity between high-dimensional vectors. Therefore, for practical purposes, efficient retrieval methods that enable quick identification of relevant documents with low computation and memory consumption are important. Methods achieving the above goals are referred to as Approximate Nearest Neighbors (ANN) Search. ANN search aims to quickly find the (approximate) nearest neighbors of a query point in high-dimensional spaces without exactly searching through all data points. It balances computational efficiency and retrieval accuracy, making it suitable for large datasets. Some common ANN algorithms include Locality-Sensitive Hashing (LSH), Hierarchical Navigable Small World (HNSW), and Quantization-based methods.
+because it needs to iterate through all the documents to calculate similarity between high-dimensional vectors. 
+
+Therefore, for practical purposes, efficient retrieval methods that enable quick identification of relevant documents with low computation and memory consumption are important. Methods achieving the above goals are referred to as **Approximate Nearest Neighbors (ANN)** Search. ANN search aims to quickly find the (approximate) nearest neighbors of a query point in high-dimensional spaces without exactly searching through all data points. Some common ANN algorithms include Locality-Sensitive Hashing (LSH), Hierarchical Navigable Small World (HNSW), and Quantization-based methods.
 
 
 
@@ -723,7 +727,6 @@ We introduce two approaches for generation in the context of RAG: (1) **Retrieva
 
 #### 1. Retrieval-and-Read
 
-**Overview**:
 Retrieval-and-Read is a straightforward approach where the model retrieves relevant documents based on a query and then reads these documents to generate a response. This method emphasizes retrieving information before generating answers, allowing the model to provide more accurate and contextually relevant responses.
 
 **Key Steps**:
@@ -731,7 +734,7 @@ Retrieval-and-Read is a straightforward approach where the model retrieves relev
 - **Read**: Input the retrieved documents along with the query into a language model to produce the final output.
 
 **Code Example**:
-Here’s a basic example demonstrating the Retrieval-and-Read approach:
+Here is an example demonstrating the Retrieval-and-Read approach:
 
 ```python
 # Initialize the Contriever model and tokenizer for embeddings
@@ -820,8 +823,7 @@ print(response)
 
 #### 2. KNN-LM
 
-kNN-LM, an approach that extends a pre-trained LM by linearly interpolating its next word distribution with a $k$-nearest neighbors (kNN) model. The nearest neighbors are computed according to distance in the pre-trained embedding space and can be drawn from any text collection, including the original LM training data. This approach allows rare patterns to be memorized explicitly, rather than implicitly in model parameters. It also improves performance when the same
-training data is used for learning the prefix representations and the kNN model, strongly suggesting that the prediction problem is more challenging than previously appreciated.
+kNN-LM is an approach that extends a pre-trained LM by linearly interpolating its next word distribution with a $k$-nearest neighbors (kNN) model. The nearest neighbors are computed according to distance in the pre-trained embedding space and can be drawn from any text collection, including the original LM training data. This approach allows rare patterns to be memorized explicitly, rather than implicitly in model parameters. It also improves performance when the same training data is used for learning the prefix representations and the kNN model.
 
 
 **Figure: Overview of KNN-LM** ([image source](https://arxiv.org/pdf/1911.00172))
@@ -831,17 +833,20 @@ training data is used for learning the prefix representations and the kNN model,
 
 #### Database
 Let $ f(\cdot) $ be the function that maps a context $ c $ to a fixed-length vector representation computed by the pre-trained LM. For instance, in a Transformer LM, $ f(c) $ could map $ c $ to an intermediate representation that is output by an arbitrary self-attention layer. Then, given the $ i $-th training example $ (c_i, w_i) \in \mathcal{D} $, we define the key-value pair $ (k_i, v_i) $, where the key $ k_i $ is the vector representation of the context $ f(c_i) $ and the value $ v_i $ is the target word $ w_i $. The datastore $ (K, V) $ is thus the set of all key-value pairs constructed from all the training examples in $ \mathcal{D} $:
+
 $$
 (K, V) = \{(f(c_i), w_i) | (c_i, w_i) \in \mathcal{D}\} \tag{1}
 $$
 
 #### Inference
 At test time, given the input context $ x $, the model generates the output distribution over next words $ p_{LM}(y|x) $ and the context representation $ f(x) $. The model queries the datastore with $ f(x) $ to retrieve its $ k $-nearest neighbors $ \mathcal{N} $ according to a distance function $ d(\cdot, \cdot) $ (squared $ L^2 $ distance in our experiments, making the similarity function an RBF kernel). Then, it computes a distribution over neighbors based on a softmax of their negative distances, while aggregating probability mass for each vocabulary item across all its occurrences in the retrieved targets (items that do not appear in the retrieved targets have zero probability):
+
 $$
 p_{kNN}(y|x) \propto \sum_{(k_i,v_i) \in \mathcal{N}} 1_{y=v_i} \exp(-d(k_i, f(x))) \tag{2}
 $$
 
 Finally, we follow Grave et al. (2017a) and interpolate the nearest neighbor distribution $ p_{kNN} $ with the model distribution $ p_{LM} $ using a tuned parameter $ \lambda $ to produce the final $ kNN-LM $ distribution:
+
 $$
 p(y|x) = \lambda p_{kNN}(y|x) + (1 - \lambda) p_{LM}(y|x) \tag{3}
 $$
@@ -850,12 +855,12 @@ $$
 ### References
 
 
-- Fixed-length chunking: Wu, S., & Zhuang, W. (2017). "Text Mining and Knowledge Discovery in Databases: An Overview." *IEEE Transactions on Knowledge and Data Engineering*, 29(10), 2086-2106. DOI: 10.1109/TKDE.2017.2737836.
+- Knowledge Discovery in Databases: An Overview. [paper](https://ojs.aaai.org/aimagazine/index.php/aimagazine/article/view/1011/929)
 
 - [Semantic chunking:] Liu, J., & Liu, J. (2019). "A Novel Semantic Text Chunking Method Based on a Self-Attention Mechanism." *Information Sciences*, 482, 130-142. DOI: 10.1016/j.ins.2019.02.054.
 
 - Sliding-window: Chen, S., & Wang, S. (2019). "Sliding Window Approach for Text Chunking in Natural Language Processing." *Journal of Computer and Communications*, 7(7), 25-32. DOI: 10.4236/jcc.2019.77004.
 
-- KNN-LM: [Paper](https://arxiv.org/pdf/1911.00172)
+- Generalization through Memorization: Nearest Neighbor Language Models. [Paper](https://arxiv.org/pdf/1911.00172)
 
 
