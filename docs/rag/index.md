@@ -21,7 +21,7 @@ The RAG process for question answering involves three main steps, as illustrated
 
 **Figure: Overview of RAG** ([image source](https://arxiv.org/pdf/2312.10997))
 <div style="text-align:center;">
-    <img src="./img_rag/RAG_overview.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+    <img src="../_static/img/RAG_overview.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
 
@@ -185,7 +185,7 @@ For the following section, we will use the semantic chunking method to divide th
 
 **Figure: A comparasion between Sparse Retrieval and Dense Retrieval** ([image source](https://arxiv.org/pdf/2208.09257))
 <div style="text-align:center;">
-    <img src="./img_rag/sparse_vs_dense_retrieval.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+    <img src="../_static/img/sparse_vs_dense_retrieval.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
 #### 1. Sparse Retrieval
@@ -826,7 +826,7 @@ training data is used for learning the prefix representations and the kNN model,
 
 **Figure: Overview of KNN-LM** ([image source](https://arxiv.org/pdf/1911.00172))
 <div style="text-align:center;">
-    <img src="./img_rag/knn_lm.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+    <img src="../_static/img/knn_lm.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
 #### Database
