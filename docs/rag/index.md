@@ -284,31 +284,28 @@ Unlike sparse retrieval methods that rely on keyword matching, dense retrieval m
 
 DPR uses a **two-tower** architecture to encode queries and passages into dense vectors.
 
-- **Encoding**: Let \( Q \) represent a query and \( P \) represent a passage. The encoders are defined as:
-  \[
+- **Encoding**: Let $ Q $ represent a query and $ P $ represent a passage. The encoders are defined as:
+  $
   q = f_Q(Q) \quad \text{and} \quad p = f_P(P)
-  \]
-  where \( f_Q \) and \( f_P \) are the query and passage encoders, respectively, producing dense vectors \( q \) and \( p \).
+  $
+  where $ f_Q $ and $ f_P $ are the query and passage encoders, respectively, producing dense vectors $ q $ and $ p $.
 
 - **Similarity Calculation**: The similarity between the query and passage vectors can be computed using:
-  \[
+  $
   \text{sim}(q, p) = q \cdot p^T
-  \]
-  or using cosine similarity:
-  \[
-  \text{cosine\_similarity}(q, p) = \frac{q \cdot p}{\|q\| \|p\|}
-  \]
+  $ or using cosine similarity: $
+  \text{cosine\_similarity}(q, p) = \frac{q \cdot p}{\|q\| \|p\|} $
 
-- **Retrieval**: The passages are ranked based on their similarity scores, and the top \( k \) passages are returned:
-  \[
+- **Retrieval**: The passages are ranked based on their similarity scores, and the top $ k $ passages are returned:
+  $
   \text{Rank}(P) = \text{argsort}(\text{sim}(q, P))
-  \]
+  $
 
 - **Training Loss**: To train the model, DPR employs a contrastive loss function that encourages the model to increase the similarity of the query and relevant passage pairs while decreasing the similarity with irrelevant passages. The training loss can be expressed as:
-  \[
+  $
   L = -\log \frac{e^{\text{sim}(q, p^+)}}{e^{\text{sim}(q, p^+)} + \sum_{p^-} e^{\text{sim}(q, p^-)}}
-  \]
-  where \( p^+ \) is a positive passage related to the query \( Q \) and \( p^- \) are negative passages (not relevant to \( Q \)).
+  $
+  where $ p^+ $ is a positive passage related to the query $ Q $ and $ p^- $ are negative passages (not relevant to $ Q $).
 
 **Advantages**: High accuracy due to contextual understanding and efficient retrieval with negative sampling. The training loss helps the model learn to better differentiate between relevant and irrelevant passages.
 
@@ -388,29 +385,29 @@ Contriever is a **single-tower** dense retrieval model that leverages self-super
 
 
 1. **Encoding**: Similar to DPR, we start by encoding queries and documents by using the same encoder:
-   \[
+   $
    q = f(Q), \quad p = f(P)
-   \]
-   where $f$ is the encoder for both queries and passages, producing dense vector representations \( q \) and \( p \).
+   $
+   where $f$ is the encoder for both queries and passages, producing dense vector representations $ q $ and $ p $.
 
 2. **Self-Supervised Learning**: Contriever utilizes a self-supervised contrastive learning approach to optimize the embeddings. The contrastive loss function is defined as:
-   \[
+   $
    L = -\sum_{(q, p^+)} \log \frac{e^{\text{sim}(q, p^+)}}{e^{\text{sim}(q, p^+)} + \sum_{p^-} e^{\text{sim}(q, p^-)}}
-   \]
-   Here, \( p^+ \) is a relevant passage for the query \( Q \), and \( p^- \) are negative passages (not relevant).
+   $
+   Here, $ p^+ $ is a relevant passage for the query $ Q $, and $ p^- $ are negative passages (not relevant).
 
 3. **Dynamic Sampling**: During training, Contriever dynamically samples both hard negatives and diverse positives, which can be mathematically represented by:
-   \[
+   $
    P = \{p | p \text{ is relevant to } q\}
-   \]
-   \[
+   $
+   $
    N = \{p | p \text{ is not relevant to } q\}
-   \]
+   $
 
 4. **Retrieval Process**: The retrieval process in Contriever is similar to DPR, where the most relevant passages are identified based on their embeddings:
-   \[
+   $
    \text{Rank}(P) = \text{argsort}(\text{sim}(q, P))
-   \]
+   $
 
 Let us check the top 3 most relevant documents for each query with Contriver:
 
@@ -489,36 +486,36 @@ The Differentiable Search Index (DSI) framework reflects its approach in the con
 ### Objective Function for Differentiable Search Index (DSI)
 
 1. **Basic Formulation**:
-   The goal of DSI can be expressed as maximizing the likelihood of generating the correct document identifiers \( ID \) given a query \( Q \):
-   \[
+   The goal of DSI can be expressed as maximizing the likelihood of generating the correct document identifiers $ ID $ given a query $ Q $:
+   $
    L = -\sum_{(Q, ID) \in \mathcal{D}} \log P(ID | Q)
-   \]
+   $
    where:
-   - \( L \) is the total loss.
-   - \( \mathcal{D} \) is the training dataset consisting of pairs \( (Q, ID) \).
-   - \( ID \) is the set of document identifiers relevant to the query \( Q \).
+   - $ L $ is the total loss.
+   - $ \mathcal{D} $ is the training dataset consisting of pairs $ (Q, ID) $.
+   - $ ID $ is the set of document identifiers relevant to the query $ Q $.
 
 2. **Conditional Probability**:
    The model learns to predict the probability distribution of document identifiers conditioned on the input query:
-   \[
+   $
    P(ID | Q) = \text{softmax}(g(Q, D))
-   \]
+   $
    where:
-   - \( g(Q, D) \) is a function (often implemented as a neural network) that computes a score for each document identifier based on the query \( Q \) and a set of document representations \( D \).
+   - $ g(Q, D) $ is a function (often implemented as a neural network) that computes a score for each document identifier based on the query $ Q $ and a set of document representations $ D $.
 
 3. **Softmax Function**:
    To ensure that the output probabilities sum to one, the softmax function is applied:
-   \[
+   $
    P(ID_i | Q) = \frac{e^{g(Q, D_i)}}{\sum_{j=1}^{M} e^{g(Q, D_j)}}
-   \]
-   where \( M \) is the total number of document identifiers.
+   $
+   where $ M $ is the total number of document identifiers.
 
 4. **Training Loss**:
    The training loss can be expressed more explicitly as:
-   \[
+   $
    L = -\sum_{i=1}^{N} \log P(ID_i | Q_i)
-   \]
-   where \( N \) is the number of samples in the training set.
+   $
+   where $ N $ is the number of samples in the training set.
 
 In the example below, we'll simulate a simple DSI approach where the model generates relevant document IDs based on a query. Since we're focusing on the DSI concept, we won't rely on an external model for this demonstration; rather, we'll mock the behavior of DSI.
 
@@ -591,40 +588,40 @@ We will cover both **binary quantization** and **8-bit quantization**.
 
 ### 1. Binary Quantization
 
-In binary quantization, each element of the embedding is mapped to either 0 or 1. Given an embedding vector \( \mathbf{e} \) with elements \( e_i \), the binary quantization is defined as:
+In binary quantization, each element of the embedding is mapped to either 0 or 1. Given an embedding vector $ \mathbf{e} $ with elements $ e_i $, the binary quantization is defined as:
 
-\[
+$
 \text{Binary}(e_i) = 
 \begin{cases} 
 1 & \text{if } e_i > 0 \\
 0 & \text{if } e_i \leq 0 
 \end{cases}
-\]
+$
 
-Thus, for an embedding vector \( \mathbf{e} = [e_1, e_2, \ldots, e_d] \), the binary quantized vector \( \mathbf{b} \) is:
+Thus, for an embedding vector $ \mathbf{e} = [e_1, e_2, \ldots, e_d] $, the binary quantized vector $ \mathbf{b} $ is:
 
-\[
+$
 \mathbf{b} = [\text{Binary}(e_1), \text{Binary}(e_2), \ldots, \text{Binary}(e_d]
-\]
+$
 
 ### 2. 8-Bit Quantization
 
 In 8-bit quantization, each element of the embedding is scaled to fit within the range of 0 to 255. The mathematical steps can be described as follows:
 
-1. **Normalization**: First, normalize the embedding vector \( \mathbf{e} \) to the range \([0, 1]\):
-   \[
+1. **Normalization**: First, normalize the embedding vector $ \mathbf{e} $ to the range $[0, 1]$:
+   $
    \mathbf{e}_{\text{normalized}} = \frac{\mathbf{e} - \text{min}(\mathbf{e})}{\text{max}(\mathbf{e}) - \text{min}(\mathbf{e})}
-   \]
+   $
 
-2. **Scaling**: Scale the normalized values to the range \([0, 255]\):
-   \[
+2. **Scaling**: Scale the normalized values to the range $[0, 255]$:
+   $
    \mathbf{e}_{\text{scaled}} = \mathbf{e}_{\text{normalized}} \times 255
-   \]
+   $
 
 3. **Quantization**: Convert the scaled values to 8-bit integers:
-   \[
+   $
    \mathbf{e}_{\text{quantized}} = \text{round}(\mathbf{e}_{\text{scaled}})
-   \]
+   $
    where the round operation converts each value to the nearest integer within the range of 0 to 255.
 
 With optimized implementations, quantization can significantly reduce the memory footprint and computational cost of retrieval systems while maintaining retrieval accuracy. 
@@ -747,7 +744,7 @@ We introduce two approaches for generation in the context of RAG: (1) **Retrieva
 KNN-LM (K-Nearest Neighbors Language Model) is a method that enhances language models by integrating a retrieval component. It leverages a set of pre-stored document embeddings to retrieve the most relevant contexts during the generation process. This allows the model to condition its responses on relevant information from retrieved documents.
 
 **Key Steps**:
-- **Retrieve**: Given a query, retrieve the top \( k \) nearest document embeddings using a similarity measure.
+- **Retrieve**: Given a query, retrieve the top $ k $ nearest document embeddings using a similarity measure.
 - **Generate**: Use the retrieved contexts as additional input to the language model to generate a response.
 
 **Code Example**:
