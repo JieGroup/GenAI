@@ -835,20 +835,20 @@ kNN-LM is an approach that extends a pre-trained LM by linearly interpolating it
 Let $ f(\cdot) $ be the function that maps a context $ c $ to a fixed-length vector representation computed by the pre-trained LM. For instance, in a Transformer LM, $ f(c) $ could map $ c $ to an intermediate representation that is output by an arbitrary self-attention layer. Then, given the $ i $-th training example $ (c_i, w_i) \in \mathcal{D} $, we define the key-value pair $ (k_i, v_i) $, where the key $ k_i $ is the vector representation of the context $ f(c_i) $ and the value $ v_i $ is the target word $ w_i $. The datastore $ (K, V) $ is thus the set of all key-value pairs constructed from all the training examples in $ \mathcal{D} $:
 
 $$
-(K, V) = \{(f(c_i), w_i) | (c_i, w_i) \in \mathcal{D}\} \tag{1}
+(K, V) = \{(f(c_i), w_i) | (c_i, w_i) \in \mathcal{D}\}
 $$
 
 #### Inference
 At test time, given the input context $ x $, the model generates the output distribution over next words $ p_{LM}(y|x) $ and the context representation $ f(x) $. The model queries the datastore with $ f(x) $ to retrieve its $ k $-nearest neighbors $ \mathcal{N} $ according to a distance function $ d(\cdot, \cdot) $ (squared $ L^2 $ distance in our experiments, making the similarity function an RBF kernel). Then, it computes a distribution over neighbors based on a softmax of their negative distances, while aggregating probability mass for each vocabulary item across all its occurrences in the retrieved targets (items that do not appear in the retrieved targets have zero probability):
 
 $$
-p_{kNN}(y|x) \propto \sum_{(k_i,v_i) \in \mathcal{N}} 1_{y=v_i} \exp(-d(k_i, f(x))) \tag{2}
+p_{kNN}(y|x) \propto \sum_{(k_i,v_i) \in \mathcal{N}} 1_{y=v_i} \exp(-d(k_i, f(x)))
 $$
 
 Finally, we follow Grave et al. (2017a) and interpolate the nearest neighbor distribution $ p_{kNN} $ with the model distribution $ p_{LM} $ using a tuned parameter $ \lambda $ to produce the final $ kNN-LM $ distribution:
 
 $$
-p(y|x) = \lambda p_{kNN}(y|x) + (1 - \lambda) p_{LM}(y|x) \tag{3}
+p(y|x) = \lambda p_{kNN}(y|x) + (1 - \lambda) p_{LM}(y|x)
 $$
 
 
