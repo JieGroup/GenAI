@@ -857,10 +857,14 @@ $$
 
 - Knowledge Discovery in Databases: An Overview. [paper](https://ojs.aaai.org/aimagazine/index.php/aimagazine/article/view/1011/929)
 
-- [Semantic chunking:] Liu, J., & Liu, J. (2019). "A Novel Semantic Text Chunking Method Based on a Self-Attention Mechanism." *Information Sciences*, 482, 130-142. DOI: 10.1016/j.ins.2019.02.054.
+- Unsupervised Dense Information Retrieval with Contrastive Learning. [Contriever paper](https://arxiv.org/pdf/2112.09118)
 
-- Sliding-window: Chen, S., & Wang, S. (2019). "Sliding Window Approach for Text Chunking in Natural Language Processing." *Journal of Computer and Communications*, 7(7), 25-32. DOI: 10.4236/jcc.2019.77004.
+- Dense Passage Retrieval for Open-Domain Question Answering. [DPR paper](https://arxiv.org/abs/2004.04906)
 
 - Generalization through Memorization: Nearest Neighbor Language Models. [Paper](https://arxiv.org/pdf/1911.00172)
+
+- A nice blog on generative retrieval. [Blog](https://blog.reachsumit.com/posts/2023/09/generative-retrieval/)
+
+- A recent survey on RAG. [Paper](https://arxiv.org/abs/2312.10997)
 
 
