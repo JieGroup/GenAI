@@ -848,7 +848,7 @@ $$
 Finally, we follow Grave et al. (2017a) and interpolate the nearest neighbor distribution $ p_{kNN} $ with the model distribution $ p_{LM} $ using a tuned parameter $ \lambda $ to produce the final $ kNN-LM $ distribution:
 
 $$
-p(y|x) = \lambda p_{kNN}(y|x) + (1 - \lambda) p_{LM}(y|x)
+p(y|x) = \lambda p_{kNN}(y|x) + (1 - \lambda) p_{LM}(y|x) .
 $$
 
 
