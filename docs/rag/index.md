@@ -499,10 +499,7 @@ The Differentiable Search Index (DSI) is a popular generative retrieval framewor
    P(ID | Q) = \text{softmax}(g(Q, D))
    $
    where:
-   - $ g(Q, D) $ is a function (often implemented as a neural network) that computes a score for each document identifier based on the query $ Q $ and a set of document representations $ D $.
-
-3. **Softmax Function**:
-   To ensure that the output probabilities sum to one, the softmax function is applied:
+   - $ g(Q, D) $ is a function (often implemented as a neural network) that computes a score for each document identifier based on the query $ Q $ and a set of document representations $ D $. In other words, we have
    $
    P(ID_i | Q) = \frac{e^{g(Q, D_i)}}{\sum_{j=1}^{M} e^{g(Q, D_j)}}
    $
@@ -839,13 +836,13 @@ $$
 $$
 
 #### Inference
-At test time, given the input context $ x $, the model generates the output distribution over next words $ p_{LM}(y|x) $ and the context representation $ f(x) $. The model queries the datastore with $ f(x) $ to retrieve its $ k $-nearest neighbors $ \mathcal{N} $ according to a distance function $ d(\cdot, \cdot) $ (squared $ L^2 $ distance in our experiments, making the similarity function an RBF kernel). Then, it computes a distribution over neighbors based on a softmax of their negative distances, while aggregating probability mass for each vocabulary item across all its occurrences in the retrieved targets (items that do not appear in the retrieved targets have zero probability):
+Given an input context $ x $, the model generates an output distribution over next words $ p_{LM}(y|x) $ and context representation $ f(x) $. The model queries the datastore with $ f(x) $ to retrieve its $ k $-nearest neighbors $ \mathcal{N} $ according to a distance metric $ d$. Then, it computes a distribution over neighbors based on a softmax of their negative distances, while aggregating probability mass for each vocabulary item across all its occurrences in the retrieved targets:
 
 $$
-p_{kNN}(y|x) \propto \sum_{(k_i,v_i) \in \mathcal{N}} 1_{y=v_i} \exp(-d(k_i, f(x)))
+p_{kNN}(y|x) \propto \sum_{(k_i,v_i) \in \mathcal{N}} 1_{y=v_i} \exp(-d(k_i, f(x))).
 $$
 
-Finally, we follow Grave et al. (2017a) and interpolate the nearest neighbor distribution $ p_{kNN} $ with the model distribution $ p_{LM} $ using a tuned parameter $ \lambda $ to produce the final $ kNN-LM $ distribution:
+Then, interpolate the nearest neighbor distribution $ p_{kNN} $ with the model distribution $ p_{LM} $ using a tuned parameter $ \lambda $ to produce the final distribution:
 
 $$
 p(y|x) = \lambda p_{kNN}(y|x) + (1 - \lambda) p_{LM}(y|x) .
