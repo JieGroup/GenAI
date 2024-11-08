@@ -1,4 +1,4 @@
-# 8. Retrieval Augmented Generation (RAG)
+# 8. Retrieval Augmented Generation
 
 Large Language Models (LLMs) have demonstrated impressive performance across various benchmark tasks in many domains. However, LLMs can also exhibit several problematic behaviors, such as [hallucinations](https://dl.acm.org/doi/full/10.1145/3571730?casa_token=0uwWXVL3Y4wAAAAA%3A6jp4nvXW59LfjKW0jHbHVOfNI6JRROYs-nb-9dMgq12Kn4TcIE4TesjC8ek0nHxdX_RaJNp9XRHo5g), which could possibly lead to dire consequences when applied in safety-critical areas like healthcare. To address these issues, Retrieval-Augmented Generation (RAG) has been introduced as a promising approach that integrates external knowledge into LLM outputs, offering a potential solution.
 
