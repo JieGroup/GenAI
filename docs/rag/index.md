@@ -187,6 +187,12 @@ For the following section, we will use the fixed-length chunking method to divid
 
 ### I. Traditional Information Retrieval Methods
 
+
+**Figure: A comparasion between Sparse Retrieval and Dense Retrieval** ([image source](https://arxiv.org/pdf/2208.09257))
+<div style="text-align:center;">
+    <img src="./img_rag/sparse_vs_dense_retrieval.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+</div>
+
 #### 1. Sparse Retrieval
 
 Sparse retrieval is a **keyword/lexical pattern** matching algorithm that focuses on the presence or absence of specific terms in documents by representing documents as sparse vectors. Here, sparse vectors are data structures that contain a large number of zero values, indicating the absence of terms, while only a small number of non-zero values represent the presence of relevant keywords.
@@ -317,17 +323,6 @@ import torch
 from transformers import DPRContextEncoder, DPRContextEncoderTokenizer, DPRQuestionEncoder, DPRQuestionEncoderTokenizer
 import numpy as np
 
-# Load the Wiki-QA dataset
-dataset = load_dataset("wiki_qa", split='train[:1%]')
-
-# Function to aggregate answers only from the dataset
-def aggregate_answers(dataset):
-    knowledge_base = []
-    for i in range(min(10, len(dataset))):  # Aggregate answers from up to 10 examples
-        example = dataset[i]
-        knowledge_base.append(example['answer'])
-    # Join all answers into a single string
-    return knowledge_base
 
 # Aggregate the answers into a single list
 knowledge_base = aggregate_answers(dataset)
@@ -475,13 +470,18 @@ While both Contriever and DPR aim to enhance dense retrieval through effective d
    - **Contriever**: Often demonstrates superior performance on various retrieval tasks due to its ability to utilize unlabelled data and adaptively sample training examples.
 
 
+
+
 ### II. Generative Retrieval
 
 Two limitations of traditional information retrieval: 
 - During training, the heterogeneous components in the traditional pipeline are difficult to jointly optimize in an end-to-end way towards a global objective. It also leads to errors accumulating and propagating among the sequential components.
 - At the inference stage, it requires a large document index to search over the corpus, leading to significant memory consumption. This memory footprint further increases linearly with the corpus size.
 
-The Differentiable Search Index (DSI) framework reflects its approach in the context of generative retrieval through a specific formulation of the objective function. In the DSI model, the focus is on directly generating relevant document identifiers based on a given query. Here’s how this can be expressed mathematically:
+
+Generative Retrieval is fundamentally different from the long-standing “index-retrieve” paradigm. This model-based Information Retrieval system consolidates the indexing, retrieval, and ranking components into a single model, such as a large language model (LLM). The model directly generates relevant document identifiers based on a given query, bypassing the need for an explicit retrieval step. This approach has the potential to address the limitations of traditional retrieval methods by leveraging the generative capabilities of modern language models.
+
+The Differentiable Search Index (DSI) is a popular generative retrieval framework that reflects its approach in the context of generative retrieval through a specific formulation of the objective function. In the DSI model, the focus is on directly generating relevant document identifiers based on a given query.
 
 ### Objective Function for Differentiable Search Index (DSI)
 
@@ -524,16 +524,6 @@ from datasets import load_dataset
 import numpy as np
 import random
 
-# Load the Wiki-QA dataset
-dataset = load_dataset("wiki_qa", split='train[:1%]')
-
-# Function to aggregate answers only from the dataset
-def aggregate_answers(dataset):
-    knowledge_base = []
-    for i in range(min(10, len(dataset))):  # Aggregate answers from up to 10 examples
-        example = dataset[i]
-        knowledge_base.append(example['answer'])
-    return knowledge_base
 
 # Aggregate the answers into a single list
 knowledge_base = aggregate_answers(dataset)
@@ -627,33 +617,14 @@ In 8-bit quantization, each element of the embedding is scaled to fit within the
 With optimized implementations, quantization can significantly reduce the memory footprint and computational cost of retrieval systems while maintaining retrieval accuracy. 
 
 Table: Efficiency Comparison of Quantization Methods. [Source from HuggingFace](https://huggingface.co/blog/embedding-quantization#binary-quantization-in-sentence-transformers)
-| Quantization   | Min            | Mean           | Max           |
-|:---------------|:---------------|:---------------|:--------------|
-| float32        | 1x (baseline)  | 1x (baseline)  | 1x (baseline) |
-| int8           | 2.99x speedup  | 3.66x speedup  | 4.8x speedup  |
-| binary         | 15.05x speedup | 24.76x speedup | 45.8x speedup |
+|                         | float32       | int8 | binary  |
+|-------------------------|---------------|----------------|------------------|
+| Memory & Index size savings | 1x            | exactly 4x     | exactly 32x      |
+| Retrieval Speed         | 1x            | up to 4x       | up to 45x        |
+
 
 
 ```python
-import numpy as np
-from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModel
-import torch
-
-# Load the Wiki-QA dataset
-dataset = load_dataset("wiki_qa", split='train[:1%]')
-
-# Function to aggregate answers only from the dataset
-def aggregate_answers(dataset):
-    knowledge_base = []
-    for i in range(min(10, len(dataset))):  # Aggregate answers from up to 10 examples
-        example = dataset[i]
-        knowledge_base.append(example['answer'])
-    return knowledge_base
-
-# Aggregate the answers into a single list
-knowledge_base = aggregate_answers(dataset)
-
 # Initialize the model and tokenizer for Contriever
 model_name = "facebook/contriever"  # Contriever model
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -738,69 +709,8 @@ for idx in top_indices:
 
 We introduce two approaches for generation in the context of RAG: (1) **Retrieval-and-Read** and (2) **KNN-LM**.
 
-#### 1. KNN-LM
 
-**Overview**:
-KNN-LM (K-Nearest Neighbors Language Model) is a method that enhances language models by integrating a retrieval component. It leverages a set of pre-stored document embeddings to retrieve the most relevant contexts during the generation process. This allows the model to condition its responses on relevant information from retrieved documents.
-
-**Key Steps**:
-- **Retrieve**: Given a query, retrieve the top $ k $ nearest document embeddings using a similarity measure.
-- **Generate**: Use the retrieved contexts as additional input to the language model to generate a response.
-
-**Code Example**:
-Here’s an example of how you might implement KNN-LM using the Hugging Face Transformers library:
-
-```python
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from sklearn.neighbors import NearestNeighbors
-import numpy as np
-
-# Initialize the tokenizer and language model
-model_name = "gpt2"  # Replace with your preferred model
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-lm_model = AutoModelForCausalLM.from_pretrained(model_name)
-
-# Sample documents and their embeddings (precomputed)
-documents = [
-    "The benefits of exercise include improved cardiovascular health.",
-    "Healthy eating can enhance overall well-being.",
-    "Sleep is essential for cognitive function and mental health.",
-]
-# Assuming you have embeddings for these documents (use a suitable method for actual embeddings)
-document_embeddings = np.random.rand(len(documents), 768)  # Dummy embeddings
-
-# Fit KNN model
-knn = NearestNeighbors(n_neighbors=2)
-knn.fit(document_embeddings)
-
-# Function to perform KNN-LM
-def knn_lm(query):
-    # Generate embedding for the query
-    query_embedding = np.random.rand(1, 768)  # Dummy query embedding (replace with actual method)
-    
-    # Retrieve nearest documents
-    distances, indices = knn.kneighbors(query_embedding)
-    
-    # Combine retrieved documents
-    retrieved_docs = " ".join([documents[i] for i in indices[0]])
-    
-    # Generate response
-    input_text = f"Context: {retrieved_docs} Question: {query}"
-    input_ids = tokenizer.encode(input_text, return_tensors='pt')
-    
-    with torch.no_grad():
-        output = lm_model.generate(input_ids, max_length=50)
-    
-    return tokenizer.decode(output[0], skip_special_tokens=True)
-
-# Example query
-query = "What are the benefits of exercise?"
-response = knn_lm(query)
-print("Response:", response)
-```
-
-#### 2. Retrieval-and-Read
+#### 1. Retrieval-and-Read
 
 **Overview**:
 Retrieval-and-Read is a straightforward approach where the model retrieves relevant documents based on a query and then reads these documents to generate a response. This method emphasizes retrieving information before generating answers, allowing the model to provide more accurate and contextually relevant responses.
@@ -813,45 +723,123 @@ Retrieval-and-Read is a straightforward approach where the model retrieves relev
 Here’s a basic example demonstrating the Retrieval-and-Read approach:
 
 ```python
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+import numpy as np
+from datasets import load_dataset
+from transformers import AutoTokenizer, AutoModel, AutoModelForCausalLM
+import torch
 
-# Initialize the tokenizer and the model for reading
-model_name = "t5-small"  # Example model for text generation
+
+# Initialize the Contriever model and tokenizer for embeddings
+model_name = "facebook/contriever"  # Contriever model for embedding
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-reading_model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+model = AutoModel.from_pretrained(model_name)
 
-# Sample documents for retrieval
-documents = [
-    "Exercise helps improve cardiovascular health and strengthen muscles.",
-    "A balanced diet is important for overall health.",
-    "Adequate sleep is necessary for recovery and cognitive function.",
-]
+# Encode the knowledge base documents
+def encode_knowledge_base(knowledge_base):
+    encoded_docs = []
+    for doc in knowledge_base:
+        inputs = tokenizer(doc, return_tensors="pt", padding=True, truncation=True)
+        with torch.no_grad():
+            embeddings = model(**inputs).last_hidden_state.mean(dim=1)  # Average pooling
+        encoded_docs.append(embeddings)
+    return torch.cat(encoded_docs)
 
-# Function to perform Retrieval-and-Read
-def retrieval_and_read(query):
-    # Simple retrieval (in practice, use a more sophisticated retrieval model)
-    retrieved_docs = [doc for doc in documents if query.lower() in doc.lower()]
-    
-    # Combine retrieved documents for input
-    context = " ".join(retrieved_docs)
-    input_text = f"Question: {query} Context: {context}"
-    input_ids = tokenizer.encode(input_text, return_tensors='pt')
-    
-    # Generate response
-    with torch.no_grad():
-        output = reading_model.generate(input_ids, max_length=50)
-    
-    return tokenizer.decode(output[0], skip_special_tokens=True)
+# Encode the knowledge base
+encoded_knowledge_base = encode_knowledge_base(knowledge_base)
 
-# Example query
-query = "What are the benefits of exercise?"
-response = retrieval_and_read(query)
-print("Response:", response)
+# Function to calculate cosine similarity for retrieval
+def cosine_similarity(a, b):
+    a_norm = a / a.norm(dim=1, keepdim=True)
+    b_norm = b / b.norm(dim=1, keepdim=True)  # Normalize for cosine similarity
+    return (a_norm @ b_norm.T).numpy()
+
+# Sample query for retrieval
+query = "how are glacier caves formed?"
+
+# Encode the query
+query_inputs = tokenizer(query, return_tensors="pt", padding=True, truncation=True)
+with torch.no_grad():
+    query_embedding = model(**query_inputs).last_hidden_state.mean(dim=1)
+
+# Retrieve top 3 documents based on cosine similarity
+similarity_scores = cosine_similarity(query_embedding, encoded_knowledge_base)
+top_indices = np.argsort(similarity_scores.flatten())[-3:][::-1]  # Get top 3 indices
+
+# Retrieve the relevant documents
+retrieved_documents = [knowledge_base[idx] for idx in top_indices]
+
+# Print the retrieved documents
+print("Retrieved Documents:")
+for idx in top_indices:
+    print(f"Document: {knowledge_base[idx]}")
+
+# Initialize the language model for generating responses
+language_model_name = "gpt2"  # You can choose another suitable model
+language_tokenizer = AutoTokenizer.from_pretrained(language_model_name)
+language_model = AutoModelForCausalLM.from_pretrained(language_model_name)
+
+# Prepare input for the language model
+read_input = f"Query: {query}\nDocuments: {' '.join(retrieved_documents)}\nResponse:"
+input_ids = language_tokenizer(read_input, return_tensors="pt").input_ids
+
+# Generate a response
+with torch.no_grad():
+    output = language_model.generate(input_ids, max_length=150, num_return_sequences=1)
+
+response = language_tokenizer.decode(output[0], skip_special_tokens=True)
+
+# Print the generated response
+print("\nGenerated Response:")
+print(response)
+
+```
+
+Let us see without the retrieval-and-read approach:
+
+```python
+# Prepare input for the language model using just the query
+input_text = f"Query: {query}\nResponse:"
+input_ids = language_tokenizer(input_text, return_tensors="pt").input_ids
+
+# Generate a response without using retrieved content
+with torch.no_grad():
+    output = language_model.generate(input_ids, max_length=150, num_return_sequences=1)
+
+response = language_tokenizer.decode(output[0], skip_special_tokens=True)
+
+# Print the generated response
+print("Generated Response Without Retrieved Content:")
+print(response)
 ```
 
 
+#### 2. KNN-LM
+
+kNN-LM, an approach that extends a pre-trained LM by linearly interpolating its next word distribution with a $k$-nearest neighbors (kNN) model. The nearest neighbors are computed according to distance in the pre-trained embedding space and can be drawn from any text collection, including the original LM training data. This approach allows rare patterns to be memorized explicitly, rather than implicitly in model parameters. It also improves performance when the same
+training data is used for learning the prefix representations and the kNN model, strongly suggesting that the prediction problem is more challenging than previously appreciated.
 
 
+**Figure: Overview of KNN-LM** ([image source](https://arxiv.org/pdf/1911.00172))
+<div style="text-align:center;">
+    <img src="./img_rag/knn_lm.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+</div>
+
+#### Database
+Let $ f(\cdot) $ be the function that maps a context $ c $ to a fixed-length vector representation computed by the pre-trained LM. For instance, in a Transformer LM, $ f(c) $ could map $ c $ to an intermediate representation that is output by an arbitrary self-attention layer. Then, given the $ i $-th training example $ (c_i, w_i) \in \mathcal{D} $, we define the key-value pair $ (k_i, v_i) $, where the key $ k_i $ is the vector representation of the context $ f(c_i) $ and the value $ v_i $ is the target word $ w_i $. The datastore $ (K, V) $ is thus the set of all key-value pairs constructed from all the training examples in $ \mathcal{D} $:
+$$
+(K, V) = \{(f(c_i), w_i) | (c_i, w_i) \in \mathcal{D}\} \tag{1}
+$$
+
+#### Inference
+At test time, given the input context $ x $, the model generates the output distribution over next words $ p_{LM}(y|x) $ and the context representation $ f(x) $. The model queries the datastore with $ f(x) $ to retrieve its $ k $-nearest neighbors $ \mathcal{N} $ according to a distance function $ d(\cdot, \cdot) $ (squared $ L^2 $ distance in our experiments, making the similarity function an RBF kernel). Then, it computes a distribution over neighbors based on a softmax of their negative distances, while aggregating probability mass for each vocabulary item across all its occurrences in the retrieved targets (items that do not appear in the retrieved targets have zero probability):
+$$
+p_{kNN}(y|x) \propto \sum_{(k_i,v_i) \in \mathcal{N}} 1_{y=v_i} \exp(-d(k_i, f(x))) \tag{2}
+$$
+
+Finally, we follow Grave et al. (2017a) and interpolate the nearest neighbor distribution $ p_{kNN} $ with the model distribution $ p_{LM} $ using a tuned parameter $ \lambda $ to produce the final $ kNN-LM $ distribution:
+$$
+p(y|x) = \lambda p_{kNN}(y|x) + (1 - \lambda) p_{LM}(y|x) \tag{3}
+$$
 
 
 ### References
@@ -862,5 +850,7 @@ print("Response:", response)
 - [Semantic chunking:] Liu, J., & Liu, J. (2019). "A Novel Semantic Text Chunking Method Based on a Self-Attention Mechanism." *Information Sciences*, 482, 130-142. DOI: 10.1016/j.ins.2019.02.054.
 
 - Sliding-window: Chen, S., & Wang, S. (2019). "Sliding Window Approach for Text Chunking in Natural Language Processing." *Journal of Computer and Communications*, 7(7), 25-32. DOI: 10.4236/jcc.2019.77004.
+
+- KNN-LM: [Paper](https://arxiv.org/pdf/1911.00172)
 
 
