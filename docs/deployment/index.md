@@ -418,6 +418,19 @@ Model pruning involves removing redundant or less significant weights and neuron
 -   **Improved Inference Speed**: Less computation required, resulting in faster inference times.
 -   **Maintained Performance**: Careful pruning can maintain or even improve model performance.
 
+### Common Pruning Strategies 
+
+- **Influence-based:** It is attractive to remove weights that have little impact on the outputs. We may estimate the influence of weights by perturbing them.
+
+- **Magnitude-based**: Instead of estimating the influence, it is conceivable that model parameters with a smaller magnitude (abosolute value) are less influential. Therefore, we may simply prune weights with the smallest magnitudes. It is one of the most popular approach as it is intuitive, easy to implement, and achieves a graet success in many applications.
+
+- **Sparsity-based:** Modern AI models are heavily overparameterized, another pruning approach aims to find a sparse approximation of a large model. In particular, for model parameters $w \in \mathbb{R}^d$, we define an index named PQI as follows.
+  $$
+  \text{PQI}_{p,q}(w) = 1-d^{\frac{1}{q}-\frac{1}{p}}\frac{\|w\|_p}{\|w\|_q}.
+  $$
+  PQI measures the sparsity of a model, and guides the pruning ratio adaptively for each model.
+
+
 ### Usage in LLMs
 
 Pruning is used in LLMs to create leaner versions that are more efficient in terms of both memory and computation, without compromising much on accuracy. It is particularly useful in scenarios where computational resources are limited.
@@ -463,3 +476,7 @@ pruned_model.fit(train_data, train_labels, epochs=10, callbacks=[sparsity.Update
 - A Survey on Large Language Models for Recommendation. [paper](https://arxiv.org/pdf/2305.19860)
 
 - Mobile V-MoEs: Scaling Down Vision Transformers via Sparse Mixture-of-Experts. [paper](https://arxiv.org/pdf/2309.04354)
+
+- [A survey on knowledge distillation of large language models](https://arxiv.org/abs/2402.13116)
+- 
+- [Pruning deep neural networks from a sparsity perspective](https://arxiv.org/abs/2302.05601)
