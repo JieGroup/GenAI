@@ -24,13 +24,13 @@ $$
 h_0(x) = 1(w_0^T x \geq 0)
 $$
 
-for some \( w_0 \in \mathbb{R}^d \). The student model is also a linear classifier:
+for some $w_0 \in \mathbb{R}^d$. The student model is also a linear classifier:
 
 $$
 h(x) = 1(w^T x \geq 0).
 $$
 
-For distillation, we first gather a transfer set \( \{(x_i, y_i)\}_{i=1, \ldots, n} \), where inputs \( x_i \) are sampled i.i.d. from the distribution \( P_x \), and soft labels \( y_i = \sigma(w_0^T x_i) \) are provided by the teacher. Here, \( \sigma \) is the sigmoid function defined as:
+For distillation, we first gather a transfer set $\{(x_i, y_i)\}_{i=1, \ldots, n}$, where inputs $ x_i $ are sampled i.i.d. from the distribution $P_x$, and soft labels $ y_i = \sigma(w_0^T x_i)$ are provided by the teacher. Here, $\sigma$ is the sigmoid function defined as:
 
 $$
 \sigma(x) = \frac{1}{1 + \exp(-x)}.
@@ -53,7 +53,7 @@ which serves as a counterpart to the classical 0/1 loss, but references the teac
 
 #### Theoretical insight
 
-Existing work has theoretically investigated knowledge distillation for binary classification problems. For example, this [paper](https://proceedings.mlr.press/v97/phuong19a/phuong19a.pdf) shows that if the student uses gradient descent with a sufficiently small learning rate at each step \( t \), then:
+Existing work has theoretically investigated knowledge distillation for binary classification problems. For example, this [paper](https://proceedings.mlr.press/v97/phuong19a/phuong19a.pdf) shows that if the student uses gradient descent with a sufficiently small learning rate at each step $t$, then:
 
 $$
 \hat{w}_t \rightarrow \hat{w} \text{ almost surely with } \hat{w} =
