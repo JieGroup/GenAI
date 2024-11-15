@@ -22,5 +22,5 @@ alignment/index
 resource/index
 diffusion/index
 rag/index
-deployment/rag
+deployment/index
 ```
