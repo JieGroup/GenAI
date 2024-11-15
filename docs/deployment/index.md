@@ -157,18 +157,62 @@ def test_accuracy(model, dataloader):
     return correct / len(dataloader.dataset)
 
 
+# Fine-tune the teacher model on MNIST
+def fine_tune_teacher(teacher, train_loader, test_loader, epochs=5, lr=0.001):
+    teacher.train()
+    optimizer = optim.Adam(teacher.parameters(), lr=lr)
+    criterion = nn.CrossEntropyLoss()
+    
+    for epoch in range(epochs):
+        total_loss = 0
+        correct = 0
+        for data, target in train_loader:
+            optimizer.zero_grad()
+            output = teacher(data)
+            loss = criterion(output, target)
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+        
+        accuracy = correct / len(train_loader.dataset)
+        print(f"Epoch {epoch+1}, Loss: {total_loss:.4f}, Accuracy: {accuracy:.4f}")
+    
+    # Evaluate the teacher model on the test set
+    teacher.eval()
+    test_accuracy = test_accuracy_fn(teacher, test_loader)
+    print(f"Fine-tuned Teacher Test Accuracy: {test_accuracy:.4f}")
+    return teacher
+
+def test_accuracy_fn(model, dataloader):
+    model.eval()
+    correct = 0
+    with torch.no_grad():
+        for data, target in dataloader:
+            output = model(data)
+            pred = output.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+    return correct / len(dataloader.dataset)
+
+
 # Load pretrained ResNet18 model and modify for MNIST
 teacher = models.resnet18(pretrained=True)
 teacher.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)  # Modify input layer for single channel
 teacher.fc = nn.Linear(teacher.fc.in_features, 10)  # Modify output layer for 10 classes (MNIST)
 
-# Freeze teacher parameters since it's pretrained
-for param in teacher.parameters():
-    param.requires_grad = False
+# fintune teacher and save
+teacher = fine_tune_teacher(teacher, train_loader, test_loader, epochs=5, lr=0.001)
+torch.save(teacher.state_dict(), "teacher_mnist.pth")
+
+# Load the fine-tuned teacher model
+teacher = models.resnet18(pretrained=False)
+teacher.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+teacher.fc = nn.Linear(teacher.fc.in_features, 10)
+teacher.load_state_dict(torch.load("teacher_mnist.pth"))
 teacher.eval()
 
 # Experiment setup
-
 student = StudentModel()
 distilled_student = StudentModel()
 optim_scratch = optim.Adam(student.parameters(), lr=0.001)
@@ -324,7 +368,7 @@ Model pruning is a technique to reduce model size and computational cost by remo
 Unstructured pruning removes individual weights based on their importance to model performance. While this fine-grained approach allows detailed control over which weights to remove, it can be challenging to optimize for hardware acceleration.
 
 **Structured Pruning**
-Structured pruning removes entire neurons, channels, or filters in the network. This more coarse-grained approach is often easier to implement with hardware optimization, leading to more consistent performance gains.
+Structured pruning removes entire layers, channels, or filters in the network. This more coarse-grained approach is often easier to implement with hardware optimization, leading to more consistent performance gains.
 
 
 ### Common Pruning Strategies 
