@@ -118,10 +118,10 @@ def train_student_with_distillation(teacher, student, dataloader, optimizer, tem
     total_loss = 0
     for data, target in dataloader:
         optimizer.zero_grad()
-        data = data.view(data.size(0), -1)  # Flatten MNIST images
         with torch.no_grad():
             teacher_output = teacher(data)
         
+        data = data.view(data.size(0), -1)  # Flatten MNIST images
         student_output = student(data)
         loss = distillation_loss(student_output, teacher_output, temperature)
         loss.backward()
