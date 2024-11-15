@@ -789,3 +789,5 @@ This lecture note includes code examples and concepts adapted from the following
 . [paper](https://arxiv.org/abs/2212.10560), [code](https://github.com/yizhongw/self-instruct)
 
 - 52K instruction-following data. [data](https://huggingface.co/datasets/yahma/alpaca-cleaned)
+
+- A Survey on Large Language Models for Recommendation. [paper](https://arxiv.org/pdf/2305.19860)
