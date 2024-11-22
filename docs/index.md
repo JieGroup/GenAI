@@ -23,4 +23,5 @@ resource/index
 diffusion/index
 rag/index
 deployment/index
+safety/index
 ```
