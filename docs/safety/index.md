@@ -701,6 +701,7 @@ where $\mathcal{V}_\theta(X)$ scores the likelihood of watermark presence, and $
 **Inference Stage**
 
 Using the trained verification module $\mathcal{V}_\theta$, Alice determines if a test image $X_{\text{test}}$ is watermarked. For IID test data, conformal prediction provides FPR guarantees by setting $\tau$ as the empirical $\alpha$-quantile of scores:
+
 $$
 \mathbb{P}[g(X_{\text{test}}) = 1 \mid X_{\text{test}} \text{ is unwatermarked}] \leq \alpha.
 $$
