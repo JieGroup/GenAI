@@ -4,7 +4,7 @@
 ## Poisoning Backdoor Attacks
     
 
-As machine learning models become integral to various applications, their security emerges as a critical concern. In real-world scenarios, these models are often constructed from datasets whose intricacies may be obscured from users. This lack of transparency poses a risk for exploitation through **backdoor attacks**, a growing concern in AI security. These attacks are designed to make a model operate normally until it encounters specific, altered inputs that activate the backdoor, causing the model to behave unpredictably, as demonstrated in the following figure.
+As machine learning models become integral to various applications, their safety emerges as a critical concern. In real-world scenarios, these models are often constructed from datasets whose intricacies may be obscured from users. This lack of transparency poses a risk for exploitation through **backdoor attacks**, a growing concern in AI security. These attacks are designed to make a model operate normally until it encounters specific, altered inputs that activate the backdoor, causing the model to behave unpredictably, as demonstrated in the following figure.
 
   
 **Figure: An example of a backdoor attack that compromises the traffic sign classifier for autonomous driving.**
@@ -13,12 +13,20 @@ As machine learning models become integral to various applications, their securi
 </div>
   
 
-A powerful backdoor attack has a **dual-goal**: being stealthy and useful, meaning that it 
-- prompt the compromised model to exhibit manipulated behavior when a specific attacker-defined trigger is present, and 
-- maintain normal functionality in the absence of the trigger, rendering the attack difficult to detect.
+
+
+**Threat Model**
+
+- **Data Poisoning**: Adversaries inject crafted data into the training set
+- **Trigger Activation**: The backdoor is activated only when the specific trigger pattern appears in the input
+- **Stealthiness**: The attack remains undetected during model training and validation, as the model behaves normally on untriggered inputs.
+- **Attack Goals**: A powerful backdoor attack has a **dual-goal**: being stealthy and useful, meaning that it 
+  - prompt the compromised model to exhibit manipulated behavior when a specific attacker-defined trigger is present, and 
+  - maintain normal functionality in the absence of the trigger, rendering the attack difficult to detect.
+
 
   
-### Demystifying Poisoning Backdoor Attacks from a Statistical Perspective
+### Demystifying Poisoning Backdoor Attacks
 
 Recent research aims to tackle the following crucial yet previously underexplored questions:
 
@@ -55,26 +63,23 @@ where $g(\cdot)$ is an explicit function delineating the prediction performance'
 
 The above result then implies answers to the last two questions:
 
-- The **optimal trigger** direction is where the clean data distribution decays the most.
+- The **optimal trigger** direction is where the clean data distribution decays the most
 
-- Constructing a **human-imperceptible backdoor attack could be more feasible** when the clean data distribution degenerates more.
+- Constructing a **human-imperceptible backdoor attack could be more feasible** when the clean data distribution degenerates more
 
 
 The above fundamental understanding also serves as a basis for developing improved defense mechanisms against backdoor attacks.
   
 
 
-Below, we show how to backdoor a conditional diffusion model by training it on the backdoored MNIST dataset. We first define some basica components of diffusion models.
+Below, we show how to backdoor a conditional diffusion model by training it on the backdoored MNIST dataset. We first define some basic components of diffusion models.
 
 
 ```python
 ''' 
 This script mainly adapts the code from the following sources:
-
 https://github.com/TeaPearce/Conditional_Diffusion_MNIST
-
 '''
-
 from typing import Dict, Tuple
 from tqdm import tqdm
 import torch
@@ -125,7 +130,6 @@ class ResidualConvBlock(nn.Module):
             x2 = self.conv2(x1)
             return x2
 
-
 class UnetDown(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UnetDown, self).__init__()
@@ -137,7 +141,6 @@ class UnetDown(nn.Module):
 
     def forward(self, x):
         return self.model(x)
-
 
 class UnetUp(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -157,7 +160,6 @@ class UnetUp(nn.Module):
         x = self.model(x)
         return x
 
-
 class EmbedFC(nn.Module):
     def __init__(self, input_dim, emb_dim):
         super(EmbedFC, self).__init__()
@@ -175,7 +177,6 @@ class EmbedFC(nn.Module):
     def forward(self, x):
         x = x.view(-1, self.input_dim)
         return self.model(x)
-
 
 class ContextUnet(nn.Module):
     def __init__(self, in_channels, n_feat = 256, n_classes=11):
@@ -198,8 +199,7 @@ class ContextUnet(nn.Module):
         self.contextembed2 = EmbedFC(n_classes, 1*n_feat)
 
         self.up0 = nn.Sequential(
-            # nn.ConvTranspose2d(6 * n_feat, 2 * n_feat, 7, 7), # when concat temb and cemb end up w 6*n_feat
-            nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, 7, 7), # otherwise just have 2*n_feat
+            nn.ConvTranspose2d(2 * n_feat, 2 * n_feat, 7, 7), 
             nn.GroupNorm(8, 2 * n_feat),
             nn.ReLU(),
         )
@@ -215,8 +215,6 @@ class ContextUnet(nn.Module):
 
     def forward(self, x, c, t, context_mask):
         # x is (noisy) image, c is context label, t is timestep, 
-        # context_mask says which samples to block the context on
-
         x = self.init_conv(x)
         down1 = self.down1(x)
         down2 = self.down2(down1)
@@ -237,16 +235,11 @@ class ContextUnet(nn.Module):
         cemb2 = self.contextembed2(c).view(-1, self.n_feat, 1, 1)
         temb2 = self.timeembed2(t).view(-1, self.n_feat, 1, 1)
 
-        # could concatenate the context embedding here instead of adaGN
-        # hiddenvec = torch.cat((hiddenvec, temb1, cemb1), 1)
-
         up1 = self.up0(hiddenvec)
-        # up2 = self.up1(up1, down2) # if want to avoid add and multiply embeddings
         up2 = self.up1(cemb1*up1+ temb1, down2)  # add and multiply embeddings
         up3 = self.up2(cemb2*up2+ temb2, down1)
         out = self.out(torch.cat((up3, x), 1))
         return out
-
 
 def ddpm_schedules(beta1, beta2, T):
     """
@@ -275,7 +268,6 @@ def ddpm_schedules(beta1, beta2, T):
         "sqrtmab": sqrtmab,  # \sqrt{1-\bar{\alpha_t}}
         "mab_over_sqrtmab": mab_over_sqrtmab_inv,  # (1-\alpha_t)/\sqrt{1-\bar{\alpha_t}}
     }
-
 
 class DDPM(nn.Module):
     def __init__(self, nn_model, betas, n_T, device, drop_prob=0.1):
@@ -313,12 +305,7 @@ class DDPM(nn.Module):
         return self.loss_mse(noise, self.nn_model(x_t, c, _ts / self.n_T, context_mask))
 
     def sample(self, n_sample, size, device, guide_w = 0.0):
-        # we follow the guidance sampling scheme described in 'Classifier-Free Diffusion Guidance'
-        # to make the fwd passes efficient, we concat two versions of the dataset,
-        # one with context_mask=0 and the other context_mask=1
-        # we then mix the outputs with the guidance scale, w
-        # where w>0 means more guidance
-
+        # We follow the guidance sampling scheme described in 'Classifier-Free Diffusion Guidance'. To make the fwd passes efficient, we concat two versions of the dataset, one with context_mask=0 and the other context_mask=1. We then mix the outputs with the guidance scale, w, where w>0 means more guidance
         x_i = torch.randn(n_sample, *size).to(device)  # x_T ~ N(0, 1), sample initial noise
         c_i = torch.arange(0,11).to(device) # context for us just cycles throught the mnist labels
         c_i = c_i.repeat(int(n_sample/c_i.shape[0]))
@@ -359,8 +346,8 @@ class DDPM(nn.Module):
         
         x_i_store = np.array(x_i_store)
         return x_i, x_i_store
-
 ```
+
 Next, we create the backdoored MNIST dataset. Please try to plot the backdoored samples and see if you can spot the backdoor trigger.
 
 ```python
@@ -473,7 +460,7 @@ def train_mnist():
                 save_image(grid, save_dir + f"image_ep{ep}_w{w}.png")
                 print('saved image at ' + save_dir + f"image_ep{ep}_w{w}.png")
 
-                if ep%5==0 or ep == int(n_epoch-1):
+                if ep%5 == 0 or ep == int(n_epoch-1):
                     # create gif of images evolving over time, based on x_gen_store
                     fig, axs = plt.subplots(nrows=int(n_sample/n_classes), ncols=n_classes,sharex=True,sharey=True,figsize=(8,3))
                     def animate_diff(i, x_gen_store):
@@ -503,7 +490,9 @@ train_mnist()
     
   
 
-The hidden nature of backdoor attacks underscores the urgency of developing robust defenses. Current strategies fall into two categories: inference-stage defenses for detecting backdoored data at the point of use, and training-stage defenses to prevent neural networks from learning from backdoored training data. As Machine Learning as a Service (MLaaS) becomes increasingly common, there is a growing need for real-time, on-the-fly defense mechanisms against backdoor attacks. In such a context, inference-stage defenses are critical because they offer the last line of defense, operating at the point where the model is actually used to make predictions on new data. However, they often lack theoretical foundation and are typically limited to vision tasks, leaving a gap in natural language processing applications.
+The hidden nature of backdoor attacks underscores the urgency of developing robust defenses. Current strategies fall into two categories: **inference-stage defenses** for detecting backdoored data at the point of use, and **training-stage defenses** to prevent neural networks from learning from backdoored training data. 
+
+As Machine Learning as a Service (MLaaS) becomes increasingly common, there is a growing need for real-time, on-the-fly defense mechanisms against backdoor attacks. In such a context, inference-stage defenses are critical because they offer the last line of defense, operating at the point where the model is actually used to make predictions on new data. However, they often lack theoretical foundation and are typically limited to vision tasks, leaving a gap in natural language processing applications.
 
 
 **Figure: Illustration of inference-stage backdoor defenses. The backdoor triggers in text queries are indicated in red, while for the image queries, the backdoor triggers consist of a square patch located in the lower-right corner for the traffic sign and a hello kitty embedding added to an image of a dog.**
@@ -513,8 +502,7 @@ The hidden nature of backdoor attacks underscores the urgency of developing robu
 
  
 
-A recent framework is known as Conformal Backdoor Detection (CBD). This framework is tailored to combat backdoor attacks by adeptly pinpointing query inputs that have been tampered with by adversaries. CBD establishes a new benchmark that achieves the state-of-the-art backdoor detection accuracy in the field. What distinguishes CBD further is its ability to provide empirical guarantees concerning the False Positive Rate (FPR). This capability ensures a quantifiable level of reliability in distinguishing genuine samples from those compromised by backdoor manipulations.
-
+A recent framework is known as Conformal Backdoor Detection (CBD). This framework is tailored to combat backdoor attacks by pinpointing query inputs that have been tampered with by adversaries. CBD establishes a benchmark that achieves the state-of-the-art backdoor detection accuracy in the field. 
   
 
 Formally, given a backdoored model and a clean validation dataset, upon receiving a test query $X_{\text{test}} \in \mathbb{R}^d$, the defender sets a hypothesis testing problem:
@@ -538,7 +526,7 @@ $$
 
 where $\tau \in \mathbb{R}$ is a threshold value and $s(\cdot)$ is a scoring function indicating the chance of $X_{\text{test}}$ being a clean input.
 
-The defender aims to devise a detector \(g\) to
+The defender aims to devise a detector $g$ to
 
 $$
 \text{maximize } \quad \mathbb{P}\bigl\{ g(X ; \tau) = 1 \mid X \text{ is backdoor} \bigr\}, \\ 
@@ -546,12 +534,12 @@ $$
 \mathbb{P}\bigl\{ g(X ; \tau) = 1 \mid X \text{ is clean} \bigr\}.
 $$
 
-To effectively mitigate backdoor attacks on Deep Neural Networks, the newly proposed methodology employs a conformal prediction framework to precisely control the False Positive Rate (FPR). By leveraging a decision threshold based on empirical data distribution, this approach remains statistically rigorous without depending on explicit distribution assumptions.
+To effectively mitigate backdoor attacks on Deep Neural Networks, CBD employs a conformal prediction framework to precisely control the False Positive Rate (FPR). By leveraging a decision threshold based on empirical data distribution, this approach remains statistically justified without depending on strong distributional assumptions.
   
 
 ### Jailbreak Attacks
 
-Jailbreak attacks represent a form of inference-stage vulnerability in AI models, analogous to backdoor attacks at the training stage. These attacks manipulate an AI system to bypass its safety constraints, generating unintended or harmful outputs when given crafted prompts.
+Jailbreak attacks represent a form of inference-stage vulnerability in generative AI models, analogous to backdoor attacks at the training stage. These attacks manipulate an AI system to bypass its safety constraints, generating unintended or harmful outputs when given crafted prompts.
 
 
 **Figure: While backdoor attacks require tampered training data, jailbreak attacks operate during inference and target vulnerabilities in the model's prompt handling. [image source](https://arxiv.org/pdf/2401.09002v2)**
@@ -560,6 +548,7 @@ Jailbreak attacks represent a form of inference-stage vulnerability in AI models
 </div>
 
 
+Despite their increasing prevalence, understanding the mechanisms behind jailbreak attacks remains limited, and their construction is largely ad hoc. 
 
 
 
@@ -607,15 +596,15 @@ For example, the **information laundering** framework provides a mechanism to co
 
 **Information Laundering Framework**
 
-**Definition**:  A learned model is a kernel \( p: \mathcal{X} \times \mathcal{Y} \rightarrow [0,1] \), which induces a class of conditional distributions \( \{p(\cdot \mid x): x \in \mathcal{X}\} \).
+**Definition**:  A learned model is a kernel $p: \mathcal{X} \times \mathcal{Y} \rightarrow [0,1]$, which induces a class of conditional distributions $\{p(\cdot \mid x): x \in \mathcal{X}\}$.
 
-**Definition**:  An information-laundered model with respect to a given model \( \mathcal{C} \) is a model \( \mathcal{C}' \) that consists of three internal kernels:
+**Definition**:  An information-laundered model with respect to a given model $K_*$ is a model $K$ that consists of three internal kernels:
 
 $$
-\mathcal{C}' = \mathcal{A} \circ \mathcal{C} \circ \mathcal{B},
+K = K_1 \circ K_* \circ K_2,
 $$
 
-where $\mathcal{A}$ and $\mathcal{B}$ are input and output perturbation kernels, respectively. This is illustrated in the figure below.
+where $K_1$ and $K_2$ are input and output perturbation kernels, respectively. This is illustrated in the figure below.
 
 
 
@@ -624,20 +613,20 @@ where $\mathcal{A}$ and $\mathcal{B}$ are input and output perturbation kernels,
     <img src="../_static/img/safety_laundering.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
 </div>
 
-We denote the kernels representing the authentic model, input kernel, output kernel, and the information-laundered model as $p(\cdot \mid \cdot), p_{\mathcal{A}}(\cdot \mid \cdot), p_{\mathcal{B}}(\cdot \mid \cdot), p_{\mathcal{C}}(\cdot \mid \cdot)$, respectively.
+Denote the kernels representing the authentic model, input kernel, output kernel, and the information-laundered model as $p(\cdot \mid \cdot), p_{K_1}(\cdot \mid \cdot), p_{K_2}(\cdot \mid \cdot), p_{K_*}(\cdot \mid \cdot)$, respectively.
 
 The information laundering objective minimizes the following function:
 
 $$
-L(p_{\mathcal{A}}, p_{\mathcal{B}}) =
-\mathbb{E}_{X \sim p_X} \mathcal{D}(p(\cdot \mid X), p_{\mathcal{C}}(\cdot \mid X)) + \beta_1 \mathcal{I}(X; \mathcal{X}) + \beta_2 \mathcal{I}(Y; \mathcal{Y}),
+L(p_{K_1}, p_{K_2}) =
+\mathbb{E}_{X \sim p_X} \mathcal{D}(p(\cdot \mid X), p_{K_*}(\cdot \mid X)) + \beta_1 \mathcal{I}(X; \tilde{X}) + \beta_2 \mathcal{I}(Y; \tilde{Y}),
 $$
 
 where:
 - $\mathcal{D}$ represents the divergence between the true model and the laundered model.
 - $\mathcal{I}$ represents mutual information to control privacy leakage between original and perturbed variables.
 
-Using the **calculus of variations**, the framework derives closed-form optimal perturbation kernels for both inputs and outputs, enabling practical implementations of privacy-utility tradeoffs.
+Using the calculus of variations, the framework derives closed-form optimal perturbation kernels for both inputs and outputs, enabling practical implementations of privacy-utility tradeoffs.
 
 
 
@@ -645,7 +634,7 @@ Using the **calculus of variations**, the framework derives closed-form optimal 
 
 ## Watermarking 
 
-The rapid advancements in Generative AI, particularly in diffusion models (DM) like **Stable Diffusion** and **DALLE-2**, have significantly improved image generation quality. However, these innovations raise concerns, including **DeepFake** misuse and **copyright infringement**. To mitigate misuse, **watermarking** techniques offer a way to identify machine-generated content by embedding distinct signals.
+The rapid advancements in Generative AI, particularly in diffusion models (DM) like Stable Diffusion and DALLE-2, have significantly improved image generation quality. However, these innovations raise concerns, including **DeepFake** misuse and **copyright infringement**. To mitigate misuse, **watermarking** techniques offer a way to identify machine-generated content by embedding distinct signals.
 
 ### Watermarking Techniques
 
@@ -727,7 +716,7 @@ $$
  
 The rise of Retrieval-Augmented Generation (RAG) systems introduced in [Chapter 8](https://genai-course.jding.org/rag/index.html) has gained significant attention for its capabilities, particularly in applications like medical Q&A. However, safety considerations for RAG systems remain largely underexplored, leaving critical vulnerabilities unaddressed.
 
-#### Universal Poisoning Attacks**
+#### Universal Poisoning Attacks
 
 Recent research highlights [universal poisoning attacks](https://arxiv.org/pdf/2409.17275), where adversarial documents are injected into large-scale retrieval corpora (e.g., Wikipedia, PubMed) to ensure these documents rank highly for specific queries. By exploiting the reliance of Retrieval-Augmented Generation (RAG) systems on dense retrievers that map queries and documents into high-dimensional embedding spaces, these attacks demonstrate high success rates across 225 combinations of corpora, retrievers, and queries in medical Q&A.
 
