@@ -529,10 +529,10 @@ where $\tau \in \mathbb{R}$ is a threshold value and $s(\cdot)$ is a scoring fun
 The defender aims to devise a detector $g$ to
 
 $$
-\text{maximize } \quad \mathbb{P}\bigl\{ g(X ; \tau) = 1 \mid X \text{ is backdoor} \bigr\}, \\ 
-\text{while controlling the false positive rate (FPR):} \quad 
-\mathbb{P}\bigl\{ g(X ; \tau) = 1 \mid X \text{ is clean} \bigr\}.
+\text{maximize } \quad \mathbb{P}\bigl\{ g(X ; \tau) = 1 \mid X \text{ is backdoor} \bigr\}, 
 $$
+
+while controlling the false positive rate (FPR): $\mathbb{P}\bigl\{ g(X ; \tau) = 1 \mid X \text{ is clean} \bigr\}$.
 
 To effectively mitigate backdoor attacks on Deep Neural Networks, CBD employs a conformal prediction framework to precisely control the False Positive Rate (FPR). By leveraging a decision threshold based on empirical data distribution, this approach remains statistically justified without depending on strong distributional assumptions.
   
@@ -655,9 +655,11 @@ Watermarking strategies are evaluated based on false-positive rates (FPRs) and t
 Recent work RAW introduces a real-time, model-agnostic framework for watermarking generative content, with the following design elements:
 
 - **Dual-Domain Embedding**: Watermarks are embedded in both frequency and spatial domains for enhanced robustness:
+
   $$
   \mathcal{E}_{\boldsymbol{w}}(X) = \mathcal{F}^{-1}(\mathcal{F}(X) + c_1 \cdot v) + c_2 \cdot u,
   $$
+
   where $v, u$ are watermarks in frequency and spatial domains, and $c_1, c_2$ control visibility.
 - **Efficiency**: Batch processing makes watermark injection up to $30 \times$ faster than frequency-based methods and $200 \times$ faster than encoder-decoder methods.
 - **Robustness**: Adapts adversarial training and contrastive learning for improved resilience.
@@ -671,11 +673,13 @@ Recent work RAW introduces a real-time, model-agnostic framework for watermarkin
 **Problem Formulation**
 
 Watermarking is formalized as a binary classification problem:
+
 $$
 \texttt{H}_0: \widetilde{X}^{\prime} \text{ is watermarked}; \quad \texttt{H}_1: \widetilde{X}^{\prime} \text{ is not watermarked.}
 $$
 
 A detector is defined as:
+
 $$
 g(\mathcal{V}_\theta(X)) =
 \begin{cases}
@@ -683,6 +687,7 @@ g(\mathcal{V}_\theta(X)) =
 0 \quad (\text{Unwatermarked}), & \text{if } \mathcal{V}_\theta(X) < \tau,
 \end{cases}
 $$
+
 where $\mathcal{V}_\theta(X)$ scores the likelihood of watermark presence, and $\tau$ is a threshold.
 
 
@@ -693,9 +698,11 @@ where $\mathcal{V}_\theta(X)$ scores the likelihood of watermark presence, and $
    - **Verification Module**: Binary classifier scoring the likelihood of watermarked images.
 
    The combined training loss incorporates original and augmented datasets:
+
    $$
    \mathcal{L}_{\text{raw}} = \operatorname{BCE}(\mathcal{D}) + \sum_{k=1}^m \operatorname{BCE}(\mathcal{D}^k),
    $$
+   
    where $\operatorname{BCE}$ is the binary cross-entropy loss and $\mathcal{D}^k$ are augmented datasets.
 
 **Inference Stage**
