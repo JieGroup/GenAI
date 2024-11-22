@@ -643,17 +643,6 @@ Using the **calculus of variations**, the framework derives closed-form optimal 
 
 
 
-
-## **References**
-
-- Alabbadi, M. M. "Mobile cloud computing: A revolution in computing and communication." *Proceedings of the International Conference on Mobile Cloud Computing, Services, and Engineering*. 2011.
-- Ribeiro, M. T., Singh, S., & Guestrin, C. "Why should I trust you? Explaining the predictions of any classifier." *Proceedings of the ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*. 2016.
-- Kesarwani, M., et al. "Model extraction warning in MLaaS platforms." *Proceedings of the ACM SIGKDD International Conference*. 2018.
-- Juuti, M., et al. "PRADA: Protecting against DNN model stealing attacks." *Proceedings of the IEEE Symposium on Security and Privacy*. 2019.
-
-
-
-
 ## Watermarking 
 
 The rapid advancements in Generative AI, particularly in diffusion models (DM) like **Stable Diffusion** and **DALLE-2**, have significantly improved image generation quality. However, these innovations raise concerns, including **DeepFake** misuse and **copyright infringement**. To mitigate misuse, **watermarking** techniques offer a way to identify machine-generated content by embedding distinct signals.
