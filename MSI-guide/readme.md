@@ -19,7 +19,7 @@
     conda activate GenAI  # Optional, if "GenAI" was set up previously
     ```
   - **Notebook Root:** (Leave empty or set your preferred directory)
-  - **Account:** (Use an accessible account, e.g., stat8931)
+  - **Account:** (Use an accessible account, e.g., stat8105)
   - **Resources:** Select "interactive GPU ... 1 A40" for GPU needs, or "Custom" for specific resources.
   - **Partitions:** Choose between "a100-4" or "a100-8" for general GPU access or "Custom" for PI-specific resources.
   - **Custom Partitions:** For example, "jd-4a100" for JieGroup.

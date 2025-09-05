@@ -3,11 +3,11 @@
 ## Quick Survey
 <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScZsRUvrW6k9SWP2xKIFSNt3OYPgEAobyBnzboKxaIkRlKZng/viewform?embedded=true" width="640" height="880" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
 
-## About the Stat 8931 Course
+## About the Stat 8105 Course
 
 Artificial Intelligence (AI) has evolved from a specialized field into a pivotal force shaping modern technology. Through our engagement with students across various disciplines, it is clear that many are intrigued by AI. They range from those engaged in PhD research to others seeking exceptional career opportunities or simply exploring their options. Despite their interest, a common challenge persists: a lack of holistic views about what to learn and how to effectively use AI tools. AI has experienced rapid advancements over the past two decades, with new methodologies and concepts emerging frequently. The terms "AI" and "Generative AI" themselves are broad, encompassing a wide range of disciplines including computer science, statistics, optimization, control, information theory, often leading to disparate interpretations and terminologies across different academic backgrounds. Fortunately, the main concepts and techniques of AI does not evolve as rapidly as it appears. Many thoughts are deeply rooted in established fields, such as how to organize data, set up the optimization problem, and interpretation of results. 
 
-This Stat 8931 course is designed with the goal of lowing the barrier for new researchers and inspiring them to pursue state-of-the-art research in the relevant fields. We aim to achieve the goal through on-site implementations, explorations, discussions, and offline communications (as suggested in the syllabus). While many excellent open-source tutorials or courses exist, focusing primarily on practical implementation, our course will be research-oriented and encourage students to critically think the future directions they might take. 
+This Stat 8105 course is designed with the goal of lowing the barrier for new researchers and inspiring them to pursue state-of-the-art research in the relevant fields. We aim to achieve the goal through on-site implementations, explorations, discussions, and offline communications (as suggested in the syllabus). While many excellent open-source tutorials or courses exist, focusing primarily on practical implementation, our course will be research-oriented and encourage students to critically think the future directions they might take. 
 
 **Acknowledgments**
 This course was conceived and developed by Professor  [Jie Ding](https://jding.org/)  of the School of Statistics at the University of Minnesota. The [School of Statistics](https://cla.umn.edu/statistics) and the [Minnesota Supercomputing Institute (MSI)](https://msi.umn.edu/) are acknowledged for their administrative support and provision of computation and educational resources. Special thanks go to  [Xun Xian](https://jeremyxianx.github.io/), [Ganghua Wang](https://gwang.umn.edu/), Jin Du, An Luo, [Xinran Wang](https://wang8740.github.io/), Qi Le, Harsh Shah, [Jiawei Zhang](https://jiaweizhang.site/), [Enmao Diao](https://diaoenmao.com/), [Michael Coughlin](https://www.michaelwcoughlin.com/), and [Ali Anwar](https://chalianwar.github.io/), who provided significant contributions to the course design and development.
@@ -49,41 +49,44 @@ Students are expected to have:
 
 ### Outline of the Course
 
-**Chapter 1. Kickoff and Quick Study of Deep Learning** (Sept 6, Sept 13)
+**Chapter 1. Kickoff and Quick Study of Deep Learning** (Sept 5, Sept 12)
 Dive into the essentials of deep learning, exploring core model architectures such as CNNs, VAEs, and ResNets. Understand the computational underpinnings, including frameworks like Pytorch and Tensorflow, optimization methods like SGD and ADAM, and basic principles. We will set up the development environments, including setup of Python, Pytorch, IDE, Github, and optionally Minnesota Supercomputing Institute (MSI) and Huggingface. Finally, we will go through some (superficial) usage of pretrained large language models (LLMs), vision LLMs, text-to-image and text-to-video diffusion models.
 
-**Chapter 2. Large Language Modeling** (Sept 13, 20)
+**Chapter 2. Large Language Modeling** (Sept 12, 19)
 We will dissect the model structures that underlie large language modeling, including various decoding algorithms and their inherent constraints, tokenizer training, positional encoding, attention mechanisms, and explore emergent linguistic abilities at scale such as zero-shot and few-shot learning capabilities.
 
-**Chapter 3. Training LLMs from Scratch** (Sept 27)
+**Chapter 3. Training LLMs from Scratch** (Sept 26)
 We will cover the end-to-end process of building a transformer-based model from scratch. Specifically, we will go through computational tools such as Pytorch and cloud-computing, build model architectures, evaluate models, and examine how different hyperparameter choices could affect model performance.
 
-**Chapter 4. Finetuning LLMs** (Oct 4)
+**Chapter 4. Finetuning LLMs** (Oct 3)
 This chapter introduces techniques for finetuning large language models to adapt them to specific tasks or user preferences. We will cover instruction finetuning, explore use cases such as LLM-based recommender systems and tabular data analysis, and examine the challenge of catastrophic forgetting during finetuning.
 
 
-**Chapter 5. Human-Value Alignment** (Oct 11)
+**Chapter 5. Human-Value Alignment** (Oct 10)
 In this chapter, we will address the challenge of aligning LLM outputs with human values, such as making them more helpful, harmless, humorous, and personalized. We will discuss the technique of reinforcement learning from human feedback (RLHF) and explore emerging research directions focused on aligning AI systems with multi-dimensional value metrics.
 
 
-**Chapter 6. Computation and Memory Problems in Foundation Models’ Training** (Oct 18)
+**Chapter 6. Computation and Memory Problems in Foundation Models’ Training** (Oct 17)
 We will target strategies for optimizing computation and memory usage in the training and finetuning of large foundational models. Topics include distributed training methodologies, memory-efficient techniques like ZeRO and parameter-efficient finetuning, alongside explorations of mixture-of-experts architectures.
 
-**Chapter X. Project Preparation and Proposal Discussion** (Oct 18, Oct 25)
+**Chapter X. Project Preparation and Proposal Discussion** (Oct 17, Oct 24)
 
-**Chapter 7. Diffusion Models** (Nov 1)
+**Chapter 7. Diffusion Models** (Oct 31)
 We will introduce diffusion models, a class of generative models that have shown remarkable proficiency in synthesizing high-quality data, especially text-to-image data. We will start with variation autoencoders and then discuss the architecture of many state-of-the-art diffusion models. We will explore how such models can enable the multi-scale representations crucial for generating photorealistic images from textual descriptions.
 
-**Chapter 8. Retrieval Augmented Generation** (Nov 8)
+**Chapter 8. Agentic AI** (Nov 7)
+We will explore the emerging field of agentic AI, focusing on autonomous agents capable of reasoning, planning, and acting in complex environments. This chapter will cover the mathematical foundations of agentic systems, including reinforcement learning, multi-agent systems, and planning algorithms. We will examine applications in autonomous systems, intelligent assistants, and scientific discovery, while addressing fundamental problems such as effectiveness and safety.
+
+**Chapter 9. Retrieval Augmented Generation** (Nov 14)
 We will examine how Retrieval-Augmented Generation (RAG) can improve the performance of LLMs in knowledge-intensive tasks, examining its computational scalability and safety.
 
-**Chapter 9. Efficient Deployment Strategies for Foundation Models** (Nov 15)
+**Chapter 10. Efficient Deployment Strategies for Foundation Models** (Nov 21)
 We will introduce standard techniques to reduce sizes of standard deep model and transformer models, such as compiling, quantization, pruning, knowledge distillation, their applications to model deployment, and the statistical rationales.
 
-**Chapter 10. Ethics and Safety in Generative AI** (Nov 22)
+**Chapter 11. Ethics and Safety in Generative AI** (Nov 21)
 As we navigate the complexities and capabilities of AI technologies, ethical considerations will form an integral part of our curriculum. We will introduce quantitative methods and metrics to assess the safety of generative models from two perspectives. One is from an ethics perspective, including fairness and toxicity. We will also delve into content moderation techniques grounded in statistical detection and watermarking techniques. The other is from a machine learning security perspective. We will study several angles that practical AI systems must counteract, including adversarial examples, privacy, data poisoning backdoor attacks, membership inference attacks, model-stealing attacks, and their statistical foundations. The lecture will also discuss how these security issues are arising in large generative models.
 
-**Chapter Y. Final Project Presentation and Discussion** (Dec 6)
+**Chapter Y. Final Project Presentation and Discussion** (Dec 5)
 In summary, this course is not an introduction of generative AI tools. It is a research-oriented course designed for PhD students to quickly learn the key toolsets and principles that drive the field. By offering hands-on experiences and highlighting theoretical bases, we aim to equip students to apply their knowledge across scientific domains and foster innovative AI-for-science initiatives.
 
 
