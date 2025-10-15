@@ -3,7 +3,7 @@
 ## Quick Survey
 <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScZsRUvrW6k9SWP2xKIFSNt3OYPgEAobyBnzboKxaIkRlKZng/viewform?embedded=true" width="640" height="880" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
 
-## About the Stat 8105 Course (Fall 2025)
+## About the Stat 8105 Course
 
 Artificial Intelligence (AI) has evolved from a specialized field into a pivotal force shaping modern technology. Through our engagement with students across various disciplines, it is clear that many are intrigued by AI. They range from those engaged in PhD research to others seeking exceptional career opportunities or simply exploring their options. Despite their interest, a common challenge persists: a lack of holistic views about what to learn and how to effectively use AI tools. AI has experienced rapid advancements over the past two decades, with new methodologies and concepts emerging frequently. The terms "AI" and "Generative AI" themselves are broad, encompassing a wide range of disciplines including computer science, statistics, optimization, control, information theory, often leading to disparate interpretations and terminologies across different academic backgrounds. Fortunately, the main concepts and techniques of AI does not evolve as rapidly as it appears. Many thoughts are deeply rooted in established fields, such as how to organize data, set up the optimization problem, and interpretation of results. 
 

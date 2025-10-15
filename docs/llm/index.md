@@ -293,7 +293,7 @@ While desired vocabulary size not reached or merges are beneficial:
     Replace all occurrences of (a, b) in the corpus with c
 Return modified corpus and V
 ```
-For example,  suppose we have the word "hello". The initial vocabulary is {h, e, l, o}. The most frequent pair is (l, l). The new vocabulary after first merge is {h, e, ll, o}.
+For example, suppose we have the text "hello hello world". The initial vocabulary is {h, e, l, o, w, r, d, space}. After counting adjacent pairs, we find that both (l,l) and (h,e) appear twice, while other pairs appear once. Let's merge the most frequent pair (l,l) first. The new vocabulary after first merge is {h, e, ll, o, w, r, d, space}.
 
 > [**SentencePiece**](https://github.com/google/sentencepiece) is a package that implements subword tokenization. It is language-independent and can be used to train LLMs without requiring pre-tokenized text. SentencePiece can train models directly from raw, untokenized texts, and support both BPE and unigram language model tokenization methods.
 
