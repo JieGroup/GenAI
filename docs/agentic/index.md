@@ -197,6 +197,10 @@ Agents exchange messages, share intermediate outputs, negotiate decisions, and a
 - Research shows measurable improvements when tasks benefit from diverse perspectives.
 - Drawback: harder to control and predict, since multiple autonomous entities interact.
 
+**Figure: Architecture of a multi‑agent AI system with three interconnected layers** ([image source](https://arxiv.org/abs/2505.18397))
+<div style="text-align:center;">
+    <img src="../_static/img/multi_agent.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+</div>
 ---
 
 ## Is Multi-Agent More Effective Than Single-Agent?
@@ -210,6 +214,10 @@ and coordinate tasks more effectively than single agents, drawing from divide-an
 - **Feedback Integration and Adaptation**: Feedback integration explores how MAS adapt over time through
 internal and external signals, leveraging Bayesian approaches.
 
+**Figure: Architecture of a multi‑agent AI system with three interconnected layers** ([image source](https://arxiv.org/abs/2505.18397))
+<div style="text-align:center;">
+    <img src="../_static/img/multi_agent_efficient.png" alt="Sample Aug" width="600" style="display:block; margin:auto;">
+</div>
 
 ## Safety in Multi-Agent AI Systems
 
