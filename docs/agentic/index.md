@@ -97,6 +97,62 @@ General workflow:
 
 - Tool use dramatically expands what an agent can accomplish, enabling real-world interaction and solving tasks that pure text generation cannot handle.
 
+**Sample code**
+
+Below is a simple example showing how an agent can detect a need for a tool, generate a tool call, execute the tool, and integrate the result.
+
+```python
+# Minimal Agentic Workflow Example (LangChain)
+
+import os
+
+# 0. Set your API key before running
+os.environ["OPENAI_API_KEY"] = "YOUR_API_KEY_HERE"
+
+from langchain_openai import ChatOpenAI
+from langchain.tools import Tool
+from langchain.agents import initialize_agent, AgentType
+
+
+# 1. Define a simple tool
+def multiply(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+multiply_tool = Tool(
+    name="Multiply",
+    func=lambda x: multiply(*map(int, x.split(","))),
+    description="Multiply two integers. Input format: 'a,b' (for example: '12,9').",
+)
+
+
+# 2. Initialize the base LLM (the agent's “brain”)
+llm = ChatOpenAI(
+    model="gpt-4o-mini",   # or any chat model you use in class
+    temperature=0.0,
+)
+
+
+# 3. Create an agent that can plan → call tools → reason → answer
+agent = initialize_agent(
+    tools=[multiply_tool],
+    llm=llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True,          # prints the reasoning and tool calls — good for teaching
+)
+
+
+# 4. Ask the agent to solve a multi-step task
+question = (
+    "If Alice has 12 packs of snacks and each pack has 9 items, "
+    "how many total items are there? "
+    "Think step by step and use the Multiply tool when you need to."
+)
+
+response = agent.run(question)
+print("Final answer:", response)
+
+```
 ---
 
 ### Planning — Decomposing Complex Tasks Into Actionable Steps
