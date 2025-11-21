@@ -151,7 +151,6 @@ question = (
 
 response = agent.run(question)
 print("Final answer:", response)
-
 ```
 ---
 
