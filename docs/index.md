@@ -59,8 +59,8 @@ finetuning/index
 alignment/index
 resource/index
 diffusion/index
-agentic/index
 rag/index
 deployment/index
 safety/index
+agentic/index
 ```
