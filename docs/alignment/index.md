@@ -14,7 +14,7 @@ graph LR
 ```{mermaid}
 graph LR
     BaseModel[Base Model] --> FineTuning[Supervised Finetuning]
-	UseCase[Define Application Case] --> FineTuning[Supervised Finetuning]
+    UseCase[Define Application Case] --> FineTuning[Supervised Finetuning]
     FineTuning --> RLHF[Human Value Alignment]
 ```
 

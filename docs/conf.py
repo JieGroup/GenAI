@@ -31,6 +31,10 @@ extensions = [
     'sphinxcontrib.mermaid',
 ]
 
+# Pin mermaid version so future CDN releases don't break previously-rendered diagrams.
+# 10.9.0 is the last v10 LTS — stricter parsers in v11 broke our existing graphs.
+mermaid_version = "10.9.0"
+
 # Set font size for image-based math rendering
 imgmath_image_format = 'svg'
 imgmath_font_size = 13  # Adjust font size here (in pt)
@@ -70,7 +74,6 @@ html_css_files = [
 ]
 html_js_files = [
     'https://code.jquery.com/jquery-3.6.0.min.js',  # Load jQuery
-    'https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.13.5/mermaid.min.js',  # Add Mermaid JS
     'custom.js',
 ]
 
