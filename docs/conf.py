@@ -31,13 +31,13 @@ extensions = [
     'sphinxcontrib.mermaid',
 ]
 
-# Pin mermaid version so future CDN releases don't break previously-rendered diagrams.
-# 10.9.0 is the last v10 LTS — stricter parsers in v11 broke our existing graphs.
-mermaid_version = "10.9.0"
-
-# Force the classic light theme; without this, sphinxcontrib-mermaid's default init
-# can pick up a dark variant inside the RTD theme, producing black-box output.
-mermaid_init_js = "mermaid.initialize({startOnLoad: true, theme: 'default', securityLevel: 'loose'});"
+# Pin mermaid to 8.13.5 — this is what the site was always rendered with
+# (the original html_js_files load won the script-order race against the
+# extension's auto-loaded "latest"). It produces the classical pink-box
+# light-bordered look. Newer versions (10+, 11+) shipped both stricter
+# parsers AND different default themes, so pinning here keeps both
+# rendering and look stable.
+mermaid_version = "8.13.5"
 
 # Set font size for image-based math rendering
 imgmath_image_format = 'svg'
