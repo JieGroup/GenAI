@@ -102,3 +102,16 @@ div.math {
     font-size: 0.8em; /* Adjust the block equation font size to 80% of normal */
 }
 
+/* Mermaid diagrams: keep SVG at natural height, center, and prevent the
+   RTD theme from leaving a screen-height gap between back-to-back blocks. */
+div.mermaid {
+    text-align: center;
+    margin: 1em 0;
+    line-height: 0;
+}
+div.mermaid svg {
+    max-width: 100%;
+    height: auto !important;
+    display: inline-block;
+}
+
