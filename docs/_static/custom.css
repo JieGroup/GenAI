@@ -102,55 +102,56 @@ div.math {
     font-size: 0.8em; /* Adjust the block equation font size to 80% of normal */
 }
 
-/* Mermaid diagrams — two goals:
-   1. Cap height so back-to-back diagrams don't leave a screen-height gap
-   2. Force the classical pink-box look (the extension's dark-mode detection
-      otherwise paints boxes black, ignoring mermaid_init_js).             */
-div.mermaid,
+/* Mermaid diagrams.
+   Parent is <pre class="mermaid">, NOT <div>. The extension also injects
+   an inline rule "pre.mermaid > svg { height: 500px }" that produces a
+   huge whitespace gap regardless of diagram content; we override it here
+   to use the SVG's natural aspect ratio capped at 200px tall. */
+pre.mermaid,
 .mermaid-container {
-    margin: 1em 0;
-    max-height: 280px;
+    margin: 1em auto;
     text-align: center;
 }
-div.mermaid svg {
-    max-width: 100%;
-    max-height: 260px;
+pre.mermaid > svg,
+.mermaid-container > pre.mermaid > svg {
     height: auto !important;
+    max-height: 200px !important;
+    max-width: 100%;
     display: inline-block;
 }
 
 /* Force classical mermaid v8 look: pale-lavender fill, purple border,
    dark text, dark arrows. Overrides the dark theme the extension applies
-   when it detects darkMode in the user's browser. */
-div.mermaid g.node rect,
-div.mermaid g.node polygon,
-div.mermaid g.node path,
-div.mermaid g.node circle,
-div.mermaid g.node ellipse {
+   when it auto-detects darkMode in the user's browser. */
+.mermaid g.node rect,
+.mermaid g.node polygon,
+.mermaid g.node path,
+.mermaid g.node circle,
+.mermaid g.node ellipse {
     fill: #ECECFF !important;
     stroke: #9370DB !important;
     stroke-width: 1px !important;
 }
-div.mermaid g.node .label,
-div.mermaid g.node .nodeLabel,
-div.mermaid g.node text,
-div.mermaid g.node foreignObject div,
-div.mermaid g.node foreignObject span {
+.mermaid g.node .label,
+.mermaid g.node .nodeLabel,
+.mermaid g.node text,
+.mermaid g.node foreignObject div,
+.mermaid g.node foreignObject span {
     color: #333 !important;
     fill: #333 !important;
 }
-div.mermaid g.edgePaths path,
-div.mermaid g.edgePath path.path {
+.mermaid g.edgePaths path,
+.mermaid g.edgePath path.path {
     stroke: #333 !important;
     fill: none !important;
 }
-div.mermaid g.edgePaths marker path,
-div.mermaid marker path {
+.mermaid g.edgePaths marker path,
+.mermaid marker path {
     fill: #333 !important;
     stroke: #333 !important;
 }
-div.mermaid g.edgeLabels foreignObject div,
-div.mermaid g.edgeLabels span {
+.mermaid g.edgeLabels foreignObject div,
+.mermaid g.edgeLabels span {
     background: #ffffff !important;
     color: #333 !important;
 }
