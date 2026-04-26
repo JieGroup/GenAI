@@ -31,13 +31,32 @@ extensions = [
     'sphinxcontrib.mermaid',
 ]
 
-# Pin mermaid to 8.13.5 — this is what the site was always rendered with
-# (the original html_js_files load won the script-order race against the
-# extension's auto-loaded "latest"). It produces the classical pink-box
-# light-bordered look. Newer versions (10+, 11+) shipped both stricter
-# parsers AND different default themes, so pinning here keeps both
-# rendering and look stable.
-mermaid_version = "8.13.5"
+# Pin mermaid to 10.9.0 — last v10 LTS, compatible with the current
+# sphinxcontrib-mermaid (>= 10.3.0 required). Newer v11 ships a stricter
+# parser that breaks our existing graphs.
+mermaid_version = "10.9.0"
+
+# Use the 'base' theme with themeVariables that replicate mermaid v8's
+# classical look (pale-lavender boxes with purple borders) — matches the
+# original site rendering before silent CDN bumps.
+mermaid_init_js = (
+    "mermaid.initialize({"
+    "startOnLoad: true,"
+    "securityLevel: 'loose',"
+    "theme: 'base',"
+    "themeVariables: {"
+    "  primaryColor: '#ECECFF',"
+    "  primaryBorderColor: '#9370DB',"
+    "  primaryTextColor: '#333',"
+    "  lineColor: '#333',"
+    "  mainBkg: '#ECECFF',"
+    "  secondaryColor: '#ffffde',"
+    "  tertiaryColor: '#ffffff',"
+    "  edgeLabelBackground: '#e8e8e8',"
+    "  fontFamily: 'trebuchet ms, verdana, arial, sans-serif'"
+    "}"
+    "});"
+)
 
 # Set font size for image-based math rendering
 imgmath_image_format = 'svg'
