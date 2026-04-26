@@ -35,6 +35,10 @@ extensions = [
 # 10.9.0 is the last v10 LTS — stricter parsers in v11 broke our existing graphs.
 mermaid_version = "10.9.0"
 
+# Force the classic light theme; without this, sphinxcontrib-mermaid's default init
+# can pick up a dark variant inside the RTD theme, producing black-box output.
+mermaid_init_js = "mermaid.initialize({startOnLoad: true, theme: 'default', securityLevel: 'loose'});"
+
 # Set font size for image-based math rendering
 imgmath_image_format = 'svg'
 imgmath_font_size = 13  # Adjust font size here (in pt)
